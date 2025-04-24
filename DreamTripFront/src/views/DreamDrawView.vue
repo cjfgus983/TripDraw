@@ -1,8 +1,8 @@
 <template>
   <div class="p-4 flex flex-col gap-4 rounded-2xl shadow">
-    <h2 class="text-2xl font-bold">🖌️ GPT 그림 분석</h2>
+    <h2 class="text-2xl font-bold">🖌️ 그림을 그리고 GPT로 장소 추측</h2>
 
-    <!-- Canvas Area -->
+    <!-- 캔버스 -->
     <canvas
       ref="canvasRef"
       @mousedown="startPaint"
@@ -12,52 +12,31 @@
       class="border border-gray-300 rounded-2xl shadow"
     />
 
-    <!-- Tool Bar -->
-    <div class="flex flex-wrap gap-4 items-center">
-      <div class="flex items-center gap-2">
-        <label>색상:</label>
-        <input type="color" v-model="color" class="w-10 h-10 border-none bg-transparent" />
-      </div>
+    <!-- 툴바 -->
+    <div class="flex flex-wrap gap-4 items-center mt-2">
+      <label>색상: <input type="color" v-model="color" /></label>
+      <label>두께: <input type="range" min="1" max="30" v-model="lineWidth" /></label>
 
-      <div class="flex items-center gap-2">
-        <label>선 두께:</label>
-        <input type="range" min="1" max="30" v-model="lineWidth" />
-      </div>
-
-      <button @click="toggleEraser" :class="['px-4 py-2 rounded border', isEraser ? 'bg-gray-200' : 'bg-white']">
+      <button @click="toggleEraser" class="px-4 py-2 rounded border">
         {{ isEraser ? '펜 모드' : '지우개' }}
       </button>
-
       <button @click="clearCanvas" class="px-4 py-2 rounded bg-red-500 text-white">전체 지우기</button>
-      <button @click="handleComplete" class="px-4 py-2 rounded bg-blue-500 text-white">완성 → 분석</button>
+      <button @click="handleComplete" class="px-4 py-2 rounded bg-blue-500 text-white">완성 → GPT 분석</button>
     </div>
 
-    <!-- 결과 영역 -->
-    <div v-if="resultCountry" class="mt-6">
-      <p class="text-xl font-semibold">
-        🎉 이 그림은 <span class="text-primary">{{ resultCountry }}</span> 을 떠올리게 합니다!
-      </p>
-      <div class="mt-4">
-        <iframe
-          v-if="mapUrl"
-          :src="mapUrl"
-          width="1000"
-          height="800"
-          style="border:0"
-          allowfullscreen=""
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
-      </div>
-    </div>
+    <!-- 결과 텍스트 -->
+    <p v-if="resultPlace" class="text-lg font-semibold mt-4">🧠 GPT가 떠올린 장소: {{ resultPlace }}</p>
+
+    <!-- 지도 -->
+    <div id="map" class="w-full h-[600px] mt-4 border rounded"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 
-const CANVAS_W = 1000
-const CANVAS_H = 800
+const CANVAS_W = 800
+const CANVAS_H = 500
 
 const canvasRef = ref(null)
 const ctxRef = ref(null)
@@ -65,10 +44,12 @@ const painting = ref(false)
 const color = ref('#000000')
 const lineWidth = ref(4)
 const isEraser = ref(false)
-const resultCountry = ref(null)
-const mapUrl = ref(null)
+const resultPlace = ref(null)
 
-// 🖌️ 캔버스 초기화
+let map = null
+let marker = null
+
+// 🎨 캔버스 초기화
 onMounted(() => {
   const canvas = canvasRef.value
   canvas.width = CANVAS_W
@@ -82,16 +63,19 @@ onMounted(() => {
   ctx.lineWidth = lineWidth.value
   ctx.strokeStyle = color.value
   ctxRef.value = ctx
+
+  // 🗺️ 지도 초기화
+  initMap()
 })
 
-// 🎨 옵션 변경 시 적용
+// 🖍️ 도구 옵션 변경 감지
 watch([color, lineWidth, isEraser], () => {
   if (!ctxRef.value) return
   ctxRef.value.lineWidth = lineWidth.value
   ctxRef.value.strokeStyle = isEraser.value ? '#ffffff' : color.value
 })
 
-// 🖍️ 그리기 기능
+// 🖌️ 그리기
 function startPaint(e) {
   const { offsetX, offsetY } = e
   ctxRef.value.beginPath()
@@ -120,25 +104,23 @@ function toggleEraser() {
   isEraser.value = !isEraser.value
 }
 
-// 🌎 GPT 호출 → 나라 추측 → 지도 URL 설정
+// ✅ 그림 → 분석
 async function handleComplete() {
   const dataUrl = canvasRef.value.toDataURL('image/png')
-  const raw = await callOpenAI(dataUrl)
-  const country = extractLocation(raw)
-  resultCountry.value = country
-
-  mapUrl.value = `https://www.google.com/maps/embed/v1/place?key=AIzaSyCSHVlmjjqz44yoKKnKbngFZt-ChIPvve4&q=${encodeURIComponent(
-    country
-  )}&zoom=5`
+  const gptResponse = await callOpenAI(dataUrl)
+  const place = extractLocation(gptResponse)
+  resultPlace.value = place
+  const coords = await getLatLng(place)
+  if (coords) updateMap(coords.lat, coords.lng)
 }
 
-// ✨ OpenAI API 호출 함수
-async function callOpenAI(base64Img, retry = 0) {
+// 📤 OpenAI API 호출
+async function callOpenAI(base64Img) {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer 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`, // 🔑 꼭 변경!
+      Authorization: `Bearer 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`, // 🔑 여기에 실제 키로 바꿔야 함
     },
     body: JSON.stringify({
       model: 'gpt-4o',
@@ -146,7 +128,7 @@ async function callOpenAI(base64Img, retry = 0) {
         {
           role: 'user',
           content: [
-            { type: 'text', text: '이 그림을 보고 떠오르는 나라, 혹은 위치, 혹은 장소를 알려줘' },
+            { type: 'text', text: '이 그림을 보고 떠오르는 장소명 (도시/지역)을 알려줘' },
             { type: 'image_url', image_url: { url: base64Img } },
           ],
         },
@@ -154,25 +136,44 @@ async function callOpenAI(base64Img, retry = 0) {
     }),
   })
 
-  if (res.status === 429 && retry < 5) {
-    const wait = (res.headers.get('Retry-After') ?? 2) * 1000 * (retry + 1)
-    await new Promise((r) => setTimeout(r, wait))
-    return callOpenAI(base64Img, retry + 1)
-  }
-
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`OpenAI 오류: ${res.status} - ${text}`)
-  }
-
   const data = await res.json()
   return data.choices?.[0]?.message?.content?.trim()
 }
 
-// 🧠 GPT 응답에서 위치만 뽑는 정규식
+// 🔍 장소명 추출
 function extractLocation(text) {
-  const match = text.match(/['\"]?([가-힣a-zA-Z ,]+)['\"]?/)
+  if (!text || typeof text !== 'string') return '알 수 없음'
+  const match = text.match(/['"]?([가-힣a-zA-Z ,]+)['"]?/)
   return match ? match[1] : text
+}
+
+// 📍 위치 → 좌표
+async function getLatLng(placeName) {
+  const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(placeName)}&key=AIzaSyCSHVlmjjqz44yoKKnKbngFZt-ChIPvve4`)
+  const data = await res.json()
+  return data.results?.[0]?.geometry?.location
+}
+
+// 🗺️ 지도 초기화
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: 37.5665, lng: 126.9780 }, // 서울
+    zoom: 5,
+    mapId: 'YOUR_MAP_ID' // 🔔 고급 마커를 쓸 거면 반드시 설정
+  })
+}
+
+// 🎯 마커 찍고 지도 이동
+function updateMap(lat, lng) {
+  map.setCenter({ lat, lng })
+  map.setZoom(12)
+
+  if (marker) marker.setMap(null)
+  marker = new google.maps.marker.AdvancedMarkerElement({
+    position: { lat, lng },
+    map,
+    title: 'GPT가 예측한 장소',
+  })
 }
 </script>
 

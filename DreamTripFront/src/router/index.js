@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import SignupForm from '../components/SignupForm.vue'
 import HomeView from '../views/HomeView.vue'
 import DreamDrawView from '../views/DreamDrawView.vue'
+import test from '../views/test.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,6 +21,16 @@ const router = createRouter({
       path: '/dream-draw',
       name: 'dreamDraw',
       component: DreamDrawView
+    },
+    {
+      path: '/test',
+      name: 'test',
+      component: test,
+    },
+    {
+      path: '/image',
+      name: 'ImageDetect',
+      component: () => import('../views/ImageDetectView.vue'),
     },
   ],
 })
