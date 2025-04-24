@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController // REST API 컨트롤러
-@RequestMapping("/api") // 모든 URL은 /api/로 시작
+@RequestMapping("/api") // 모든 URL은 /api/로 시작 --> 나중에 signup으로 바꿀까
 public class SignupController {
 
     @Autowired
@@ -31,25 +31,59 @@ public class SignupController {
         return ResponseEntity.ok("인증코드 발송");
     }
 
-    // 2단계: 인증 코드 확인 후 회원가입
+    //  1.5단계: 이메일 인증 코드 확인용 API 추가
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> verifyCode(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String code = body.get("code");
+
+        if (emailService.verifyCode(email, code)) {
+            return ResponseEntity.ok("인증 성공");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("인증 코드가 일치하지 않습니다.");
+        }
+    }
+
+    // 2단계: 회원가입
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, String> body) {
         String email = body.get("email");
         String password = body.get("password");
         String code = body.get("code");
+        String nickname = body.get("nickname");
 
-        // 인증 코드 일치 확인
         if (!emailService.verifyCode(email, code)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("인증 코드가 올바르지 않습니다.");
         }
 
-        // 사용자 생성 및 저장
+        // 닉네임 중복 확인도 백엔드에서 가능 (프론트에서도 확인하니 이건 선택사항)
+        if (userRepository.existsByEmail(email)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 가입된 이메일입니다.");
+        }
+
         User user = new User();
         user.setEmail(email);
-        user.setPassword(password); // 실무에선 BCrypt 암호화 필요
+        user.setPassword(password);
+        user.setNickname(nickname);
         user.setEmailVerified(true);
         userRepository.save(user);
 
         return ResponseEntity.ok("회원가입 완료");
+    }
+
+    // 닉네임 중복 확인
+    @GetMapping("/check-nickname")
+    public ResponseEntity<?> checkNickname(@RequestParam String nickname) {
+        boolean exists = userRepository.existsByNickname(nickname);
+        if (exists) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 사용 중인 닉네임입니다.");
+        } else {
+            return ResponseEntity.ok("사용 가능한 닉네임입니다.");
+        }
+    }
+
+    @GetMapping("/home")
+    public String home() {
+        return "✅ 로그인 성공! 여기는 /home 입니다.";
     }
 }
