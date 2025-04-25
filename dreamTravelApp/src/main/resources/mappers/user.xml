@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="HyeonRi.dreamTravelApp.model.dao.UserDao">
+
+    <!-- ResultMap -->
+    <resultMap id="userResultMap" type="HyeonRi.dreamTravelApp.model.dto.User">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="emailVerified" column="email_verified"/>
+        <result property="gender" column="gender"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- SELECT by ID -->
+    <select id="findById" parameterType="long" resultMap="userResultMap">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
+
+    <!-- SELECT by Email -->
+    <select id="findByEmail" parameterType="string" resultMap="userResultMap">
+        SELECT * FROM user WHERE email = #{email}
+    </select>
+
+    <!-- INSERT -->
+    <insert id="insertUser" parameterType="HyeonRi.dreamTravelApp.model.dto.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (name, email, password, email_verified, gender, birth_date, created_at, updated_at)
+        VALUES (#{name}, #{email}, #{password}, #{emailVerified}, #{gender}, #{birthDate}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- UPDATE -->
+    <update id="updateUser" parameterType="HyeonRi.dreamTravelApp.model.dto.User">
+        UPDATE user
+        SET name = #{name},
+            password = #{password},
+            email_verified = #{emailVerified},
+            gender = #{gender},
+            birth_date = #{birthDate},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- DELETE -->
+    <delete id="deleteUser" parameterType="HyeonRi.dreamTravelApp.model.dto.User">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+
+</mapper>
