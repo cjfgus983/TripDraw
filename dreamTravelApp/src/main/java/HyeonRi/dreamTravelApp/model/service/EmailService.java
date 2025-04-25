@@ -1,4 +1,4 @@
-package HyeonRi.dreamTravelApp.service;
+package HyeonRi.dreamTravelApp.model.service;
 // 이메일 인증 코드 관리용
 
 import org.springframework.beans.factory.annotation.Autowired;

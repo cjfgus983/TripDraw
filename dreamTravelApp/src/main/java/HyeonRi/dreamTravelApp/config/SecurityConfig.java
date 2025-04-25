@@ -17,4 +17,23 @@ public class SecurityConfig {
 
         return http.build();
     }
+//	 @Bean
+//	    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//	        http
+//	            .csrf().disable()
+//	            .authorizeHttpRequests()
+//	                .requestMatchers(
+//	                    "/", 
+//	                    "/index", 
+//	                    "/index.jsp", 
+//	                    "/css/**", 
+//	                    "/js/**", 
+//	                    "/images/**"
+//	                ).permitAll()
+//	                .anyRequest().authenticated()
+//	            ;
+//
+//	        return http.build();
+//	    }
+
 }

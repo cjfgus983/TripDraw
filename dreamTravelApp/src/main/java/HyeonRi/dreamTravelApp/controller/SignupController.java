@@ -1,15 +1,22 @@
 package HyeonRi.dreamTravelApp.controller;
 
-import HyeonRi.dreamTravelApp.dto.User;
-import HyeonRi.dreamTravelApp.repository.UserRepository;
-import HyeonRi.dreamTravelApp.service.EmailService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import HyeonRi.dreamTravelApp.model.dto.User;
+import HyeonRi.dreamTravelApp.model.service.EmailService;
+import HyeonRi.dreamTravelApp.repository.UserRepository;
+
 @RestController // REST API 컨트롤러
-@RequestMapping("/api") // 모든 URL은 /api/로 시작
+@RequestMapping("/user") // 모든 URL은 /api/로 시작
 public class SignupController {
 
     @Autowired
@@ -17,7 +24,7 @@ public class SignupController {
 
     @Autowired
     private EmailService emailService;
-
+    
     // 1단계: 이메일로 인증 코드 요청 /api/send-code 로 요청이 오면 아래 메서드가 실행
     @PostMapping("/send-code")
     public ResponseEntity<?> sendEmail(@RequestBody Map<String, String> body) {
