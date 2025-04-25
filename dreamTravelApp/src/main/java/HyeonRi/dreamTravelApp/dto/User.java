@@ -13,8 +13,13 @@ public class User {
     @GeneratedValue
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String email;
+
     private String password;
+
     private boolean emailVerified;
 
+    @Column(nullable = false, unique = true)
+    private String nickname;
 }
