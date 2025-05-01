@@ -1,7 +1,7 @@
-package HyeonRi.dreamTravelApp.repository;
+package HyeonRi.TripDrawApp.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import HyeonRi.dreamTravelApp.dto.User;
+import HyeonRi.TripDrawApp.dto.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 

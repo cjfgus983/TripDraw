@@ -1,4 +1,4 @@
-package HyeonRi.dreamTravelApp.config;
+package HyeonRi.TripDrawApp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
