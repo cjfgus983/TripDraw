@@ -1,4 +1,4 @@
-package HyeonRi.dreamTravelApp.dto;
+package HyeonRi.TripDrawApp.dto;
 
 import jakarta.persistence.*;
 import lombok.Data;

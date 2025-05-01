@@ -1,8 +1,8 @@
-package HyeonRi.dreamTravelApp.controller;
+package HyeonRi.TripDrawApp.controller;
 
-import HyeonRi.dreamTravelApp.dto.User;
-import HyeonRi.dreamTravelApp.repository.UserRepository;
-import HyeonRi.dreamTravelApp.service.EmailService;
+import HyeonRi.TripDrawApp.dto.User;
+import HyeonRi.TripDrawApp.repository.UserRepository;
+import HyeonRi.TripDrawApp.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;

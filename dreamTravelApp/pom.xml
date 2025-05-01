@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>HyeonRi</groupId>
-	<artifactId>dreamTravelApp</artifactId>
+	<artifactId>TripDrawApp</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>dreamTravelApp</name>
 	<description>Demo project for Spring Boot</description>

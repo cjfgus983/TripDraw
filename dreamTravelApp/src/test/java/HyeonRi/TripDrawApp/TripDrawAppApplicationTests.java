@@ -1,10 +1,10 @@
-package HyeonRi.dreamTravelApp;
+package HyeonRi.TripDrawApp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DreamTravelAppApplicationTests {
+class TripDrawAppApplicationTests {
 
 	@Test
 	void contextLoads() {
