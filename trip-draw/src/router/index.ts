@@ -4,6 +4,7 @@ import FreeBoard from '@/pages/FreeBoard.vue'; // ← 새로 추가
 import DrawPage from '../pages/drawPage.vue';
 import DrawResult from '../pages/drawResult.vue';
 import TripPlanPage from '../pages/tripPlanPage.vue';
+import TripPlanDetail from '../pages/tripPlanDetail.vue';
 
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
@@ -11,6 +12,7 @@ const routes = [
   { path: '/drawpage', name: 'DrawPage', component: DrawPage },
   { path: '/drawresult', name: 'DrawResult', component: DrawResult },
   { path: '/tripplanpage', name: 'TripPlanPage', component: TripPlanPage },
+  { path: '/tripplandetail', name: 'TripPlanDetail', component: TripPlanDetail },
 ];
 
 const router = createRouter({
