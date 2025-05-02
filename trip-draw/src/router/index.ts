@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import MainPage from '@/pages/MainPage.vue';
-import FreeBoard from '@/pages/FreeBoard.vue'; // ← 새로 추가
-import DrawPage from '../pages/drawPage.vue';
-import DrawResult from '../pages/drawResult.vue';
-import TripPlanPage from '../pages/tripPlanPage.vue';
-import TripPlanDetail from '../pages/tripPlanDetail.vue';
-import TripPlanBoard from '../pages/tripPlanBoard.vue';
-import FreeDetail from '../pages/FreeDetail.vue';
-import Login from '../pages/login.vue';
-import SignUp from '../pages/signUp.vue';
-import Loading from '../pages/Loading.vue';
+import FreeBoard from '@/pages/board/free/FreeBoard.vue'; // ← 새로 추가
+import DrawPage from '../pages/drawing/DrawPage.vue';
+import DrawResult from '../pages/drawing/DrawResult.vue';
+import TripPlanPage from '../pages//board/tripplan/TripPlanPage.vue';
+import TripPlanDetail from '../pages/board/tripplan/TripPlanDetail.vue';
+import TripPlanBoard from '../pages/board/tripplan/TripPlanBoard.vue';
+import FreeDetail from '../pages/board/free/FreeDetail.vue';
+import Login from '../pages/user/Login.vue';
+import SignUp from '../pages/user/SignUp.vue';
+import Loading from '../pages/drawing/Loading.vue';
 
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
