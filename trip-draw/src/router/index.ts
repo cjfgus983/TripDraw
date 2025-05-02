@@ -6,6 +6,7 @@ import DrawResult from '../pages/drawResult.vue';
 import TripPlanPage from '../pages/tripPlanPage.vue';
 import TripPlanDetail from '../pages/tripPlanDetail.vue';
 import TripPlanBoard from '../pages/tripPlanBoard.vue';
+import FreeDetail from '../pages/FreeDetail.vue';
 import Login from '../pages/login.vue';
 import SignUp from '../pages/signUp.vue';
 import Loading from '../pages/Loading.vue';
@@ -18,6 +19,7 @@ const routes = [
   { path: '/tripplanpage', name: 'TripPlanPage', component: TripPlanPage },
   { path: '/tripplandetail', name: 'TripPlanDetail', component: TripPlanDetail },
   { path: '/tripplanboard', name: 'TripPlanBoard', component: TripPlanBoard },
+  { path: '/freedetail', name: 'FreeDetail', component: FreeDetail },
   { path: '/login', name: 'Login', component: Login },
   { path: '/signup', name: 'SignUp', component: SignUp },
   { path: '/loading', name: 'Loading', component: Loading },
