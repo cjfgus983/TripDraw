@@ -3,7 +3,7 @@
     <div
       class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#9FB3DF] via-[#9EC6F3] to-[#BDDDE4] py-10"
     >
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-[480px] mx-4">
+      <div class="max-w-md w-full space-y-8 bg-white/90 backdrop-blur-sm p-10 rounded-lg shadow-lg border border-[#FFF1D5]/20">
         <div class="p-10">
           <!-- 헤더 섹션 -->
           <h1 class="text-2xl font-bold text-[#9FB3DF] mb-8 text-center">
