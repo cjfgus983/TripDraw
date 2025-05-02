@@ -6,6 +6,9 @@ import FreeRegist from '../pages/board/free/FreeRegist.vue';
 import NoticeBoard from '@/pages/board/notice/NoticeBoard.vue';
 import NoticeDetail from '@/pages/board/notice/NoticeDetail.vue';
 import NoticeRegist from '@/pages/board/notice/NoticeRegist.vue';
+import ContactBoard from '@/pages/board/contact/ContactBoard.vue';
+import ContactDetail from '@/pages/board/contact/ContactDetail.vue';
+import ContactRegist from '@/pages/board/contact/ContactRegist.vue';
 import DrawPage from '../pages/drawing/DrawPage.vue';
 import DrawResult from '../pages/drawing/DrawResult.vue';
 import TripPlanPage from '../pages//board/tripplan/TripPlanPage.vue';
@@ -23,6 +26,9 @@ const routes = [
   { path: '/noticeboard', name: 'NoticeBoard', component: NoticeBoard },
   { path: '/noticedetail', name: 'NoticeDetail', component: NoticeDetail },
   { path: '/noticeregist', name: 'NoticeRegist', component: NoticeRegist },
+  { path: '/contactboard', name: 'ContactBoard', component: ContactBoard },
+  { path: '/contactdetail', name: 'ContactDetail', component: ContactDetail },
+  { path: '/contactregist', name: 'ContactRegist', component: ContactRegist },
   { path: '/drawpage', name: 'DrawPage', component: DrawPage },
   { path: '/drawresult', name: 'DrawResult', component: DrawResult },
   { path: '/tripplanpage', name: 'TripPlanPage', component: TripPlanPage },
