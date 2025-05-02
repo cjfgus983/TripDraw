@@ -7,10 +7,9 @@
         class="max-w-md w-full space-y-8 bg-white/90 backdrop-blur-sm p-10 rounded-lg shadow-lg border border-[#FFF1D5]/20"
       >
         <div class="text-center">
-          <img class="mx-auto h-16 w-auto" :src="logoUrl" alt="로고" />
-          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            로그인
-          </h2>
+            <h1 class="text-2xl font-bold text-[#9FB3DF] mb-8 text-center">
+                로그인
+            </h1>
         </div>
         <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
           <div class="rounded-md shadow-sm -space-y-px">
@@ -115,8 +114,7 @@
   <script lang="ts" setup>
   import { ref } from "vue";
   // 로고 이미지
-  const logoUrl =
-    "https://readdy.ai/api/search-image?query=A%20minimalist%20modern%20logo%20design%20with%20a%20simple%20geometric%20shape%20in%20blue%20gradient%20colors%20on%20a%20white%20background.%20The%20logo%20represents%20a%20tech%20company%20with%20a%20clean%20and%20professional%20look%20suitable%20for%20a%20login%20page&width=200&height=200&seq=logo1&orientation=squarish";
+  import logo from '@/assets/logo.png';
   // 폼 상태 관리
   const email = ref("");
   const password = ref("");
