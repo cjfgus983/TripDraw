@@ -7,6 +7,7 @@ import TripPlanPage from '../pages/tripPlanPage.vue';
 import TripPlanDetail from '../pages/tripPlanDetail.vue';
 import TripPlanBoard from '../pages/tripPlanBoard.vue';
 import Login from '../pages/login.vue';
+import SignUp from '../pages/signUp.vue';
 
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
@@ -17,6 +18,7 @@ const routes = [
   { path: '/tripplandetail', name: 'TripPlanDetail', component: TripPlanDetail },
   { path: '/tripplanboard', name: 'TripPlanBoard', component: TripPlanBoard },
   { path: '/login', name: 'Login', component: Login },
+  { path: '/signup', name: 'SignUp', component: SignUp },
 ];
 
 const router = createRouter({
