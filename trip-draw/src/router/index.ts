@@ -5,6 +5,7 @@ import DrawPage from '../pages/drawPage.vue';
 import DrawResult from '../pages/drawResult.vue';
 import TripPlanPage from '../pages/tripPlanPage.vue';
 import TripPlanDetail from '../pages/tripPlanDetail.vue';
+import TripPlanBoard from '../pages/tripPlanBoard.vue';
 
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
@@ -13,6 +14,7 @@ const routes = [
   { path: '/drawresult', name: 'DrawResult', component: DrawResult },
   { path: '/tripplanpage', name: 'TripPlanPage', component: TripPlanPage },
   { path: '/tripplandetail', name: 'TripPlanDetail', component: TripPlanDetail },
+  { path: '/tripplanboard', name: 'TripPlanBoard', component: TripPlanBoard },
 ];
 
 const router = createRouter({
