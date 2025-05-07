@@ -43,4 +43,12 @@ public class UserService {
         userMapper.insertUser(req);
     }
 
+
+    @Transactional(readOnly = true)
+    public boolean isEmailAvailable(String email) {
+        // LoginType.GENERAL 만 검사
+        int count = userMapper.countByEmailAndLoginType(email, LoginType.GENERAL);
+        // 카운트가 0 이면 사용 가능
+        return count == 0;
+    }
 }
