@@ -1,10 +1,10 @@
 <template>
     <div>
-        <header class="h-[120px] bg-white shadow-sm flex items-center justify-center transition-all duration-300"
+        <header class="h-[55px] bg-white shadow-sm flex items-center justify-center transition-all duration-300"
         :class="{ 'opacity-0': !isHeaderVisible }">
         <div class="container mx-auto px-4 flex items-center justify-center">
           <div class="logo-container text-center">
-            <img :src="logo" alt="로고" class="h-[300px] cursor-pointer" />
+            <img :src="logo" alt="로고" class="h-[150px] cursor-pointer" />
           </div>
         </div>
       </header>
