@@ -2,6 +2,7 @@ package HyeonRi.TripDrawApp.controller;
 
 import HyeonRi.TripDrawApp.dto.UserRegisterRequest;
 import HyeonRi.TripDrawApp.service.UserService;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
