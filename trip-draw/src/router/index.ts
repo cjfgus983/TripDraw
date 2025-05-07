@@ -17,6 +17,7 @@ import TripPlanBoard from '../pages/board/tripplan/TripPlanBoard.vue';
 import Login from '../pages/user/Login.vue';
 import SignUp from '../pages/user/SignUp.vue';
 import Loading from '../pages/drawing/Loading.vue';
+import MyPage from '../pages/user/MyPage.vue';
 
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
@@ -37,6 +38,7 @@ const routes = [
   { path: '/login', name: 'Login', component: Login },
   { path: '/signup', name: 'SignUp', component: SignUp },
   { path: '/loading', name: 'Loading', component: Loading },
+  { path: '/mypage', name: 'MyPage', component: MyPage },
 ];
 
 const router = createRouter({
