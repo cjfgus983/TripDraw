@@ -12,48 +12,46 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-
     @Value("${jwt.secret}")
-    private String secret;               // 평문 시크릿
+    private String SECRET;
 
-    private Key hmacKey;                 // HMAC 키 객체
+    private final long ACCESS_EXP_MS  = 1000 * 60 * 60 * 2;      // 2시간
+    private final long REFRESH_EXP_MS = 1000 * 60 * 60 * 24 * 7; // 7일
 
-    private final long EXPIRATION_MS = 1000L * 60 * 60 * 24; // 24시간
-
-    @PostConstruct
-    public void init() {
-        // 평문 시크릿을 곧바로 HMAC 키로 변환
-        this.hmacKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public String generateToken(String email) {
+    public String generateAccessToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
-                // Key 객체와 알고리즘을 함께 넘겨야 안전하게 서명됩니다
-                .signWith(hmacKey, SignatureAlgorithm.HS512)
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXP_MS))
+                .signWith(SignatureAlgorithm.HS256, SECRET)
                 .compact();
     }
 
-    public String getEmailFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(hmacKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+    public String generateRefreshToken(String email) {
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_EXP_MS))
+                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .compact();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(hmacKey)
-                    .build()
-                    .parseClaimsJws(token);
+            Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token);
             return true;
         } catch (JwtException e) {
             return false;
         }
     }
+
+    public String getEmailFromToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
 }
+
+
