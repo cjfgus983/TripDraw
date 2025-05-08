@@ -1,7 +1,7 @@
 package HyeonRi.TripDrawApp.service;
 
 import HyeonRi.TripDrawApp.domain.LoginType;
-import HyeonRi.TripDrawApp.dto.UserRegisterRequest;
+import HyeonRi.TripDrawApp.dto.UserRegisterRequestDto;
 import HyeonRi.TripDrawApp.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
@@ -20,7 +20,7 @@ public class UserService {
      * 신규 회원가입 처리
      */
     @Transactional
-    public void register(UserRegisterRequest req) {
+    public void register(UserRegisterRequestDto req) {
         // 1) loginType 기본 처리
         if (req.getLoginType() == null) {
             req.setLoginType(LoginType.GENERAL);

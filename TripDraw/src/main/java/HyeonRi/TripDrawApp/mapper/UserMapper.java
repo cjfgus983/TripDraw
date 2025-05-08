@@ -3,7 +3,7 @@ package HyeonRi.TripDrawApp.mapper;
 
 import HyeonRi.TripDrawApp.domain.LoginType;
 import HyeonRi.TripDrawApp.domain.User;
-import HyeonRi.TripDrawApp.dto.UserRegisterRequest;
+import HyeonRi.TripDrawApp.dto.UserRegisterRequestDto;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -31,7 +31,7 @@ public interface UserMapper {
           #{nickname}, #{loginType}
         )
     """)
-    void insertUser(UserRegisterRequest request);
+    void insertUser(UserRegisterRequestDto request);
 
     @Select("""
       SELECT COUNT(*) 
