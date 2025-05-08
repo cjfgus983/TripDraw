@@ -1,8 +1,7 @@
 package HyeonRi.TripDrawApp.controller;
 
-import HyeonRi.TripDrawApp.dto.UserRegisterRequest;
+import HyeonRi.TripDrawApp.dto.UserRegisterRequestDto;
 import HyeonRi.TripDrawApp.service.UserService;
-import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> registerUser(@RequestBody UserRegisterRequest request) {
+    public ResponseEntity<String> registerUser(@RequestBody UserRegisterRequestDto request) {
         userService.register(request);
         return ResponseEntity.ok("회원가입 완료");
     }
