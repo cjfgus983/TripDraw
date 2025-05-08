@@ -25,12 +25,15 @@ public class SecurityConfig {
 
                 .cors(Customizer.withDefaults()) // cors 설정 허가
 
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/", "/login/**", "/oauth2/**", "/api/**").permitAll()
+//                        // 위 url들에 대해서는 인증 없이 접근 가능 -> 로그인 필요 없음
+//                        .anyRequest().authenticated()
+//                        // 이외에는 싹 다 인증 없으면 막기
+//                );
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login/**", "/oauth2/**", "/api/**").permitAll()
-                        // 위 url들에 대해서는 인증 없이 접근 가능 -> 로그인 필요 없음
-                        .anyRequest().authenticated()
-                        // 이외에는 싹 다 인증 없으면 막기
-                );
+                	    .anyRequest().permitAll()
+                	);
 
 //                .oauth2Login(oauth2 -> oauth2
 //                        .defaultSuccessUrl("/api/home", true) //
