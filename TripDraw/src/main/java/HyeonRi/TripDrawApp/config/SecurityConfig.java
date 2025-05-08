@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
+
                 // 3-3) URL별 접근 제어
                 .authorizeHttpRequests(auth -> auth
                         // 회원가입, 로그인, 토큰 리프레시 등은 인증 없이 허용
