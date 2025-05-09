@@ -10,10 +10,10 @@
     >
       <div class="container mx-auto px-4 h-full flex items-center justify-between">
         <div class="flex space-x-6">
-          <router-link to="/board" class="nav-link">게시판</router-link>
-          <router-link to="/plan" class="nav-link">계획짜기</router-link>
-          <router-link to="/notice" class="nav-link">공지</router-link>
-          <router-link to="/contact" class="nav-link">문의</router-link>
+          <router-link to="/freeboard"    class="nav-link">게시판</router-link>
+          <router-link to="/tripplanpage" class="nav-link">계획짜기</router-link>
+          <router-link to="/noticeboard"  class="nav-link">공지</router-link>
+          <router-link to="/contactboard" class="nav-link">문의</router-link>
         </div>
         <div class="flex space-x-4">
           <router-link to="/login" class="nav-link">로그인</router-link>
