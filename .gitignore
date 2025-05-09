@@ -160,3 +160,11 @@ buildNumber.properties
 .classpath
 .DS_Store
 # End of https://www.toptal.com/developers/gitignore/api/java,maven,intellij
+
+# VSCode 설정
+.vscode/
+
+# Eclipse 설정
+.settings/
+.project
+.classpath
