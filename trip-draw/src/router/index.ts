@@ -18,6 +18,7 @@ import Login from '../pages/user/Login.vue';
 import SignUp from '../pages/user/SignUp.vue';
 import Loading from '../pages/drawing/Loading.vue';
 import MyPage from '../pages/user/MyPage.vue';
+import FindIdPassword from '../pages/user/FindIdPassword.vue';
 
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
@@ -39,6 +40,7 @@ const routes = [
   { path: '/signup', name: 'SignUp', component: SignUp },
   { path: '/loading', name: 'Loading', component: Loading },
   { path: '/mypage', name: 'MyPage', component: MyPage },
+  { path: '/findidpassword', name: 'FindIdPassword', component: FindIdPassword },
 ];
 
 const router = createRouter({

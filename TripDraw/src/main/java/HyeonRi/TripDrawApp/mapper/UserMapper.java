@@ -4,10 +4,7 @@ package HyeonRi.TripDrawApp.mapper;
 import HyeonRi.TripDrawApp.domain.LoginType;
 import HyeonRi.TripDrawApp.domain.User;
 import HyeonRi.TripDrawApp.dto.UserRegisterRequestDto;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.Optional;
 
@@ -59,5 +56,43 @@ public interface UserMapper {
     Optional<User> findByEmailAndLoginType(
             @Param("email") String email,
             @Param("loginType") LoginType loginType
+    );
+
+    /**
+    * 비밀번호 변경 메서드
+    * */
+    @Update("""
+            UPDATE user
+            SET password = #{password}
+            WHERE email = #{email}
+            """)
+    void updatePasswordByEmail(
+            @Param("email") String email,
+            @Param("password") String encodedPassword
+    );
+
+
+    // 이름+전화번호+로그인타입으로 조회
+    @Select("""
+      SELECT
+        user_id        AS userId,
+        email,
+        password,
+        name,
+        phone_number   AS phoneNumber,
+        address,
+        nickname,
+        login_type     AS loginType,
+        role
+      FROM user
+      WHERE name = #{name}
+        AND phone_number = #{phoneNumber}
+        AND login_type = #{loginType}
+      LIMIT 1
+    """)
+    Optional<User> findByNameAndPhoneNumberAndLoginType(
+      @Param("name") String name,
+      @Param("phoneNumber") String phoneNumber,
+      @Param("loginType") LoginType loginType
     );
 }
