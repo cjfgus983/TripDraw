@@ -59,14 +59,26 @@ public class SecurityConfig {
                 )
 
                 // 3-3) URL별 접근 제어
+//                .authorizeHttpRequests(auth -> auth
+//                        // 회원가입, 로그인, 토큰 리프레시 등은 인증 없이 허용
+//                        .requestMatchers("/api/users/signup", "/api/auth/**").permitAll()
+//                        // Swagger UI, static 리소스 등도 여기에 추가 가능
+//                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+//                        // 그 외엔 모두 인증 필요
+//                        .anyRequest().authenticated()
+//                )
                 .authorizeHttpRequests(auth -> auth
-                        // 회원가입, 로그인, 토큰 리프레시 등은 인증 없이 허용
+                        // 회원가입·로그인·토큰 리프레시
                         .requestMatchers("/api/users/signup", "/api/auth/**").permitAll()
-                        // Swagger UI, static 리소스 등도 여기에 추가 가능
+                        // 이메일 인증(발송/검증) 및 중복체크
+                        .requestMatchers("/api/users/**").permitAll()
+                        // Swagger UI, static 리소스
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // 그 외엔 모두 인증 필요
+
+                        // 그 외는 모두 인증 필요
                         .anyRequest().authenticated()
                 )
+
 
                 // 3-4) JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 삽입
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

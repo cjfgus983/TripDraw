@@ -6,6 +6,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,9 +31,18 @@ public class EmailService {
 
         mailSender.send(message); // 실제 메일 발송
     }
-
     // 인증 코드 검증
     public boolean verifyCode(String email, String code) {
         return code.equals(verificationCodes.get(email));
+    }
+    // 임시 비밀번호 전송
+    //sendSimpleMessage(email, subject, body);
+    public void sendNewPassword(String email, String subject, String body)
+    {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("subject");
+        message.setText(body);
+        message.setFrom("hyeonri13@gmail.com"); // 보내는 사람 (Gmail 주소)
     }
 }
