@@ -16,8 +16,15 @@
           <router-link to="/contactboard" class="nav-link">문의</router-link>
         </div>
         <div class="flex space-x-4">
+          <template v-if="!isLoggedIn">
           <router-link to="/login" class="nav-link">로그인</router-link>
           <router-link to="/signup" class="nav-link">회원가입</router-link>
+         </template>
+         <template v-else>
+            <span class="nav-link">{{ nickname }}님</span>
+            <button @click="handleLogout" class="nav-link">로그아웃</button>
+         </template>
+
         </div>
       </div>
     </nav>
@@ -34,6 +41,38 @@
 <script setup lang="ts">
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+
+// 닉네임 불러오기 & 로그인 상태 관리
+const nickname = ref<string | null>(null)
+const router = useRouter()
+onMounted(async () => {
+  const token = localStorage.getItem('accessToken')
+  if (!token) return
+  try {
+    const { data } = await axios.get(
+      'http://localhost:8080/api/users/me',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    nickname.value = data.nickname
+  } catch {
+    // 토큰 만료 등 에러 처리
+    //localStorage.removeItem('accessToken')
+    //nickname.value = null
+  }
+})
+const isLoggedIn = computed(() => Boolean(nickname.value))
+ // 로그아웃 처리
+const handleLogout = () => {
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('nickname')
+  nickname.value = null
+  router.push({ name: 'Main' })
+}
+
 </script>
 
 <style>
