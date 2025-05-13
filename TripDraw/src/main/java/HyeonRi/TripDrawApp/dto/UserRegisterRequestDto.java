@@ -18,6 +18,7 @@ public class UserRegisterRequestDto {
     @NotBlank
     private String name;
 
+    @NotBlank
     private String phoneNumber;
     private String address;
     private String nickname;

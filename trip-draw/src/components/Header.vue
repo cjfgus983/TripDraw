@@ -1,35 +1,39 @@
 <template>
-    <div>
-        <header class="h-[55px] bg-white shadow-sm flex items-center justify-center transition-all duration-300"
-        :class="{ 'opacity-0': !isHeaderVisible }">
-        <div class="container mx-auto px-4 flex items-center justify-center">
-          <div class="logo-container text-center">
+  <div>
+    <header
+      class="h-[55px] bg-white shadow-sm flex items-center justify-center transition-all duration-300"
+      :class="{ 'opacity-0': !isHeaderVisible }"
+    >
+      <div class="container mx-auto px-4 flex items-center justify-center">
+        <div class="logo-container text-center">
+          <!-- router-link 로 감싸서 클릭 시 "/" 로 이동 -->
+          <router-link to="/">
             <img :src="logo" alt="로고" class="h-[150px] cursor-pointer" />
-          </div>
+          </router-link>
         </div>
-      </header>
-    </div>
-  </template>
+      </div>
+    </header>
+  </div>
   
-  
-  
-  <script lang="ts" setup>
-  import logo from '@/assets/logo.png';
-  import { ref, onMounted } from "vue";
-  const isHeaderVisible = ref(true);
-  let lastScrollPosition = 0;
-  onMounted(() => {
-    window.addEventListener("scroll", handleScroll);
-  });
-  
-  const handleScroll = () => {
+</template>
+
+<script setup lang="ts">
+import logo from '@/assets/logo.png';
+import { ref, onMounted } from 'vue';
+
+const isHeaderVisible = ref(true);
+let lastScrollPosition = 0;
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+});
+const handleScroll = () => {
   const currentScrollPosition = window.scrollY;
   isHeaderVisible.value =
     currentScrollPosition < lastScrollPosition || currentScrollPosition < 60;
   lastScrollPosition = currentScrollPosition;
 };
+</script>
 
-  </script>
   
   <style scoped>
   @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap");

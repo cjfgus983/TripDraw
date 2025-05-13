@@ -1,10 +1,10 @@
 package HyeonRi.TripDrawApp.controller.board;
 
-import HyeonRi.TripDrawApp.dto.board.contact.ContactDto;
+
 import HyeonRi.TripDrawApp.dto.board.contact.ContactCommentDto;
+import HyeonRi.TripDrawApp.dto.board.contact.ContactDto;
 import HyeonRi.TripDrawApp.dto.board.contact.ContactImageDto;
 import HyeonRi.TripDrawApp.service.board.ContactService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,21 +12,25 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contact")
-@RequiredArgsConstructor
+
 public class ContactController {
 
     private final ContactService contactService;
 
-    // ---------------------- Contact ----------------------
+
+    public ContactController(ContactService contactService) {
+        this.contactService = contactService;
+    }
+
+    // ===== Contact =====
 
     @PostMapping
-    public ResponseEntity<Void> createContact(@RequestBody ContactDto dto) {
-        contactService.createContact(dto);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Long> createContact(@RequestBody ContactDto dto) {
+        return ResponseEntity.ok(contactService.createContact(dto));
     }
 
     @GetMapping("/{contactId}")
-    public ResponseEntity<ContactDto> getContact(@PathVariable Integer contactId) {
+    public ResponseEntity<ContactDto> getContact(@PathVariable Long contactId) {
         return ResponseEntity.ok(contactService.getContact(contactId));
     }
 
@@ -36,55 +40,65 @@ public class ContactController {
     }
 
     @PutMapping("/{contactId}")
-    public ResponseEntity<Void> updateContact(@PathVariable Integer contactId, @RequestBody ContactDto dto) {
+
+    public ResponseEntity<Void> updateContact(@PathVariable Long contactId, @RequestBody ContactDto dto) {
         dto.setContactId(contactId);
         contactService.updateContact(dto);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{contactId}")
-    public ResponseEntity<Void> deleteContact(@PathVariable Integer contactId) {
+    public ResponseEntity<Void> deleteContact(@PathVariable Long contactId) {
         contactService.deleteContact(contactId);
         return ResponseEntity.ok().build();
     }
-
-    // ---------------------- Comment ----------------------
+    // ===== Comment =====
 
     @PostMapping("/{contactId}/comment")
-    public ResponseEntity<Void> addComment(@PathVariable Integer contactId, @RequestBody ContactCommentDto dto) {
+    public ResponseEntity<Void> addComment(@PathVariable Long contactId, @RequestBody ContactCommentDto dto) {
         dto.setContactId(contactId);
         contactService.addComment(dto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{contactId}/comment")
-    public ResponseEntity<List<ContactCommentDto>> getComments(@PathVariable Integer contactId) {
+    public ResponseEntity<List<ContactCommentDto>> getComments(@PathVariable Long contactId) {
         return ResponseEntity.ok(contactService.getComments(contactId));
     }
 
-    @DeleteMapping("/comment/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Integer commentId) {
-        contactService.deleteComment(commentId);
+    @PutMapping("/{contactId}/comment/{commentId}")
+    public ResponseEntity<Void> updateComment(@PathVariable Long contactId,
+                                              @PathVariable Long commentId,
+                                              @RequestBody ContactCommentDto dto) {
+        dto.setContactId(contactId);
+        dto.setCommentId(commentId);
+        contactService.updateComment(dto);
         return ResponseEntity.ok().build();
     }
 
-    // ---------------------- Image ----------------------
+    @DeleteMapping("/{contactId}/comment/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long contactId, @PathVariable Long commentId) {
+        contactService.deleteComment(contactId, commentId);
+        return ResponseEntity.ok().build();
+    }
+
+    // ===== Image =====
 
     @PostMapping("/{contactId}/image")
-    public ResponseEntity<Void> addImage(@PathVariable Integer contactId, @RequestBody ContactImageDto dto) {
+    public ResponseEntity<Void> addImage(@PathVariable Long contactId, @RequestBody ContactImageDto dto) {
         dto.setContactId(contactId);
         contactService.addImage(dto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{contactId}/image")
-    public ResponseEntity<List<ContactImageDto>> getImages(@PathVariable Integer contactId) {
+    public ResponseEntity<List<ContactImageDto>> getImages(@PathVariable Long contactId) {
         return ResponseEntity.ok(contactService.getImages(contactId));
     }
 
-    @DeleteMapping("/image/{imageId}")
-    public ResponseEntity<Void> deleteImage(@PathVariable Integer imageId) {
-        contactService.deleteImage(imageId);
+    @DeleteMapping("/{contactId}/image/{imageId}")
+    public ResponseEntity<Void> deleteImage(@PathVariable Long contactId, @PathVariable Long imageId) {
+        contactService.deleteImage(contactId, imageId);
         return ResponseEntity.ok().build();
     }
 }

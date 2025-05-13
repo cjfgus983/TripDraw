@@ -1,67 +1,79 @@
 package HyeonRi.TripDrawApp.service.board;
 
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import HyeonRi.TripDrawApp.dto.board.contact.ContactDto;
 import HyeonRi.TripDrawApp.dto.board.contact.ContactCommentDto;
 import HyeonRi.TripDrawApp.dto.board.contact.ContactImageDto;
 import HyeonRi.TripDrawApp.mapper.board.ContactMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+@Transactional
 public class ContactService {
 
-    private final ContactMapper contactMapper;
+    private final ContactMapper mapper;
 
-    // ---------------------- Contact ----------------------
-
-    public int createContact(ContactDto dto) {
-        return contactMapper.insertContact(dto);
+    public ContactService(ContactMapper mapper) {
+        this.mapper = mapper;
     }
 
-    public ContactDto getContact(Integer contactId) {
-        return contactMapper.selectContact(contactId);
+    // ===== 게시글 =====
+    public Long createContact(ContactDto dto) {
+        mapper.insertContact(dto);
+        return dto.getContactId();
     }
 
+    @Transactional(readOnly = true)
+    public ContactDto getContact(Long contactId) {
+        return mapper.selectContactById(contactId);
+    }
+
+    @Transactional(readOnly = true)
     public List<ContactDto> getAllContacts() {
-        return contactMapper.selectAllContacts();
+        return mapper.selectAllContacts();
     }
 
-    public int updateContact(ContactDto dto) {
-        return contactMapper.updateContact(dto);
+    public void updateContact(ContactDto dto) {
+        mapper.updateContact(dto);
     }
 
-    public int deleteContact(Integer contactId) {
-        return contactMapper.deleteContact(contactId);
+    public void deleteContact(Long contactId) {
+        mapper.deleteContact(contactId);
     }
 
-    // ---------------------- Contact Comment ----------------------
-
-    public int addComment(ContactCommentDto dto) {
-        return contactMapper.insertComment(dto);
+    // ===== 댓글 =====
+    public void addComment(ContactCommentDto dto) {
+        mapper.insertComment(dto);
     }
 
-    public List<ContactCommentDto> getComments(Integer contactId) {
-        return contactMapper.selectCommentsByContactId(contactId);
+    @Transactional(readOnly = true)
+    public List<ContactCommentDto> getComments(Long contactId) {
+        return mapper.selectCommentsByContactId(contactId);
     }
 
-    public int deleteComment(Integer commentId) {
-        return contactMapper.deleteComment(commentId);
+    public void updateComment(ContactCommentDto dto) {
+        mapper.updateComment(dto);
     }
 
-    // ---------------------- Contact Image ----------------------
-
-    public int addImage(ContactImageDto dto) {
-        return contactMapper.insertImage(dto);
+    public void deleteComment(Long contactId, Long commentId) {
+        mapper.deleteComment(contactId, commentId);
     }
 
-    public List<ContactImageDto> getImages(Integer contactId) {
-        return contactMapper.selectImagesByContactId(contactId);
+    // ===== 이미지 =====
+    public void addImage(ContactImageDto dto) {
+        mapper.insertImage(dto);
     }
 
-    public int deleteImage(Integer imageId) {
-        return contactMapper.deleteImage(imageId);
+    @Transactional(readOnly = true)
+    public List<ContactImageDto> getImages(Long contactId) {
+        return mapper.selectImagesByContactId(contactId);
     }
-}
+
+    public void deleteImage(Long contactId, Long imageId) {
+        mapper.deleteImage(contactId, imageId);
+    }
+} 

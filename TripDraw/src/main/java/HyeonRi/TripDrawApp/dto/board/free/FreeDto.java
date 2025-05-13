@@ -18,4 +18,5 @@ public class FreeDto {
     private Integer likeCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String nickName;
 }

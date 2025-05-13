@@ -22,7 +22,12 @@ public interface FreeMapper {
     @Select("SELECT * FROM free WHERE free_id = #{freeId}")
     FreeDto getFreeById(Long freeId);
 
-    @Select("SELECT * FROM free ORDER BY created_at DESC")
+    @Select("""
+    	    SELECT f.*, u.nickname
+    	    FROM free f
+    	    JOIN user u ON f.user_id = u.user_id
+    	    ORDER BY f.created_at DESC
+    	""")
     List<FreeDto> getAllFree();
 
     @Update("""

@@ -25,7 +25,7 @@
                     class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BDDDE4]"
                     placeholder="example@email.com"
                     required
-                    @blur="validateEmail"
+                    @input="onEmailInput"
                   />
                   <button
                     type="button"
@@ -38,6 +38,15 @@
                 </div>
                 <p v-if="emailError" class="mt-1 text-xs text-[#FF6B6B]">
                   {{ emailError }}
+                </p>
+                <p v-else-if="checkingEmail" class="mt-1 text-xs text-[#999]">
+                  중복 검사 중...
+                </p>
+                <p v-else-if="emailAvailable === false" class="mt-1 text-xs text-[#FF6B6B]">
+                  이미 등록된 이메일입니다.
+                </p>
+                <p v-else-if="emailAvailable === true" class="mt-1 text-xs text-[#4CAF50]">
+                  사용 가능한 이메일입니다.
                 </p>
                 <p
                   v-else-if="emailValid && !isEmailVerified"
@@ -123,6 +132,7 @@
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BDDDE4]"
                     placeholder="8자 이상, 영문/숫자/특수문자 조합"
                     required
+                    @input="validatePassword"   
                     @blur="validatePassword"
                   />
                   <button
@@ -154,6 +164,7 @@
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BDDDE4]"
                     placeholder="비밀번호를 다시 입력해주세요"
                     required
+                    @input="validateConfirmPassword"
                     @blur="validateConfirmPassword"
                   />
                   <button
@@ -351,9 +362,24 @@
   </template>
   
   <script lang="ts" setup>
-  import { ref, computed, onMounted } from "vue";
+  import { ref, computed, onMounted, watch } from "vue";
+  import axios from "axios";
+  import { useRouter } from "vue-router";
+  import debounce from "lodash/debounce";
+
+  const isDaumLoaded = ref(false);
+
+  const router = useRouter();
+
+  const loading = ref(false);
+  const error = ref<string | null>(null);
+  
+
   // 폼 데이터
   const email = ref("");
+  const emailAvailable = ref<boolean|null>(null);
+  const checkingEmail = ref(false);
+
   const password = ref("");
   const confirmPassword = ref("");
   const name = ref("");
@@ -372,20 +398,55 @@
   // 닉네임 인증 관련
   const isNicknameVerified = ref(false);
   const nicknameError = ref("");
+
+
   
   // Daum 주소 검색 스크립트 로드
   onMounted(() => {
-    const script = document.createElement("script");
-    script.src = "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
-    document.head.appendChild(script);
-  });
+  const script = document.createElement("script");
+  script.src = "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+  script.onload = () => {
+    isDaumLoaded.value = true;
+  };
+  document.head.appendChild(script);
+});
   
   // 이메일 인증 메서드
-  const sendVerificationEmail = () => {
-    showVerificationInput.value = true;
-    startVerificationTimer();
-    // TODO: 실제 이메일 발송 로직 구현
-  };
+  // 1) 이메일 중복 조회 + 인증번호 전송
+const sendVerificationEmail = async () => {
+  // 1-1) 형식 검사
+  validateEmail();
+  if (!emailValid.value) return;
+
+  showVerificationInput.value = true;
+  startVerificationTimer();
+
+  try {
+    // 1-2) 중복 확인
+    const { data: { available } } = await axios.get(
+      "http://localhost:8080/api/users/check-email",
+      { params: { email: email.value } }
+    );
+    if (!available) {
+      emailError.value = "이미 등록된 이메일입니다.";
+      return;
+    }
+
+    // 1-3) 인증번호 요청 (백엔드에 send-email 엔드포인트를 만들어 두세요)
+    await axios.post(
+      "http://localhost:8080/api/users/email/send",
+      { email: email.value }
+    );
+
+    // 입력 UI 노출 & 타이머 시작
+
+
+  } catch (e: any) {
+    emailError.value = e.response?.data?.message || "인증번호 전송에 실패했습니다.";
+  }
+};
+
+
   
   const startVerificationTimer = () => {
     let timeLeft = 180; // 3분
@@ -404,15 +465,31 @@
     }, 1000);
   };
   
-  const verifyCode = () => {
-    // TODO: 실제 인증번호 확인 로직 구현
-    if (verificationCode.value === "123456") {
-      // 임시 검증
+  // 2) 입력된 코드 검증
+const verifyCode = async () => {
+  if (verificationCode.value.length !== 6) return;
+
+  try {
+    const { data: { verified } } = await axios.post(
+      "http://localhost:8080/api/users/email/verify",
+      {
+        email: email.value,
+        code:  verificationCode.value
+      }
+    );
+
+    if (verified) {
       isEmailVerified.value = true;
       showVerificationInput.value = false;
       clearInterval(timerInterval);
+    } else {
+      emailError.value = "인증번호가 올바르지 않습니다.";
     }
-  };
+
+  } catch (e: any) {
+    emailError.value = e.response?.data?.message || "인증 확인에 실패했습니다.";
+  }
+};
   
   // 닉네임 유효성 검사
   const validateNickname = () => {
@@ -437,12 +514,18 @@
   
   // 주소 검색
   const openAddressSearch = () => {
-    new (window as any).daum.Postcode({
-      oncomplete: (data: any) => {
-        address.value = data.address;
-      },
-    }).open();
-  };
+  if (!isDaumLoaded.value) {
+    // 스크립트가 아직 로드 중일 때 사용자에게 알리거나
+    alert("주소 검색 기능을 불러오는 중입니다. 잠시만 기다려주세요.");
+    return;
+  }
+
+  new (window as any).daum.Postcode({
+    oncomplete: (data: any) => {
+      address.value = data.address;
+    },
+  }).open();
+};
   // 비밀번호 표시 상태
   const showPassword = ref(false);
   const showConfirmPassword = ref(false);
@@ -565,14 +648,78 @@
     );
   });
   // 폼 제출 처리
-  const handleSubmit = () => {
-    if (isFormValid.value) {
-      // 여기에 회원가입 로직 구현
-      alert("회원가입이 완료되었습니다!");
-    }
-  };
+  const handleSubmit = async () => {
+  // 폼이 유효하지 않거나 이미 요청 중이면 바로 리턴
+  if (!isFormValid.value || loading.value) return;
+
+  loading.value = true;
+  error.value = null;
+
+  try {
+    await axios.post(
+      "http://localhost:8080/api/users/signup",
+      {
+        email:            email.value,
+        password:         password.value,
+        name:             name.value,
+        phoneNumber:      phone.value,
+        nickname:         nickname.value,
+        address:          address.value,
+        addressDetail:    addressDetail.value,
+        loginType:       "GENERAL"    // 백엔드가 필요로 하는 경우
+      }
+    );
+    // 가입 성공하면 로그인 페이지로 이동
+    router.push({ name: "Login" });
+  } catch (e: any) {
+    // 백엔드에서 던진 메시지가 있으면 보여주고, 없으면 일반 에러
+    error.value =
+      e.response?.data?.message ||
+      "회원가입 중 오류가 발생했습니다.";
+  } finally {
+    loading.value = false;
+  }
+};
+// 1) 서버로 중복 확인 요청
+const checkEmailAvailability = async () => {
+  if (!emailValid.value) return;
+  checkingEmail.value = true;
+  try {
+    const { data: { available } } = await axios.get(
+      "http://localhost:8080/api/users/check-email",
+      { params: { email: email.value } }
+    );
+    emailAvailable.value = available;
+    if (!available) emailError.value = "이미 등록된 이메일입니다.";
+  } catch {
+    emailError.value = "이메일 중복 확인에 실패했습니다.";
+  } finally {
+    checkingEmail.value = false;
+  }
+};
+
+// 2) 디바운스 걸어서 너무 자주 호출되지 않게
+const debouncedCheckEmail = debounce(checkEmailAvailability, 500);
+
+// 3) 입력마다 호출할 핸들러
+const onEmailInput = () => {
+  validateEmail();
+  emailAvailable.value = null;       // 재검사 전 초기화
+  debouncedCheckEmail();
+};
+
+// 4) 모델이 바뀔 때, 유효하지 않으면 디바운스 취소
+watch(email, () => {
+  if (!emailValid.value) {
+    emailAvailable.value = null;
+    debouncedCheckEmail.cancel();
+  }
+});
+
   </script>
   
+  <!---------------------------------------------------------------------------------------------------->
+
   <style scoped>
   /* 숫자 입력 필드의 화살표 제거 */
   input[type="number"]::-webkit-inner-spin-button,

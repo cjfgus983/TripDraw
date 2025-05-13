@@ -32,9 +32,6 @@
                   placeholder="이메일을 입력해주세요"
                 />
               </div>
-              <p v-if="emailError" class="mt-1 text-sm text-red-600">
-                {{ emailError }}
-              </p>
             </div>
             <div class="mb-4">
               <label for="password" class="sr-only">비밀번호</label>
@@ -71,7 +68,10 @@
           <div>
             <button
               type="submit"
-              class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#9FB3DF] hover:bg-[#8CA4D0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#9FB3DF] cursor-pointer !rounded-button whitespace-nowrap transition-all duration-200"
+              
+              class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white
+                bg-[#9FB3DF] hover:bg-[#8CA4D0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#9FB3DF]
+                disabled:opacity-50 disabled:cursor-not-allowed !rounded-button whitespace-nowrap transition-all duration-200"
             >
               로그인
             </button>
@@ -82,9 +82,7 @@
             <div class="absolute inset-0 flex items-center">
               <div class="w-full border-t border-gray-300"></div>
             </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-white text-gray-500">또는</span>
-            </div>
+
           </div>
           <div class="mt-4">
             <button
@@ -97,6 +95,15 @@
           </div>
         </div>
         <div class="mt-6 text-center">
+          <p class="text-sm text-gray-600">
+            아이디 비밀번호를 잊으셨나요?
+            <button
+              @click="goToFindIdPassword"
+              class="font-medium text-[#9EC6F3] hover:text-[#8CA4D0] cursor-pointer !rounded-button whitespace-nowrap transition-all duration-200"
+            >
+              아이디/비밀번호 찾기
+            </button>
+          </p>
           <p class="text-sm text-gray-600">
             아직 회원이 아니신가요?
             <button
@@ -113,38 +120,51 @@
   
   <script lang="ts" setup>
   import { ref } from "vue";
-  // 로고 이미지
-  import logo from '@/assets/logo.png';
+  import axios from "axios";
+  import { useRouter } from "vue-router";
   // 폼 상태 관리
   const email = ref("");
   const password = ref("");
   const showPassword = ref(false);
-  const emailError = ref("");
+  const router = useRouter();
+
+// 로그인 폼 유효성: 이메일 형식 OK && 비밀번호 입력됨
+// const isLoginFormValid = computed(() => {
+//   return validateEmail() && password.value.length > 0;
+// });
+
   // 비밀번호 표시/숨김 토글
   const togglePasswordVisibility = () => {
     showPassword.value = !showPassword.value;
   };
   // 이메일 유효성 검사
-  const validateEmail = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.value)) {
-      emailError.value = "유효한 이메일 주소를 입력해주세요";
-      return false;
-    }
-    emailError.value = "";
-    return true;
-  };
+  // const validateEmail = () => {
+  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  //   if (!emailRegex.test(email.value)) {
+  //     emailError.value = "유효한 이메일 주소를 입력해주세요";
+  //     return false;
+  //   }
+  //   emailError.value = "";
+  //   return true;
+  // };
   // 로그인 처리
-  const handleLogin = () => {
-    if (validateEmail()) {
-      console.log("로그인 시도:", {
-        email: email.value,
-        password: password.value,
-      });
-      // 실제 로그인 로직 구현 부분
-      alert("로그인 기능이 구현되었습니다!");
-    }
-  };
+  const handleLogin = async () => {
+  try {
+    const { data } = await axios.post(
+      "http://localhost:8080/api/auth/login",
+      { email: email.value, password: password.value }
+    );
+    // 응답으로 받은 accessToken 저장
+    window.localStorage.setItem("accessToken", data.accessToken);
+    
+    // 메인 페이지로 이동
+    router.push({ name: "Main" });
+  } catch (err: any) {
+    const msg = err.response?.data?.message || "로그인에 실패했습니다.";
+    alert(msg);
+
+  }
+};
   // 카카오 로그인 처리
   const handleKakaoLogin = () => {
     console.log("카카오톡 로그인 시도");
@@ -153,9 +173,11 @@
   };
   // 회원가입 페이지로 이동
   const goToSignup = () => {
-    console.log("회원가입 페이지로 이동");
-    // 실제 페이지 이동 로직 구현 부분
-    alert("회원가입 페이지로 이동합니다!");
+    router.push('/signup');
+  };
+  // 아이디 찾기 페이지로 이동
+  const goToFindIdPassword = () => {
+    router.push('/findidpassword');
   };
   </script>
   

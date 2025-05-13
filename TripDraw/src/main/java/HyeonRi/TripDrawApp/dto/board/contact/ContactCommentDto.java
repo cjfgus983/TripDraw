@@ -1,23 +1,24 @@
 package HyeonRi.TripDrawApp.dto.board.contact;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ContactCommentDto {
-    private Integer commentId;
-
     @NonNull
-    private Integer contactId;
-
+    private Long commentId;
     @NonNull
-    private Long userId; // 관리자만 작성
-
+    private Long contactId;
+    @NonNull
+    private Long userId;
     @NonNull
     private String content;
-
     @NonNull
     private LocalDateTime createdAt;
 }

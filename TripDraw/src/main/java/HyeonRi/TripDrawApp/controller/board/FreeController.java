@@ -28,7 +28,7 @@ public class FreeController {
     }
 
     // 게시글
-    @PostMapping
+    @PostMapping("/createFree")
     public ResponseEntity<Long> createFree(@RequestBody FreeDto dto) {
         return ResponseEntity.ok(freeService.createFree(dto));
     }
@@ -38,10 +38,19 @@ public class FreeController {
         return ResponseEntity.ok(freeService.getFree(freeId));
     }
 
-    @GetMapping
+    @GetMapping()
     public ResponseEntity<List<FreeDto>> getAllFree() {
-        return ResponseEntity.ok(freeService.getAllFree());
+        List<FreeDto> freeList = freeService.getAllFree();
+//        
+//        System.out.println("=== Free 게시글 목록 ===");
+//        if(freeList== null) System.out.println("hi");
+//        for (FreeDto dto : freeList) {
+//            System.out.println(dto);
+//        }
+
+        return ResponseEntity.ok(freeList);
     }
+
 
     @PutMapping("/{freeId}")
     public ResponseEntity<Void> updateFree(@PathVariable Long freeId, @RequestBody FreeDto dto) {
