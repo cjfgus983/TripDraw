@@ -1,5 +1,6 @@
 package HyeonRi.TripDrawApp.controller.board;
 
+
 import HyeonRi.TripDrawApp.dto.board.contact.ContactCommentDto;
 import HyeonRi.TripDrawApp.dto.board.contact.ContactDto;
 import HyeonRi.TripDrawApp.dto.board.contact.ContactImageDto;
@@ -11,9 +12,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contact")
+
 public class ContactController {
 
     private final ContactService contactService;
+
 
     public ContactController(ContactService contactService) {
         this.contactService = contactService;
@@ -37,6 +40,7 @@ public class ContactController {
     }
 
     @PutMapping("/{contactId}")
+
     public ResponseEntity<Void> updateContact(@PathVariable Long contactId, @RequestBody ContactDto dto) {
         dto.setContactId(contactId);
         contactService.updateContact(dto);
@@ -48,7 +52,6 @@ public class ContactController {
         contactService.deleteContact(contactId);
         return ResponseEntity.ok().build();
     }
-
     // ===== Comment =====
 
     @PostMapping("/{contactId}/comment")

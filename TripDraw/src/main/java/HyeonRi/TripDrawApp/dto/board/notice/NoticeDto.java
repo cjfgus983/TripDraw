@@ -1,29 +1,30 @@
-package HyeonRi.TripDrawApp.dto.board.contact;
+package HyeonRi.TripDrawApp.dto.board.notice;
+
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import java.time.LocalDateTime;
-
 @Data
-
-@NoArgsConstructor
 @AllArgsConstructor
-public class ContactDto {
-    @NonNull
-    private Long contactId;
+@NoArgsConstructor
+public class NoticeDto {
+    private Long noticeId;
+
     @NonNull
     private Long userId;
+
     @NonNull
     private String title;
+
     @NonNull
     private String content;
-    @NonNull
-    private Boolean isSecret;
-    @NonNull
-    private Integer viewCount;
+
     @NonNull
     private LocalDateTime createdAt;
+
+    private Integer viewCount;
+    private Boolean isPinned;
 }

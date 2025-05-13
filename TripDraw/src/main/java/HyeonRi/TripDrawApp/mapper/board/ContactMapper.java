@@ -10,6 +10,7 @@ import HyeonRi.TripDrawApp.dto.board.contact.ContactImageDto;
 @Mapper
 public interface ContactMapper {
 
+
     // ==== Contact CRUD ====  
 
     @Insert("""
