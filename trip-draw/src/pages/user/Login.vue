@@ -119,67 +119,62 @@
   </template>
   
   <script lang="ts" setup>
-  import { ref } from "vue";
-  import axios from "axios";
-  import { useRouter } from "vue-router";
-  // 폼 상태 관리
-  const email = ref("");
-  const password = ref("");
-  const showPassword = ref(false);
-  const router = useRouter();
+import { ref } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
+// ① Pinia 유저 스토어 import
+import { useUserStore } from "@/stores/user";
 
-// 로그인 폼 유효성: 이메일 형식 OK && 비밀번호 입력됨
-// const isLoginFormValid = computed(() => {
-//   return validateEmail() && password.value.length > 0;
-// });
+// 폼 상태
+const email = ref("");
+const password = ref("");
+const showPassword = ref(false);
+const router = useRouter();
 
-  // 비밀번호 표시/숨김 토글
-  const togglePasswordVisibility = () => {
-    showPassword.value = !showPassword.value;
-  };
-  // 이메일 유효성 검사
-  // const validateEmail = () => {
-  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  //   if (!emailRegex.test(email.value)) {
-  //     emailError.value = "유효한 이메일 주소를 입력해주세요";
-  //     return false;
-  //   }
-  //   emailError.value = "";
-  //   return true;
-  // };
-  // 로그인 처리
-  const handleLogin = async () => {
+// Pinia 스토어 인스턴스
+const userStore = useUserStore();
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const handleLogin = async () => {
   try {
-    const { data } = await axios.post(
-      "http://localhost:8080/api/auth/login",
+    // 1) 로그인 API
+    const { data: loginRes } = await axios.post(
+      "/api/auth/login",
       { email: email.value, password: password.value }
     );
-    // 응답으로 받은 accessToken 저장
-    window.localStorage.setItem("accessToken", data.accessToken);
-    
-    // 메인 페이지로 이동
+    // 2) 토큰 저장
+    window.localStorage.setItem("accessToken", loginRes.accessToken);
+
+    // 3) 내 프로필 조회(API /me)
+    const { data: profile } = await axios.get("/api/users/me", {
+      headers: { Authorization: `Bearer ${loginRes.accessToken}` }
+    });
+
+    // 4) Pinia 스토어에 프로필 저장
+    userStore.setProfile({
+      id:       profile.userId,
+      email:    profile.email,
+      nickname: profile.nickname
+    });
+
+    // 5) 메인 페이지로 이동
     router.push({ name: "Main" });
   } catch (err: any) {
     const msg = err.response?.data?.message || "로그인에 실패했습니다.";
     alert(msg);
-
   }
 };
-  // 카카오 로그인 처리
-  const handleKakaoLogin = () => {
-    console.log("카카오톡 로그인 시도");
-    // 실제 카카오 로그인 로직 구현 부분
-    alert("카카오톡 로그인 기능이 구현되었습니다!");
-  };
-  // 회원가입 페이지로 이동
-  const goToSignup = () => {
-    router.push('/signup');
-  };
-  // 아이디 찾기 페이지로 이동
-  const goToFindIdPassword = () => {
-    router.push('/findidpassword');
-  };
-  </script>
+
+const handleKakaoLogin = () => {
+  /* … */
+};
+const goToSignup = () => router.push("/signup");
+const goToFindIdPassword = () => router.push("/findidpassword");
+</script>
+
   
   <style scoped>
   /* 추가 스타일 */

@@ -20,6 +20,7 @@
             여행지를 발견하고 여행 계획을 세워보세요.
           </p>
           <button
+            @click="goToDrawPage"
             class="bg-white text-[#4A90E2] px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-all shadow-lg whitespace-nowrap cursor-pointer"
           >
             지금 시작하기
@@ -209,6 +210,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+
 
 // swiper/vue 컴포넌트와 모듈
 import { Swiper, SwiperSlide } from 'swiper/vue'
@@ -253,6 +258,10 @@ const testimonials = ref([
       'https://readdy.ai/api/search-image?seq=avatar4&width=100&height=100',
   },
 ])
+
+function goToDrawPage() {
+  router.push('/drawpage')
+}
 </script>
 
 <style scoped>

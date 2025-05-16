@@ -1,8 +1,9 @@
-<!-- The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work. -->
 <template>
-    <div class="flex w-full">
-      <!-- Canvas Area -->
-      <div class="flex-grow relative" ref="canvasContainer">
+  <div class="flex w-full h-full">
+    <!-- Canvas + Tools 영역 -->
+    <div class="flex-grow relative flex">
+      <!-- 캔버스 컨테이너 (정사각형) -->
+      <div ref="canvasContainer" class="flex-grow aspect-square relative">
         <canvas
           ref="canvas"
           @mousedown="startDrawing"
@@ -12,448 +13,334 @@
           class="w-full h-full cursor-crosshair"
         ></canvas>
       </div>
-      <!-- Tools Panel -->
+      <!-- 툴 패널 -->
       <div class="w-[280px] bg-white shadow-lg p-6 flex flex-col gap-6">
-        <!-- Drawing Tools -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-bold mb-4">도구</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <button
-              @click="setTool('pen')"
-              :class="{'bg-blue-100': currentTool === 'pen'}"
-              class="flex items-center justify-center p-3 rounded-lg border hover:bg-blue-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-pen mr-2"></i> 펜
+        <!-- 도구 선택 -->
+        <section>
+          <h3 class="text-lg font-bold mb-2">도구</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button @click="setTool('pen')" :class="btnClass('pen')">
+              <i class="fas fa-pen mr-1"/>펜
             </button>
-            <button
-              @click="setTool('brush')"
-              :class="{'bg-blue-100': currentTool === 'brush'}"
-              class="flex items-center justify-center p-3 rounded-lg border hover:bg-blue-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-paint-brush mr-2"></i> 붓
+            <button @click="setTool('brush')" :class="btnClass('brush')">
+              <i class="fas fa-paint-brush mr-1"/>붓
             </button>
-            <button
-              @click="setTool('rectangle')"
-              :class="{'bg-blue-100': currentTool === 'rectangle'}"
-              class="flex items-center justify-center p-3 rounded-lg border hover:bg-blue-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-square mr-2"></i> 사각형
+            <button @click="setTool('rectangle')" :class="btnClass('rectangle')">
+              <i class="fas fa-square mr-1"/>사각형
             </button>
-            <button
-              @click="setTool('circle')"
-              :class="{'bg-blue-100': currentTool === 'circle'}"
-              class="flex items-center justify-center p-3 rounded-lg border hover:bg-blue-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-circle mr-2"></i> 원
+            <button @click="setTool('circle')" :class="btnClass('circle')">
+              <i class="fas fa-circle mr-1"/>원
             </button>
-            <button
-              @click="setTool('line')"
-              :class="{'bg-blue-100': currentTool === 'line'}"
-              class="flex items-center justify-center p-3 rounded-lg border hover:bg-blue-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-minus mr-2"></i> 직선
+            <button @click="setTool('line')" :class="btnClass('line')">
+              <i class="fas fa-minus mr-1"/>직선
             </button>
-            <button
-              @click="setTool('eraser')"
-              :class="{'bg-blue-100': currentTool === 'eraser'}"
-              class="flex items-center justify-center p-3 rounded-lg border hover:bg-blue-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-eraser mr-2"></i> 지우개
+            <button @click="setTool('eraser')" :class="btnClass('eraser')">
+              <i class="fas fa-eraser mr-1"/>지우개
             </button>
-            <button
-              @click="setTool('fill')"
-              :class="{'bg-blue-100': currentTool === 'fill'}"
-              class="flex items-center justify-center p-3 rounded-lg border hover:bg-blue-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-fill-drip mr-2"></i> 채우기
+            <button @click="setTool('fill')" :class="btnClass('fill')">
+              <i class="fas fa-fill-drip mr-1"/>채우기
             </button>
-            <button
-              @click="clearCanvas"
-              class="flex items-center justify-center p-3 rounded-lg border hover:bg-red-50 text-red-500 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-trash-alt mr-2"></i> 전체 지우기
+            <button @click="clearCanvas" class="tool-btn text-red-500 hover:bg-red-50">
+              <i class="fas fa-trash-alt mr-1"/>전체 지우기
             </button>
           </div>
-        </div>
-        <!-- Size Control -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-bold mb-4">크기 조절</h3>
-          <div class="space-y-2">
-            <label class="block text-sm text-gray-600">굵기</label>
-            <input
-              type="range"
-              v-model="lineWidth"
-              min="1"
-              max="50"
-              class="w-full"
-            />
-            <div class="text-sm text-gray-500 text-right">{{ lineWidth }}px</div>
-          </div>
-        </div>
-        <!-- Color Picker -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-bold mb-4">색상</h3>
-          <input
-            type="color"
-            v-model="currentColor"
-            class="w-full h-10 cursor-pointer"
-          />
-        </div>
-        <!-- History Controls -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-bold mb-4">실행 취소/다시 실행</h3>
-          <div class="flex gap-3">
-            <button
-              @click="undo"
-              :disabled="!canUndo"
-              class="flex-1 p-3 rounded-lg border hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-undo mr-2"></i> 실행 취소
+        </section>
+        <!-- 굵기 조절 -->
+        <section>
+          <h3 class="text-lg font-bold mb-2">굵기</h3>
+          <input type="range" v-model="lineWidth" min="1" max="50" class="w-full"/>
+          <div class="text-right text-sm">{{ lineWidth }}px</div>
+        </section>
+        <!-- 색상 선택 -->
+        <section>
+          <h3 class="text-lg font-bold mb-2">색상</h3>
+          <input type="color" v-model="currentColor" class="w-full h-10"/>
+        </section>
+        <!-- 실행취소/다시실행 -->
+        <section>
+          <h3 class="text-lg font-bold mb-2">실행취소/다시실행</h3>
+          <div class="flex gap-2">
+            <button @click="undo" :disabled="!canUndo" class="flex-1 tool-btn disabled:opacity-50">
+              <i class="fas fa-undo mr-1"/>실행 취소
             </button>
-            <button
-              @click="redo"
-              :disabled="!canRedo"
-              class="flex-1 p-3 rounded-lg border hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              <i class="fas fa-redo mr-2"></i> 다시 실행
+            <button @click="redo" :disabled="!canRedo" class="flex-1 tool-btn disabled:opacity-50">
+              <i class="fas fa-redo mr-1"/>다시 실행
             </button>
           </div>
-        </div>
-        <!-- Image Upload -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-bold mb-4">이미지 추가</h3>
-          <button
-            @click="openImageUpload"
-            class="w-full p-3 rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-400 hover:bg-blue-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-          >
-            <i class="fas fa-image mr-2"></i> 이미지 업로드
+        </section>
+        <!-- 이미지 업로드 & 제출 -->
+        <section class="mt-auto">
+          <button @click="openCropper" class="w-full tool-btn border-dashed border-2">
+            <i class="fas fa-image mr-1"/>이미지 업로드
           </button>
-        </div>
-        <!-- Submit Button -->
-        <button
-          @click="handleSubmit"
-          class="mt-auto w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-        >
-          <i class="fas fa-paper-plane mr-2"></i> 제출하기
-        </button>
-      </div>
-      <!-- Image Upload Modal -->
-      <div
-        v-if="showImageModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      >
-        <div class="bg-white rounded-lg p-6 w-[500px]">
-          <h3 class="text-xl font-bold mb-4">이미지 업로드</h3>
-          <div
-            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 transition-colors"
-            @dragover.prevent
-            @drop.prevent="handleDrop"
-            @click="triggerFileInput"
-          >
-            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
-            <p class="text-gray-600">
-              이미지를 드래그하여 놓거나 클릭하여 선택하세요
-            </p>
-          </div>
-          <input
-            type="file"
-            ref="fileInput"
-            @change="handleFileSelect"
-            accept="image/*"
-            class="hidden"
-          />
-          <div class="flex justify-end mt-6 gap-3">
-            <button
-              @click="closeImageModal"
-              class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-            >
-              취소
-            </button>
-          </div>
-        </div>
+          <button @click="handleSubmit" class="w-full mt-4 bg-blue-500 text-white tool-btn">
+            <i class="fas fa-paper-plane mr-1"/>제출하기
+          </button>
+        </section>
       </div>
     </div>
-  </template>
-  <script lang="ts" setup>
-  import { ref, onMounted, onUnmounted } from "vue";
-  
-  const canvas = ref<HTMLCanvasElement | null>(null);
-  const canvasContainer = ref<HTMLDivElement | null>(null);
-  const ctx = ref<CanvasRenderingContext2D | null>(null);
-  const isDrawing = ref(false);
-  const currentTool = ref("pen");
-  const lineWidth = ref(5);
-  const currentColor = ref("#000000");
-  const showImageModal = ref(false);
-  const fileInput = ref<HTMLInputElement | null>(null);
-  const history = ref<ImageData[]>([]);
-  const historyIndex = ref(-1);
-  const canUndo = ref(false);
-  const canRedo = ref(false);
-  let lastX = 0;
-  let lastY = 0;
-  let lastMouseEvent: MouseEvent;
-  
-  onMounted(() => {
-    if (canvas.value && canvasContainer.value) {
-      ctx.value = canvas.value.getContext("2d");
-      resizeCanvas();
-      window.addEventListener("resize", resizeCanvas);
-      saveState();
-    }
-  });
-  
-  onUnmounted(() => {
-    window.removeEventListener("resize", resizeCanvas);
-  });
-  
-  const resizeCanvas = () => {
-    if (canvas.value && canvasContainer.value) {
-      const rect = canvasContainer.value.getBoundingClientRect();
-      canvas.value.width = rect.width;
-      canvas.value.height = rect.height;
-    }
-  };
-  
-  const setTool = (tool: string) => {
-    currentTool.value = tool;
-  };
-  
-  const startDrawing = (e: MouseEvent) => {
-  const rect = canvas.value?.getBoundingClientRect();
-  if (!rect) return;
 
-  const x = Math.floor(e.clientX - rect.left);
-  const y = Math.floor(e.clientY - rect.top);
+    <!-- 크롭 모달 -->
+    <Modal v-model="showCropper">
+      <template #header>
+        <h2 class="text-xl font-bold">이미지 크롭</h2>
+      </template>
+      <template #body>
+        <vue-cropper
+          ref="cropper"
+          :src="uploadedImage"
+          :aspect-ratio="1"
+          :auto-crop-area="1"
+          class="h-96 w-full"
+        />
+      </template>
+      <template #footer>
+        <button @click="confirmCrop" class="px-4 py-2 bg-green-500 text-white rounded mr-2">확인</button>
+        <button @click="showCropper = false" class="px-4 py-2 border rounded">취소</button>
+      </template>
+    </Modal>
+  </div>
+</template>
 
-  if (currentTool.value === "fill") {
-    floodFill(x, y, currentColor.value);
-    return;
+<script lang="ts" setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAiStore } from '../../stores/ai'
+import VueCropper from 'vue-cropperjs'
+import 'cropperjs/dist/cropper.css'
+import Modal from '@/components/Modal.vue'
+
+// refs
+const canvas = ref<HTMLCanvasElement|null>(null)
+const canvasContainer = ref<HTMLDivElement|null>(null)
+const ctx = ref<CanvasRenderingContext2D|null>(null)
+
+// 그리기 상태
+const isDrawing = ref(false)
+const currentTool = ref<'pen'|'brush'|'rectangle'|'circle'|'line'|'eraser'|'fill'>('pen')
+const lineWidth = ref(5)
+const currentColor = ref('#000000')
+
+// 히스토리
+const history = ref<ImageData[]>([])
+const historyIndex = ref(-1)
+const canUndo = ref(false)
+const canRedo = ref(false)
+const lastX = ref(0)
+const lastY = ref(0)
+let lastMouseEvent = <MouseEvent>{}
+
+// 라우터 & 스토어
+const router = useRouter()
+const aiStore = useAiStore()
+
+// 크롭퍼 상태
+const showCropper = ref(false)
+const uploadedImage = ref('')
+const cropper = ref<any>(null)
+
+// mounted
+onMounted(() => {
+  // willReadFrequently 옵션 추가
+  ctx.value = canvas.value!.getContext('2d', { willReadFrequently: true })
+  resizeCanvas()
+  window.addEventListener('resize', resizeCanvas)
+  saveState()
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', resizeCanvas)
+})
+
+// 캔버스 초기화
+function resizeCanvas() {
+  const rect = canvasContainer.value!.getBoundingClientRect()
+  const size = rect.width
+  canvas.value!.width = size
+  canvas.value!.height = size
+  ctx.value!.fillStyle = '#ffffff'
+  ctx.value!.fillRect(0, 0, size, size)
+  saveState()
+}
+
+// 툴 버튼 클래스
+function btnClass(tool: string) {
+  return ['tool-btn', currentTool.value===tool?'bg-blue-100':''].join(' ')
+}
+function setTool(tool: typeof currentTool.value) {
+  currentTool.value = tool
+}
+
+// 그리기
+function startDrawing(e: MouseEvent) {
+  const rect = canvas.value!.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  if (currentTool.value==='fill') {
+    floodFill(Math.floor(x), Math.floor(y), currentColor.value)
+    return
   }
+  isDrawing.value = true
+  lastX.value = x
+  lastY.value = y
+}
+function draw(e: MouseEvent) {
+  if (!ctx.value) return
+  const rect = canvas.value!.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
 
-  isDrawing.value = true;
-  lastX = x;
-  lastY = y;
-};
-
-  
-  const draw = (e: MouseEvent) => {
-    lastMouseEvent = e;
-    if (currentTool.value === "fill") return;
-    if (!ctx.value || !canvas.value) return;
-  
-    const rect = canvas.value.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-  
-    if (currentTool.value === "eraser" || currentTool.value === "pen" || currentTool.value === "brush") {
-      if (!isDrawing.value) return;
-      ctx.value.beginPath();
-      ctx.value.lineWidth = currentTool.value === "brush" ? lineWidth.value * 2 : lineWidth.value;
-      ctx.value.lineCap = "round";
-      ctx.value.strokeStyle = currentTool.value === "eraser" ? "#ffffff" : currentColor.value;
-      ctx.value.globalAlpha = currentTool.value === "brush" ? 0.5 : 1.0;
-      ctx.value.moveTo(lastX, lastY);
-      ctx.value.lineTo(x, y);
-      ctx.value.stroke();
-      ctx.value.globalAlpha = 1.0;
-      lastX = x;
-      lastY = y;
-    } else if (currentTool.value === "rectangle" || currentTool.value === "circle" || currentTool.value === "line") {
-      if (!isDrawing.value) return;
-      ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
-      if (historyIndex.value >= 0) {
-        ctx.value.putImageData(history.value[historyIndex.value], 0, 0);
-      }
-      ctx.value.beginPath();
-      ctx.value.strokeStyle = currentColor.value;
-      ctx.value.lineWidth = lineWidth.value;
-      if (currentTool.value === "rectangle") {
-        ctx.value.strokeRect(lastX, lastY, x - lastX, y - lastY);
-      } else if (currentTool.value === "circle") {
-        const radius = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
-        ctx.value.arc(lastX, lastY, radius, 0, Math.PI * 2);
-        ctx.value.stroke();
-      } else if (currentTool.value === "line") {
-        ctx.value.moveTo(lastX, lastY);
-        ctx.value.lineTo(x, y);
-        ctx.value.stroke();
-      }
+  if (currentTool.value==='rectangle' || currentTool.value==='circle' || currentTool.value==='line') {
+    if (!isDrawing.value) return
+    // clear + restore
+    ctx.value.clearRect(0,0,canvas.value!.width,canvas.value!.height)
+    if (historyIndex.value >= 0) {
+      ctx.value.putImageData(history.value[historyIndex.value],0,0)
     }
-    if (currentTool.value === "fill") {
-        floodFill(Math.floor(e.clientX - rect.left), Math.floor(e.clientY - rect.top), currentColor.value);
-        return;
+    ctx.value.beginPath()
+    ctx.value.strokeStyle = currentColor.value
+    ctx.value.lineWidth = lineWidth.value
+    if (currentTool.value==='rectangle') {
+      ctx.value.strokeRect(lastX.value, lastY.value, x-lastX.value, y-lastY.value)
+    } else if (currentTool.value==='circle') {
+      const r = Math.hypot(x-lastX.value, y-lastY.value)
+      ctx.value.arc(lastX.value, lastY.value, r, 0, Math.PI*2)
+      ctx.value.stroke()
+    } else if (currentTool.value==='line') {
+      ctx.value.moveTo(lastX.value, lastY.value)
+      ctx.value.lineTo(x, y)
+      ctx.value.stroke()
     }
-  };
-  
-  const stopDrawing = () => {
-    if (isDrawing.value) {
-      isDrawing.value = false;
-      if (currentTool.value === "rectangle" || currentTool.value === "circle" || currentTool.value === "line") {
-        draw(lastMouseEvent);
-      }
-      saveState();
-    }
-  };
-  
-  const clearCanvas = () => {
-    if (ctx.value && canvas.value) {
-      ctx.value.fillStyle = "#ffffff";
-      ctx.value.fillRect(0, 0, canvas.value.width, canvas.value.height);
-      saveState();
-    }
-  };
-  
-  const saveState = () => {
-    if (ctx.value && canvas.value) {
-      historyIndex.value++;
-      history.value.splice(historyIndex.value);
-      history.value.push(ctx.value.getImageData(0, 0, canvas.value.width, canvas.value.height));
-      updateHistoryButtons();
-    }
-  };
-  
-  const updateHistoryButtons = () => {
-    canUndo.value = historyIndex.value > 0;
-    canRedo.value = historyIndex.value < history.value.length - 1;
-  };
-  
-  const undo = () => {
-    if (historyIndex.value > 0 && ctx.value) {
-      historyIndex.value--;
-      ctx.value.putImageData(history.value[historyIndex.value], 0, 0);
-      updateHistoryButtons();
-    }
-  };
-  
-  const redo = () => {
-    if (historyIndex.value < history.value.length - 1 && ctx.value) {
-      historyIndex.value++;
-      ctx.value.putImageData(history.value[historyIndex.value], 0, 0);
-      updateHistoryButtons();
-    }
-  };
-  
-  const openImageUpload = () => {
-    showImageModal.value = true;
-  };
-  
-  const closeImageModal = () => {
-    showImageModal.value = false;
-  };
-  
-  const triggerFileInput = () => {
-    fileInput.value?.click();
-  };
-  
-  const handleFileSelect = (event: Event) => {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      loadImage(input.files[0]);
-    }
-  };
-  
-  const handleDrop = (event: DragEvent) => {
-    const file = event.dataTransfer?.files[0];
-    if (file) {
-      loadImage(file);
-    }
-  };
-  
-  const loadImage = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        if (ctx.value && canvas.value) {
-          const aspectRatio = img.width / img.height;
-          let newWidth = canvas.value.width;
-          let newHeight = newWidth / aspectRatio;
-          if (newHeight > canvas.value.height) {
-            newHeight = canvas.value.height;
-            newWidth = newHeight * aspectRatio;
-          }
-          const x = (canvas.value.width - newWidth) / 2;
-          const y = canvas.value.height - newHeight;
-          ctx.value.drawImage(img, x, y, newWidth, newHeight);
-          saveState();
-        }
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-    closeImageModal();
-  };
-  
-  const handleSubmit = () => {
-    if (canvas.value) {
-      const imageData = canvas.value.toDataURL("image/png");
-      console.log("Submitting drawing:", imageData);
-      // Upload logic here
-    }
-  };
-
-  const floodFill = (startX: number, startY: number, fillColor: string) => {
-  if (!ctx.value || !canvas.value) return;
-
-  const imageData = ctx.value.getImageData(0, 0, canvas.value.width, canvas.value.height);
-  const data = imageData.data;
-
-  const width = canvas.value.width;
-  const height = canvas.value.height;
-  const stack = [[startX, startY]];
-
-  const targetColor = getPixel(data, startX, startY);
-  const fillRgba = hexToRgba(fillColor);
-
-  if (colorsMatch(targetColor, fillRgba)) return;
-
-  while (stack.length) {
-    const [x, y] = stack.pop()!;
-    const currentColor = getPixel(data, x, y);
-
-    if (!colorsMatch(currentColor, targetColor)) continue;
-
-    setPixel(data, x, y, fillRgba);
-
-    if (x > 0) stack.push([x - 1, y]);
-    if (x < width - 1) stack.push([x + 1, y]);
-    if (y > 0) stack.push([x, y - 1]);
-    if (y < height - 1) stack.push([x, y + 1]);
-    if (x > 0 && y > 0) stack.push([x - 1, y - 1]);       // 좌상
-    if (x < width - 1 && y > 0) stack.push([x + 1, y - 1]); // 우상
-    if (x > 0 && y < height - 1) stack.push([x - 1, y + 1]); // 좌하
-    if (x < width - 1 && y < height - 1) stack.push([x + 1, y + 1]); // 우하
+  } else {
+    if (!isDrawing.value) return
+    ctx.value.beginPath()
+    ctx.value.lineCap = 'round'
+    ctx.value.lineWidth = currentTool.value==='brush'?lineWidth.value*2:lineWidth.value
+    ctx.value.strokeStyle = currentTool.value==='eraser'? '#ffffff': currentColor.value
+    ctx.value.globalAlpha = currentTool.value==='brush'?0.5:1
+    ctx.value.moveTo(lastX.value, lastY.value)
+    ctx.value.lineTo(x, y)
+    ctx.value.stroke()
+    ctx.value.globalAlpha = 1
+    lastX.value = x
+    lastY.value = y
   }
+}
+function stopDrawing() {
+  if (!isDrawing.value) return
+  isDrawing.value = false
+  // shape finalize
+  draw(lastMouseEvent)
+  saveState()
+}
+function clearCanvas() {
+  ctx.value!.fillStyle = '#ffffff'
+  ctx.value!.fillRect(0,0,canvas.value!.width,canvas.value!.height)
+  saveState()
+}
 
-  ctx.value.putImageData(imageData, 0, 0);
-  saveState();
-};
+// 히스토리
+function saveState() {
+  historyIndex.value++
+  history.value.splice(historyIndex.value)
+  history.value.push(ctx.value!.getImageData(0,0,canvas.value!.width,canvas.value!.height))
+  updateHistory()
+}
+function updateHistory() {
+  canUndo.value = historyIndex.value>0
+  canRedo.value = historyIndex.value<history.value.length-1
+}
+function undo() {
+  if (!canUndo.value) return
+  historyIndex.value--
+  ctx.value!.putImageData(history.value[historyIndex.value],0,0)
+  updateHistory()
+}
+function redo() {
+  if (!canRedo.value) return
+  historyIndex.value++
+  ctx.value!.putImageData(history.value[historyIndex.value],0,0)
+  updateHistory()
+}
 
-const getPixel = (data: Uint8ClampedArray, x: number, y: number) => {
-  const index = (y * canvas.value!.width + x) * 4;
-  return [data[index], data[index + 1], data[index + 2], data[index + 3]];
-};
+// fill
+function floodFill(sx:number, sy:number, hex:string) {
+  const img = ctx.value!.getImageData(0,0,canvas.value!.width,canvas.value!.height)
+  const data=img.data, w=canvas.value!.width, h=canvas.value!.height
+  const [fr,fg,fb]=hexToRgba(hex)
+  const target=getPixel(data,sx,sy)
+  const stack=[[sx,sy]]
+  const eq=(c:number[])=>c.every((v,i)=>v===target[i])
+  while(stack.length){
+    const [x,y]=stack.pop()!
+    const idx=(y*w+x)*4
+    if(!eq([data[idx],data[idx+1],data[idx+2],data[idx+3]])) continue
+    data[idx]=fr; data[idx+1]=fg; data[idx+2]=fb; data[idx+3]=255
+    if(x>0) stack.push([x-1,y]); if(x<w-1) stack.push([x+1,y])
+    if(y>0) stack.push([x,y-1]); if(y<h-1) stack.push([x,y+1])
+  }
+  ctx.value!.putImageData(img,0,0)
+  saveState()
+}
+function getPixel(d:Uint8ClampedArray,x:number,y:number){
+  const idx=(y*canvas.value!.width+x)*4
+  return [d[idx],d[idx+1],d[idx+2],d[idx+3]]
+}
+function hexToRgba(hex:string){
+  const n=parseInt(hex.slice(1),16)
+  return [(n>>16)&255,(n>>8)&255,n&255]
+}
 
-const setPixel = (data: Uint8ClampedArray, x: number, y: number, [r, g, b, a]: number[]) => {
-  const index = (y * canvas.value!.width + x) * 4;
-  data[index] = r;
-  data[index + 1] = g;
-  data[index + 2] = b;
-  data[index + 3] = a;
-};
+// 업로드 → 크롭
+function openCropper() {
+  const inp=document.createElement('input')
+  inp.type='file'; inp.accept='image/*'
+  inp.onchange = e => {
+    const file=(e.target as HTMLInputElement).files![0]
+    const reader=new FileReader()
+    reader.onload = ()=> {
+      uploadedImage.value = reader.result as string
+      // 이미지를 읽은 뒤에 모달 열기
+      showCropper.value = true
+    }
+    reader.readAsDataURL(file)
+  }
+  inp.click()
+}
+function confirmCrop() {
+  const canvasCrop = cropper.value.getCroppedCanvas({
+    width: canvas.value!.width,
+    height: canvas.value!.height
+  })
+  if (!canvasCrop) return
+  const src = canvasCrop.toDataURL('image/png')
+  const img = new Image()
+  img.onload = () => {
+    ctx.value!.clearRect(0,0,canvas.value!.width,canvas.value!.height)
+    ctx.value!.drawImage(img,0,0)
+    saveState()
+    showCropper.value = false
+  }
+  img.src = src
+}
 
-const colorsMatch = (color1: number[], color2: number[]) => {
-  return color1[0] === color2[0] && color1[1] === color2[1] && color1[2] === color2[2] && color1[3] === color2[3];
-};
+// 제출
+function handleSubmit() {
+  // Base64 형태로 저장
+  const dataUrl = canvas.value!.toDataURL('image/png')
+  aiStore.setOriginalDataUrl(dataUrl)
 
-const hexToRgba = (hex: string) => {
-  const bigint = parseInt(hex.slice(1), 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return [r, g, b, 255];
-};
+  // Blob 형태로 저장 후 이동
+  canvas.value!.toBlob(blob => {
+    if (blob) {
+      aiStore.setOriginalBlob(blob)
+      router.push('/loading')
+    }
+  }, 'image/png')
+}
+</script>
 
-  </script>
-  
+<style scoped>
+.tool-btn {
+  @apply flex items-center justify-center p-2 rounded-lg border hover:bg-blue-50 transition;
+}
+</style>
