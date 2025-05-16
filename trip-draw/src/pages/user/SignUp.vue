@@ -210,11 +210,12 @@
               <!-- 휴대폰 번호 -->
               <div>
                 <label class="block mb-1 text-sm font-medium">
-                  휴대폰 번호 <span class="text-gray-400">(선택)</span>
+                  휴대폰 번호 <span class="text-gray-400"></span>
                 </label>
                 <input
                   type="tel"
                   v-model="phone"
+                  @input="onPhoneInput"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BDDDE4]"
                   placeholder="010-0000-0000"
                   @blur="validatePhone"
@@ -399,6 +400,22 @@
   const isNicknameVerified = ref(false);
   const nicknameError = ref("");
 
+
+  const onPhoneInput = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  // 숫자만 남기고 최대 11자리
+  let digits = input.value.replace(/\D/g, '').slice(0, 11)
+
+  if (digits.length > 3 && digits.length <= 7) {
+    // 010 1234 → 010-1234
+    digits = digits.replace(/(\d{3})(\d+)/, '$1-$2')
+  } else if (digits.length > 7) {
+    // 010 1234 5678 → 010-1234-5678
+    digits = digits.replace(/(\d{3})(\d{4})(\d+)/, '$1-$2-$3')
+  }
+
+  phone.value = digits
+}
 
   
   // Daum 주소 검색 스크립트 로드
@@ -669,6 +686,7 @@ const verifyCode = async () => {
         loginType:       "GENERAL"    // 백엔드가 필요로 하는 경우
       }
     );
+    alert("회원가입에 성공했습니다.");
     // 가입 성공하면 로그인 페이지로 이동
     router.push({ name: "Login" });
   } catch (e: any) {
