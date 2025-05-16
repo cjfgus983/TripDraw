@@ -151,11 +151,7 @@
                     >
                       번호
                     </th>
-                    <th
-                      class="px-4 py-3 text-left text-sm font-medium text-gray-500 w-24"
-                    >
-                      카테고리
-                    </th>
+                  
                     <th
                       class="px-4 py-3 text-left text-sm font-medium text-gray-500"
                     >
@@ -184,6 +180,7 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+                  <!--
                   <tr
                     v-for="post in filteredPosts"
                     :key="post.id"
@@ -236,7 +233,49 @@
                     <td class="px-4 py-4 text-sm text-gray-500 text-center">
                       {{ post.likes }}
                     </td>
-                  </tr>
+                  </tr>--> 
+                  <tr
+  v-for="post in posts"
+  :key="post.freeId"
+  class="hover:bg-gray-50 cursor-pointer"
+>
+  <!-- 번호 -->
+  <td class="px-4 py-4 text-sm text-gray-500">{{ post.freeId }}</td>
+
+  <!-- 제목 -->
+  <td class="px-4 py-4 font-medium">
+    <a href="#" class="hover:text-[#4A90E2]">
+      {{ post.title }}
+    </a>
+  </td>
+
+  <!-- 작성자 닉네임 -->
+  <td class="px-4 py-4 text-sm">
+    <div class="flex items-center">
+      <!-- <img
+        src="https://via.placeholder.com/24" 
+        alt="작성자"
+        class="w-6 h-6 rounded-full mr-2"
+      /> -->
+      <span>{{ post.nickName }}</span>
+    </div>
+  </td>
+
+  <!-- 작성일 -->
+  <td class="px-4 py-4 text-sm text-gray-500 text-center">
+    {{ formatDate(post.createdAt) }}
+  </td>
+
+  <!-- 조회수 -->
+  <td class="px-4 py-4 text-sm text-gray-500 text-center">
+    {{ post.viewCount }}
+  </td>
+  <td class="px-4 py-4 text-sm text-gray-500 text-center">
+    {{ post.likeCount }}
+  </td>
+</tr>
+
+
                 </tbody>
               </table>
             </div>
@@ -244,17 +283,17 @@
             <!-- 카드 형태 (모바일) -->
             <div class="md:hidden space-y-4">
               <div
-                v-for="post in filteredPosts"
+                v-for="post in posts"
                 :key="post.id"
                 class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer"
               >
                 <div class="flex justify-between items-start mb-2">
-                  <span
+                  <!-- <span
                     class="text-xs font-medium px-2 py-1 rounded-full"
                     :class="getCategoryClass(post.category)"
                   >
                     {{ getCategoryName(post.category) }}
-                  </span>
+                  </span> -->
                   <span class="text-xs text-gray-500"
                     >{{ formatDate(post.date) }}</span
                   >
@@ -283,12 +322,12 @@
                   class="flex justify-between items-center text-sm text-gray-500"
                 >
                   <div class="flex items-center">
-                    <img
+                    <!-- <img
                       :src="post.authorAvatar"
                       :alt="post.author"
                       class="w-6 h-6 rounded-full mr-2"
-                    />
-                    <span>{{ post.author }}</span>
+                    /> -->
+                    <span>{{ post.nickName }}</span>
                   </div>
                   <div class="flex space-x-3">
                     <span class="flex items-center"
@@ -348,6 +387,7 @@
   </template>
   
   <script lang="ts" setup>
+  import axios from 'axios';
   import { ref, computed, onMounted } from "vue";
   
   const mobileMenuOpen = ref(false);
@@ -420,289 +460,30 @@
     },
   ];
   
-  const posts = [
-    ...popularPosts,
-    {
-      id: 4,
-      title: "일본 오사카 맛집 베스트 10 - 현지인 추천 장소",
-      content:
-        "오사카 현지인 친구에게 추천받은 진짜 맛집 10곳을 소개합니다. 관광객이 잘 모르는 숨은 맛집부터 인기 있는 맛집까지 다양하게 정리했어요.",
-      author: "맛집탐험가",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar4&orientation=squarish",
-      date: "2025-04-20T16:20:00",
-      views: 1876,
-      likes: 134,
-      category: "info",
-      commentCount: 27,
-      image:
-        "https://readdy.ai/api/search-image?query=delicious%2520japanese%2520street%2520food%2520in%2520osaka%2520with%2520takoyaki%2520and%2520okonomiyaki%2520professional%2520food%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post4&orientation=landscape",
-    },
-    {
-      id: 5,
-      title: "혼자 떠난 베트남 다낭 4박 5일 여행기",
-      content:
-        "처음으로 혼자 떠난 해외여행, 베트남 다낭에서의 4박 5일 여행 경험을 공유합니다. 혼자 여행하시는 분들을 위한 팁도 함께 알려드려요.",
-      author: "솔로트래블러",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520woman%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar5&orientation=squarish",
-      date: "2025-04-15T11:30:00",
-      views: 1543,
-      likes: 98,
-      category: "review",
-      commentCount: 31,
-      image:
-        "https://readdy.ai/api/search-image?query=beautiful%2520golden%2520bridge%2520in%2520ba%2520na%2520hills%2520danang%2520vietnam%2520with%2520mountain%2520view%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post5&orientation=landscape",
-    },
-    {
-      id: 6,
-      title: "항공권 싸게 구매하는 꿀팁 총정리",
-      content:
-        "10년간 여행을 다니며 알게 된 항공권 저렴하게 구매하는 방법을 모두 공유합니다. 시즌별, 노선별 특징과 예약 타이밍까지 상세히 알려드려요.",
-      author: "여행의신",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520middle%2520aged%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar6&orientation=squarish",
-      date: "2025-04-10T13:45:00",
-      views: 3254,
-      likes: 276,
-      category: "tips",
-      commentCount: 52,
-      image:
-        "https://readdy.ai/api/search-image?query=airplane%2520flying%2520above%2520clouds%2520with%2520beautiful%2520sunset%2520view%2520from%2520window%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post6&orientation=landscape",
-    },
-    {
-      id: 7,
-      title: "6월 중순 북유럽 3개국 함께 여행하실 분 찾습니다",
-      content:
-        "6월 15일부터 30일까지 스웨덴, 노르웨이, 핀란드 3개국 여행을 계획 중입니다. 함께 여행할 동행을 구해요. 20-30대 남녀 무관, 사진 찍는 것을 좋아하시는 분이면 더 좋아요.",
-      author: "북극성",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar7&orientation=squarish",
-      date: "2025-04-05T17:20:00",
-      views: 754,
-      likes: 38,
-      category: "companion",
-      commentCount: 14,
-      image:
-        "https://readdy.ai/api/search-image?query=beautiful%2520northern%2520lights%2520aurora%2520borealis%2520in%2520norway%2520with%2520snow%2520covered%2520landscape%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post7&orientation=landscape",
-    },
-    {
-      id: 8,
-      title: "국내 여행 시 꼭 챙겨야 할 필수 앱 10가지",
-      content:
-        "국내 여행을 더 편리하고 알차게 만들어주는 필수 앱 10가지를 소개합니다. 교통, 숙소, 맛집, 관광지 정보 등 카테고리별로 정리했어요.",
-      author: "앱리뷰어",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520woman%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar8&orientation=squarish",
-      date: "2025-04-01T09:10:00",
-      views: 2165,
-      likes: 187,
-      category: "tips",
-      commentCount: 35,
-      image:
-        "https://readdy.ai/api/search-image?query=smartphone%2520with%2520travel%2520apps%2520on%2520screen%2520with%2520map%2520and%2520travel%2520items%2520around%2520professional%2520photography%2520with%2520clean%2520composition%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post8&orientation=landscape",
-    },
-    {
-      id: 9,
-      title: "태국 방콕 여행 시 주의해야 할 사기 수법 5가지",
-      content:
-        "방콕 여행 중 당할 수 있는 흔한 사기 수법 5가지와 대처 방법을 알려드립니다. 실제 경험담을 바탕으로 작성했어요.",
-      author: "여행안전지킴이",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520middle%2520aged%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar9&orientation=squarish",
-      date: "2025-03-25T14:50:00",
-      views: 1876,
-      likes: 142,
-      category: "tips",
-      commentCount: 47,
-      image:
-        "https://readdy.ai/api/search-image?query=busy%2520street%2520in%2520bangkok%2520thailand%2520with%2520tuk%2520tuk%2520and%2520street%2520vendors%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post9&orientation=landscape",
-    },
-    {
-      id: 10,
-      title: "4월 말 제주도 렌트카 동행 구합니다",
-      content:
-        "4월 28일부터 5월 2일까지 제주도 여행 예정인데, 렌트카 비용 나눠서 함께 여행하실 분을 찾습니다. 2-3명 정도 모집 중이에요.",
-      author: "제주사랑",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520woman%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar10&orientation=squarish",
-      date: "2025-03-20T10:30:00",
-      views: 687,
-      likes: 29,
-      category: "companion",
-      commentCount: 8,
-      image:
-        "https://readdy.ai/api/search-image?query=car%2520driving%2520on%2520coastal%2520road%2520in%2520jeju%2520island%2520korea%2520with%2520ocean%2520view%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post10&orientation=landscape",
-    },
-    {
-      id: 11,
-      title: "여름 휴가 추천! 동남아 비수기 여행지 BEST 5",
-      content:
-        "여름에 가면 비수기라 저렴하고 한적하게 즐길 수 있는 동남아 여행지 5곳을 소개합니다. 각 지역별 장단점과 추천 일정도 함께 알려드려요.",
-      author: "여행플래너",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520middle%2520aged%2520korean%2520woman%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar11&orientation=squarish",
-      date: "2025-03-15T15:40:00",
-      views: 1543,
-      likes: 112,
-      category: "info",
-      commentCount: 23,
-      image:
-        "https://readdy.ai/api/search-image?query=beautiful%2520empty%2520tropical%2520beach%2520in%2520southeast%2520asia%2520with%2520turquoise%2520water%2520and%2520palm%2520trees%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post11&orientation=landscape",
-    },
-    {
-      id: 12,
-      title: "호주 워킹홀리데이 1년 생활 총정리 및 팁",
-      content:
-        "호주에서 1년간 워킹홀리데이를 하며 경험한 모든 것들을 정리했습니다. 비자 신청부터 일자리 구하기, 생활비 관리까지 상세히 공유해요.",
-      author: "세계여행러",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar2&orientation=squarish",
-      date: "2025-03-10T11:25:00",
-      views: 2876,
-      likes: 231,
-      category: "review",
-      commentCount: 64,
-      image:
-        "https://readdy.ai/api/search-image?query=sydney%2520opera%2520house%2520and%2520harbour%2520bridge%2520at%2520sunset%2520australia%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post12&orientation=landscape",
-    },
-    {
-      id: 13,
-      title: "해외여행 시 꼭 챙겨야 할 여행 필수품 리스트",
-      content:
-        "해외여행을 준비할 때 꼭 챙겨야 할 필수품 목록을 국가/지역별로 정리했습니다. 많은 여행 경험을 바탕으로 실용적인 팁만 모았어요.",
-      author: "여행의신",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520middle%2520aged%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar6&orientation=squarish",
-      date: "2025-03-05T13:15:00",
-      views: 3421,
-      likes: 289,
-      category: "tips",
-      commentCount: 41,
-      image:
-        "https://readdy.ai/api/search-image?query=travel%2520essentials%2520flatlay%2520with%2520passport%2520camera%2520adapter%2520and%2520toiletries%2520on%2520light%2520background%2520professional%2520photography%2520with%2520clean%2520composition%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post13&orientation=landscape",
-    },
-    {
-      id: 14,
-      title: "질문: 스위스 융프라우 지역 대중교통으로 여행 가능한가요?",
-      content:
-        "다음 달에 스위스 여행을 계획 중인데, 융프라우 지역을 렌트카 없이 대중교통만으로 여행이 가능할지 궁금합니다. 경험자분들의 조언 부탁드려요.",
-      author: "여행초보",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520woman%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar14&orientation=squarish",
-      date: "2025-03-01T09:50:00",
-      views: 865,
-      likes: 42,
-      category: "question",
-      commentCount: 17,
-      image:
-        "https://readdy.ai/api/search-image?query=beautiful%2520jungfrau%2520region%2520in%2520switzerland%2520with%2520snow%2520capped%2520mountains%2520and%2520green%2520valleys%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post14&orientation=landscape",
-    },
-    {
-      id: 15,
-      title: "5월 황금연휴 국내 여행지 추천 (혼잡도 낮은 곳)",
-      content:
-        "다가오는 5월 황금연휴에 사람 많은 유명 관광지 대신 한적하게 즐길 수 있는 국내 여행지를 추천합니다. 지역별로 정리했어요.",
-      author: "조용한여행자",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520middle%2520aged%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar15&orientation=squarish",
-      date: "2025-02-25T14:30:00",
-      views: 1987,
-      likes: 156,
-      category: "info",
-      commentCount: 29,
-      image:
-        "https://readdy.ai/api/search-image?query=peaceful%2520korean%2520countryside%2520landscape%2520with%2520traditional%2520houses%2520and%2520mountains%2520in%2520spring%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post15&orientation=landscape",
-    },
-    {
-      id: 16,
-      title: "일본 오키나와 4박 5일 자유여행 후기",
-      content:
-        "일본 오키나와를 4박 5일 동안 자유여행으로 다녀온 경험을 공유합니다. 렌트카로 섬 구석구석을 돌아다니며 발견한 숨은 명소들을 알려드려요.",
-      author: "맛집탐험가",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar4&orientation=squarish",
-      date: "2025-02-20T16:45:00",
-      views: 1432,
-      likes: 98,
-      category: "review",
-      commentCount: 22,
-      image:
-        "https://readdy.ai/api/search-image?query=beautiful%2520okinawa%2520beach%2520with%2520crystal%2520clear%2520turquoise%2520water%2520and%2520white%2520sand%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post16&orientation=landscape",
-    },
-    {
-      id: 17,
-      title: "질문: 유럽 여행 시 심카드 vs 포켓와이파이 어떤 게 좋을까요?",
-      content:
-        "다음 달 유럽 3개국(프랑스, 이탈리아, 스페인) 2주 여행 예정인데, 현지 심카드와 포켓와이파이 중 어떤 것이 더 경제적이고 편리할지 조언 부탁드립니다.",
-      author: "인터넷중독",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520woman%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar17&orientation=squarish",
-      date: "2025-02-15T10:20:00",
-      views: 1254,
-      likes: 67,
-      category: "question",
-      commentCount: 31,
-      image:
-        "https://readdy.ai/api/search-image?query=smartphone%2520with%2520map%2520app%2520and%2520sim%2520card%2520on%2520european%2520map%2520background%2520professional%2520photography%2520with%2520clean%2520composition%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post17&orientation=landscape",
-    },
-    {
-      id: 18,
-      title: "여름 휴가 때 가기 좋은 동남아 비수기 여행지 추천",
-      content:
-        "여름에 동남아 여행을 계획 중이신 분들을 위해 비수기라 저렴하고 한적하게 즐길 수 있는 여행지를 추천합니다. 각 지역별 특징과 장단점도 함께 알려드려요.",
-      author: "여행플래너",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520middle%2520aged%2520korean%2520woman%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar11&orientation=squarish",
-      date: "2025-02-10T13:40:00",
-      views: 1765,
-      likes: 124,
-      category: "info",
-      commentCount: 19,
-      image:
-        "https://readdy.ai/api/search-image?query=beautiful%2520tropical%2520beach%2520in%2520southeast%2520asia%2520with%2520longtail%2520boats%2520and%2520limestone%2520cliffs%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post18&orientation=landscape",
-    },
-    {
-      id: 19,
-      title: "7월 초 발리 우붓 지역 동행 구합니다",
-      content:
-        "7월 1일부터 7일까지 발리 우붓 지역 여행 예정인데, 함께 여행할 동행을 구합니다. 20-30대 여성분들 환영해요. 편안한 분위기에서 힐링하는 여행을 원합니다.",
-      author: "발리러버",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520woman%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar19&orientation=squarish",
-      date: "2025-02-05T11:30:00",
-      views: 643,
-      likes: 31,
-      category: "companion",
-      commentCount: 12,
-      image:
-        "https://readdy.ai/api/search-image?query=beautiful%2520rice%2520terraces%2520in%2520ubud%2520bali%2520with%2520palm%2520trees%2520and%2520traditional%2520balinese%2520architecture%2520professional%2520travel%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post19&orientation=landscape",
-    },
-    {
-      id: 20,
-      title: "여행 사진 잘 찍는 팁 (스마트폰으로도 가능)",
-      content:
-        "전문 장비 없이 스마트폰만으로도 인생 여행 사진을 찍을 수 있는 팁을 공유합니다. 구도, 조명, 편집까지 단계별로 알려드려요.",
-      author: "여행사진작가",
-      authorAvatar:
-        "https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520young%2520korean%2520man%2520in%2520casual%2520attire%2520with%2520neutral%2520background%2520clean%2520portrait%2520style&width=100&height=100&seq=avatar20&orientation=squarish",
-      date: "2025-02-01T15:15:00",
-      views: 2543,
-      likes: 198,
-      category: "tips",
-      commentCount: 37,
-      image:
-        "https://readdy.ai/api/search-image?query=person%2520taking%2520photo%2520with%2520smartphone%2520of%2520beautiful%2520sunset%2520at%2520beach%2520silhouette%2520style%2520professional%2520photography%2520with%2520vibrant%2520colors%2520and%2520perfect%2520lighting%2520high%2520quality%2520digital%2520art&width=400&height=250&seq=post20&orientation=landscape",
-    },
-  ];
+  const posts = ref([]);
+const token = localStorage.getItem("accessToken");
+
+onMounted(async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/api/free', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    posts.value = response.data;
+  } catch (error) {
+    console.error("게시글을 불러오는 데 실패했습니다:", error);
+  }
+});
   
   const filteredPosts = computed(() => {
     let result = [...posts];
   
-    // 카테고리 필터링
-    if (selectedCategory.value !== "all") {
-      result = result.filter((post) => post.category === selectedCategory.value);
-    }
+    // // 카테고리 필터링
+    // if (selectedCategory.value !== "all") {
+    //   result = result.filter((post) => post.category === selectedCategory.value);
+    // }
   
     // 검색어 필터링
     if (searchQuery.value.trim()) {

@@ -1,4 +1,4 @@
-package HyeonRi.TripDrawApp.dto.board.free;
+package HyeonRi.TripDrawApp.dto.board.contact;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,14 +9,16 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-public class FreeDto {
-    private Long freeId;
+@AllArgsConstructor
+public class ContactCommentDto {
+    @NonNull
+    private Long commentId;
+    @NonNull
+    private Long contactId;
+    @NonNull
     private Long userId;
-    private String title;
+    @NonNull
     private String content;
-    private Integer viewCount;
-    private Integer likeCount;
+    @NonNull
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private String nickName;
 }

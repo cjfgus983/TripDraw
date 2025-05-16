@@ -1,4 +1,4 @@
-package HyeonRi.TripDrawApp.dto.board.free;
+package HyeonRi.TripDrawApp.dto.board.notice;
 
 import java.time.LocalDateTime;
 
@@ -8,12 +8,23 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
-public class FreeCommentDto {
-    private Long commentId;
-    private Long freeId;
+public class NoticeDto {
+    private Long noticeId;
+
+    @NonNull
     private Long userId;
+
+    @NonNull
+    private String title;
+
+    @NonNull
     private String content;
+
+    @NonNull
     private LocalDateTime createdAt;
-    private Boolean isDeleted;
+
+    private Integer viewCount;
+    private Boolean isPinned;
 }
