@@ -1,11 +1,10 @@
 package HyeonRi.TripDrawApp.dto.board.free;
 
-import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -16,7 +15,10 @@ public class FreeDto {
     private String content;
     private Integer viewCount;
     private Integer likeCount;
+    private Integer dislikeCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String nickName;
+    
+    private List<String> imageUrls;
 }
