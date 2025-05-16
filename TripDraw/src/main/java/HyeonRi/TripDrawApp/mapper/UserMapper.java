@@ -95,4 +95,10 @@ public interface UserMapper {
       @Param("phoneNumber") String phoneNumber,
       @Param("loginType") LoginType loginType
     );
+    
+    /**
+     * 사용자 ID로 닉네임 조회
+     */
+    @Select("SELECT nickname FROM `user` WHERE user_id = #{userId}")
+    String findNicknameByUserId(@Param("userId") Long userId);
 }
