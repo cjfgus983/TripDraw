@@ -1,4 +1,4 @@
-<!-- The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work. -->
+The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 <template>
     <div class="min-h-screen">
       <!-- 상단 로고 네비게이션 바 -->

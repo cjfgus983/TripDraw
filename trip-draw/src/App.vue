@@ -17,14 +17,13 @@
         </div>
         <div class="flex space-x-4">
           <template v-if="!isLoggedIn">
-          <router-link to="/login" class="nav-link">로그인</router-link>
-          <router-link to="/signup" class="nav-link">회원가입</router-link>
-         </template>
-         <template v-else>
+            <router-link to="/login" class="nav-link">로그인</router-link>
+            <router-link to="/signup" class="nav-link">회원가입</router-link>
+          </template>
+          <template v-else>
             <span class="nav-link">{{ nickname }}님</span>
             <button @click="handleLogout" class="nav-link">로그아웃</button>
-         </template>
-
+          </template>
         </div>
       </div>
     </nav>
@@ -41,14 +40,16 @@
 <script setup lang="ts">
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
-import { ref, onMounted, computed } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { useUserStore } from './stores/user'
 
-
-// 닉네임 불러오기 & 로그인 상태 관리
-const nickname = ref<string | null>(null)
+// Pinia 유저 스토어 사용
+const userStore = useUserStore()
 const router = useRouter()
+
+// 앱 시작 혹은 새로고침 시 프로필 로드
 onMounted(async () => {
   const token = localStorage.getItem('accessToken')
   if (!token) return
@@ -57,22 +58,27 @@ onMounted(async () => {
       'http://localhost:8080/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    nickname.value = data.nickname
+    // 스토어에 프로필 저장
+    userStore.setProfile({
+      id: data.userId,
+      email: data.email,
+      nickname: data.nickname
+    })
   } catch {
-    // 토큰 만료 등 에러 처리
-    //localStorage.removeItem('accessToken')
-    //nickname.value = null
+    userStore.clearProfile()
   }
 })
-const isLoggedIn = computed(() => Boolean(nickname.value))
- // 로그아웃 처리
+
+// 로그인 상태 및 닉네임
+const isLoggedIn = computed(() => userStore.isLoggedIn)
+const nickname   = computed(() => userStore.nickname)
+
+// 로그아웃 처리
 const handleLogout = () => {
   localStorage.removeItem('accessToken')
-  localStorage.removeItem('nickname')
-  nickname.value = null
+  userStore.clearProfile()
   router.push({ name: 'Main' })
 }
-
 </script>
 
 <style>

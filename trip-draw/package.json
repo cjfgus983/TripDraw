@@ -10,9 +10,12 @@
   },
   "dependencies": {
     "axios": "^1.9.0",
+    "cropperjs": "^1.5.12",
     "fabric": "^4.6.0",
+    "pinia": "^3.0.2",
     "swiper": "^11.2.6",
     "vue": "^3.5.13",
+    "vue-cropperjs": "^5.0.0",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
