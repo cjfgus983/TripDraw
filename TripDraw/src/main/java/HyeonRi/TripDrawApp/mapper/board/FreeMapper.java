@@ -21,14 +21,28 @@ public interface FreeMapper {
 
     @Select("SELECT * FROM free WHERE free_id = #{freeId}")
     FreeDto getFreeById(Long freeId);
+    
+    /** 조회수 1 증가 */
+    @Update("UPDATE free SET view_count = view_count + 1 WHERE free_id = #{freeId}")
+    void incrementViewCount(Long freeId);
+    
+    //추천 비추천 
+    @Update("UPDATE free SET like_count    = like_count    + #{delta} WHERE free_id = #{freeId}")
+    void updateLikeCount(@Param("freeId") Long freeId, @Param("delta") int delta);
+    
+    @Update("UPDATE free SET dislike_count = dislike_count + #{delta} WHERE free_id = #{freeId}")
+    void updateDislikeCount(@Param("freeId") Long freeId, @Param("delta") int delta);
 
     @Select("""
-    	    SELECT f.*, u.nickname
-    	    FROM free f
-    	    JOIN user u ON f.user_id = u.user_id
-    	    ORDER BY f.created_at DESC
-    	""")
+    	      SELECT f.*, u.nickname
+    	      FROM free f
+    	      JOIN user u ON f.user_id = u.user_id
+    	      ORDER BY f.created_at DESC
+    	    """)
     List<FreeDto> getAllFree();
+
+    @Select("SELECT image_url FROM free_image WHERE free_id = #{freeId}")
+    List<String> getImageUrlsByFreeId(Long freeId);
 
     @Update("""
         UPDATE free SET title = #{title}, content = #{content}, updated_at = NOW()
