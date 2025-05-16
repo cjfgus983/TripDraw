@@ -115,6 +115,7 @@ public class UserService {
                 + "임시 비밀번호: " + tempPw + "\n\n"
                 + "로그인 후 마이페이지에서 비밀번호를 꼭 변경해주세요.";
         emailService.sendNewPassword(email, subject, body);
+        System.out.println("분명 임시 비번 전송");
     }
 
     // (유틸) 랜덤 10글자 비밀번호 생성

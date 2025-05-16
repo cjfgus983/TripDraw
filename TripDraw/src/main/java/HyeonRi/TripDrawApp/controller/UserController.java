@@ -130,12 +130,12 @@ public class UserController {
      *   아니면 400 Bad Request
      */
     @PostMapping("/find-password")
-    public ResponseEntity<Void> sendTempPassword(@RequestBody FindPasswordRequestDto dto) {
+    public ResponseEntity<String> sendTempPassword(@RequestBody FindPasswordRequestDto dto) {
         if (!userService.isExistEmail(dto.getEmail())) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("유효하지 않은 요청입니다: 이메일 형식이 잘못되었습니다");
         }
         userService.resetPasswordAndSendEmail(dto.getEmail());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("임시 비밀번호 발송 됐습니다.");
     }
 
 }
