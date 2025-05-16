@@ -1,6 +1,4 @@
-package HyeonRi.TripDrawApp.dto.board.free;
-
-import java.time.LocalDateTime;
+package HyeonRi.TripDrawApp.dto.board.contact;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,8 +7,12 @@ import lombok.NonNull;
 
 @Data
 @NoArgsConstructor
-public class FreeImageDto {
+@AllArgsConstructor
+public class ContactImageDto {
+    @NonNull
     private Long imageId;
-    private Long freeId;
+    @NonNull
+    private Long contactId;
+    @NonNull
     private String imageUrl;
 }
