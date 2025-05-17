@@ -97,6 +97,7 @@ public interface UserMapper {
     );
 
 
+
     /**
      * 프로필 업데이트: 닉네임, 주소, 전화번호, 비밀번호(암호화된) 변경
      */
@@ -116,4 +117,11 @@ public interface UserMapper {
       </script>
     """)
     void updateUser(User user);
+
+    
+    /**
+     * 사용자 ID로 닉네임 조회
+     */
+    @Select("SELECT nickname FROM `user` WHERE user_id = #{userId}")
+    String findNicknameByUserId(@Param("userId") Long userId);
 }

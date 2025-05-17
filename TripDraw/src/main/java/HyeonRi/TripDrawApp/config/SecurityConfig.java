@@ -1,21 +1,23 @@
 package HyeonRi.TripDrawApp.config;
 
-import HyeonRi.TripDrawApp.security.CustomUserDetailsService;
-import HyeonRi.TripDrawApp.security.JwtAuthenticationFilter;
-import HyeonRi.TripDrawApp.security.JwtUtil;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import HyeonRi.TripDrawApp.security.CustomUserDetailsService;
+import HyeonRi.TripDrawApp.security.JwtAuthenticationFilter;
+import HyeonRi.TripDrawApp.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -69,13 +71,16 @@ public class SecurityConfig {
 //                        .anyRequest().authenticated()
 //                )
                 .authorizeHttpRequests(auth -> auth
+                		// Preflight OPTIONS 는 모두 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 회원가입·로그인·토큰 리프레시
                         .requestMatchers("/api/users/signup", "/api/auth/**").permitAll()
                         // 이메일 인증(발송/검증) 및 중복체크
                         .requestMatchers("/api/users/**").permitAll()
                         // Swagger UI, static 리소스
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
+                        // 파일 업로드
+                        .requestMatchers("/uploads/**").permitAll()
                         // 그 외는 모두 인증 필요
                         .anyRequest().authenticated()
                 )

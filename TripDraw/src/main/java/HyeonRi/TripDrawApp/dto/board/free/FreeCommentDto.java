@@ -16,4 +16,5 @@ public class FreeCommentDto {
     private String content;
     private LocalDateTime createdAt;
     private Boolean isDeleted;
+    private String nickName;
 }
