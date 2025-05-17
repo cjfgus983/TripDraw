@@ -21,7 +21,7 @@
             <router-link to="/signup" class="nav-link">회원가입</router-link>
           </template>
           <template v-else>
-            <span class="nav-link">{{ nickname }}님</span>
+            <router-link to="/mypage" class="nav-link">{{ nickname }}님</router-link>
             <button @click="handleLogout" class="nav-link">로그아웃</button>
           </template>
         </div>

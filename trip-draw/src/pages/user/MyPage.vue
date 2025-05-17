@@ -139,7 +139,6 @@
               회원정보 수정
             </h2>
             <div
-              v-if="!passwordVerified"
               class="max-w-md mx-auto bg-gray-50 p-6 rounded-lg"
             >
               <p class="text-gray-700 mb-4">
@@ -167,98 +166,6 @@
                   확인
                 </button>
               </div>
-              <p class="text-sm text-gray-500 mt-4">
-                <i class="fas fa-lock mr-1"></i>
-                회원님의 개인정보 보호를 위해 비밀번호를 확인합니다.
-              </p>
-            </div>
-            <div v-else class="max-w-2xl mx-auto">
-              <form @submit.prevent="updateProfile">
-                <div class="grid grid-cols-1 gap-6">
-                  <div>
-                    <label
-                      for="name"
-                      class="block text-sm font-medium text-gray-700 mb-1"
-                      >이름</label
-                    >
-                    <input
-                      type="text"
-                      id="name"
-                      v-model="userProfile.name"
-                      class="w-full px-3 py-2 border border-[#BDDDE4] rounded-md focus:outline-none focus:ring-2 focus:ring-[#9EC6F3]"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      for="email"
-                      class="block text-sm font-medium text-gray-700 mb-1"
-                      >이메일</label
-                    >
-                    <input
-                      type="email"
-                      id="email"
-                      v-model="userProfile.email"
-                      class="w-full px-3 py-2 border border-[#BDDDE4] rounded-md focus:outline-none focus:ring-2 focus:ring-[#9EC6F3]"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      for="phone"
-                      class="block text-sm font-medium text-gray-700 mb-1"
-                      >전화번호</label
-                    >
-                    <input
-                      type="tel"
-                      id="phone"
-                      v-model="userProfile.phone"
-                      class="w-full px-3 py-2 border border-[#BDDDE4] rounded-md focus:outline-none focus:ring-2 focus:ring-[#9EC6F3]"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      for="newPassword"
-                      class="block text-sm font-medium text-gray-700 mb-1"
-                      >새 비밀번호</label
-                    >
-                    <input
-                      type="password"
-                      id="newPassword"
-                      v-model="userProfile.newPassword"
-                      class="w-full px-3 py-2 border border-[#BDDDE4] rounded-md focus:outline-none focus:ring-2 focus:ring-[#9EC6F3]"
-                      placeholder="변경하지 않으려면 비워두세요"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      for="confirmPassword"
-                      class="block text-sm font-medium text-gray-700 mb-1"
-                      >비밀번호 확인</label
-                    >
-                    <input
-                      type="password"
-                      id="confirmPassword"
-                      v-model="userProfile.confirmPassword"
-                      class="w-full px-3 py-2 border border-[#BDDDE4] rounded-md focus:outline-none focus:ring-2 focus:ring-[#9EC6F3]"
-                      placeholder="변경하지 않으려면 비워두세요"
-                    />
-                  </div>
-                </div>
-                <div class="mt-8 flex justify-end">
-                  <button
-                    type="button"
-                    @click="passwordVerified = false"
-                    class="mr-4 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition cursor-pointer !rounded-button whitespace-nowrap"
-                  >
-                    취소
-                  </button>
-                  <button
-                    type="submit"
-                    class="bg-[#9EC6F3] text-white px-4 py-2 rounded-md hover:bg-[#9FB3DF] transition cursor-pointer !rounded-button whitespace-nowrap"
-                  >
-                    저장하기
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
           <!-- 회원탈퇴 -->
@@ -350,6 +257,17 @@
   
   <script lang="ts" setup>
   import { ref, computed, onMounted } from "vue";
+  import { useRouter } from 'vue-router'
+  
+
+  import axios from "axios";
+
+  import { useUserStore } from '@/stores/user';
+  const userStore = useUserStore();
+
+
+  const router = useRouter();
+
   // 탭 상태 관리
   // 필터된 여행 계획 (필요 시 favorite 필터링 로직 추가 가능)
 const filteredPlans = computed(() => travelPlans.value);
@@ -431,15 +349,8 @@ const filteredPlans = computed(() => travelPlans.value);
   },
   ]);
   // 회원정보 수정 관련
-  const passwordVerified = ref(false);
   const password = ref("");
-  const userProfile = ref({
-    name: "김여행",
-    email: "travel@example.com",
-    phone: "010-1234-5678",
-    newPassword: "",
-    confirmPassword: "",
-  });
+  
   // 회원탈퇴 관련
   const deletePassword = ref("");
   // 모달 관련
@@ -448,38 +359,16 @@ const filteredPlans = computed(() => travelPlans.value);
   const modalTitle = ref("");
   const modalMessage = ref("");
   const modalCallback = ref<() => void>(() => {});
-  // 비밀번호 확인 함수
-  const verifyPassword = () => {
-    if (password.value === "1234") {
-      // 실제로는 서버에서 검증해야 함
-      passwordVerified.value = true;
-      password.value = "";
-    } else {
-      showAlertModal(
-        "비밀번호 오류",
-        "비밀번호가 일치하지 않습니다. 다시 시도해주세요.",
-      );
-    }
-  };
-  // 회원정보 업데이트 함수
-  const updateProfile = () => {
-    // 비밀번호 확인 로직
-    if (
-      userProfile.value.newPassword &&
-      userProfile.value.newPassword !== userProfile.value.confirmPassword
-    ) {
-      showAlertModal(
-        "비밀번호 오류",
-        "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.",
-      );
-      return;
-    }
-    // 여기서 실제 업데이트 로직 구현 (API 호출 등)
-    showAlertModal("성공", "회원정보가 성공적으로 업데이트되었습니다.");
-    passwordVerified.value = false;
-    userProfile.value.newPassword = "";
-    userProfile.value.confirmPassword = "";
-  };
+  const verifyPassword = async () => {
+  try {
+    // 1) DB 검증
+    await axios.post("/api/users/verify-password", { password: password.value });
+    userStore.confirmPassword();
+    router.push("/editprofile");
+  } catch {
+    showAlertModal("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
+  }
+};
   // 회원탈퇴 확인 함수
   const confirmDeleteAccount = () => {
     if (deletePassword.value === "") {
