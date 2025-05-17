@@ -55,7 +55,7 @@ public class FreeController {
 
 
     @GetMapping("/{freeId}")
-    public ResponseEntity<FreeDto> getFree(@PathVariable Long freeId) {
+    public ResponseEntity<FreeDto> getFree(@PathVariable Long freeId) throws IOException {
         return ResponseEntity.ok(freeService.getFree(freeId));
     }
 

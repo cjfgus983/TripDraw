@@ -17,17 +17,16 @@ import HyeonRi.TripDrawApp.dto.board.free.FreeDto;
 import HyeonRi.TripDrawApp.dto.board.free.FreeImageDto;
 import HyeonRi.TripDrawApp.mapper.UserMapper;
 import HyeonRi.TripDrawApp.mapper.board.FreeMapper;
+import HyeonRi.TripDrawApp.service.AiService;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class FreeService {
 
     private final FreeMapper freeMapper;
     private final UserMapper userMapper;
-
-    public FreeService(FreeMapper freeMapper, UserMapper userMapper) {
-        this.freeMapper = freeMapper;
-        this.userMapper = userMapper;
-    }
+    private final AiService aiService;
     
 
     @Value("${spring.servlet.multipart.location}")
@@ -88,7 +87,7 @@ public class FreeService {
         return dto.getFreeId();
     }
 
-    public FreeDto getFree(Long id) {
+    public FreeDto getFree(Long id) throws IOException {
     	// 1) 조회수 증가
     	freeMapper.incrementViewCount(id);
     	
@@ -98,6 +97,9 @@ public class FreeService {
     	dto.setNickName(userMapper.findNicknameByUserId(dto.getUserId()));
     	List<String> urls = freeMapper.getImageUrlsByFreeId(dto.getFreeId());
         dto.setImageUrls(urls);
+        // 3문장 요약
+        String summary3 = aiService.summarizeInSentences(dto.getContent(), 3);
+        dto.setSummary(summary3);
         return dto;
     }
 

@@ -200,6 +200,42 @@ public class AiService {
                 .path("choices").get(0).path("message").path("content").asText();
         return stripFences(content);
     }
+    
+    /**
+     * (3) 지정된 문장을 n개의 문장으로 요약해서 돌려줍니다.
+     */
+    public String summarizeInSentences(String text, int sentences) throws IOException {
+        String system = "당신은 뛰어난 한국어 글 요약 전문가입니다.";
+        String user = String.format("다음 글을 한국어 %d문장으로 간단히 요약해줘:\n\n%s", sentences, text);
+
+        ArrayNode messages = objectMapper.createArrayNode()
+            .add(objectMapper.createObjectNode()
+                .put("role","system")
+                .put("content",system))
+            .add(objectMapper.createObjectNode()
+                .put("role","user")
+                .put("content",user));
+
+        ObjectNode payload = objectMapper.createObjectNode()
+            .put("model","gpt-4o-mini")
+            .set("messages", messages);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(apiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String resp = restTemplate.postForObject(
+            "https://api.openai.com/v1/chat/completions",
+            new HttpEntity<>(payload.toString(), headers),
+            String.class
+        );
+
+        JsonNode choice = objectMapper.readTree(resp)
+            .path("choices").get(0)
+            .path("message").path("content");
+
+        return choice.asText().strip();
+    }
 
     // 펜스(```json … ```) 제거 헬퍼
     private String stripFences(String text) {

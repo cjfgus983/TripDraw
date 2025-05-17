@@ -19,6 +19,7 @@ public class FreeDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String nickName;
+    private String summary;
     
     private List<String> imageUrls;
 }
