@@ -1,7 +1,9 @@
 package HyeonRi.TripDrawApp.controller;
 
+import HyeonRi.TripDrawApp.domain.LoginType;
 import HyeonRi.TripDrawApp.domain.User;
 import HyeonRi.TripDrawApp.dto.EmailVerifyRequestDto;
+import HyeonRi.TripDrawApp.dto.UpdateProfileRequest;
 import HyeonRi.TripDrawApp.dto.UserProfileDto;
 import HyeonRi.TripDrawApp.dto.UserRegisterRequestDto;
 import HyeonRi.TripDrawApp.dto.findEmail.FindEmailRequestDto;
@@ -11,6 +13,7 @@ import HyeonRi.TripDrawApp.dto.findPassword.FindPasswordRequestDto;
 import HyeonRi.TripDrawApp.service.EmailService;
 import HyeonRi.TripDrawApp.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -80,11 +83,14 @@ public class UserController {
                 u.getName(),
                 u.getPhoneNumber(),
                 u.getAddress(),
+                u.getAddressDetail(),
                 u.getNickname(),
                 u.getRole()
         );
         return ResponseEntity.ok(dto);
     }
+
+
 
     // (3-1) 아이디 찾기용 인증 코드 발송
     @PostMapping("/find-email/send")
@@ -137,5 +143,36 @@ public class UserController {
         userService.resetPasswordAndSendEmail(dto.getEmail());
         return ResponseEntity.ok("임시 비밀번호 발송 됐습니다.");
     }
+
+    /**
+    * 비밀번호 검증
+     * 회원정보 수정할 때 필요함
+    *
+    * */
+    @PostMapping("/verify-password")
+    public ResponseEntity<String> verifyPassword(@RequestBody Map<String,String> body,
+                                               Authentication authentication) {
+        String rawPw = body.get("password");
+        System.out.println(rawPw);
+
+        String email = authentication.getName();
+        System.out.println(email);
+
+        if (!userService.checkPassword(email, rawPw)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호 틀림");
+        }
+        return ResponseEntity.ok("비밀번호 인증 완료");
+    }
+
+
+    // 유저 정보를 수정하는 부분
+    @PutMapping("/me")
+    public ResponseEntity<Void> updateProfile(@RequestBody UpdateProfileRequest request,
+                                              Authentication authentication) {
+        String email = authentication.getName();
+        userService.updateProfile(email, request);
+        return ResponseEntity.ok().build();
+    }
+
 
 }

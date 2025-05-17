@@ -12,6 +12,7 @@ public class User{
     private String    name;
     private String    phoneNumber;
     private String    address;
+    private String    addressDetail;
     private String    nickname;
     private LoginType loginType;
     private String    role;
