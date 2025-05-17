@@ -156,6 +156,7 @@ CREATE TABLE `user` (
   `name`          VARCHAR(100)     NOT NULL,
   `phone_number`  VARCHAR(100)     DEFAULT NULL,
   `address`       VARCHAR(100)     DEFAULT NULL,
+  `addressDetail`      VARCHAR(100)     DEFAULT NULL,
   `nickname`      VARCHAR(100)     DEFAULT NULL,
   `login_type`    ENUM('GENERAL','KAKAO','GOOGLE')
                     COMMENT '로그인 유형',
