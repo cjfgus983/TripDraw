@@ -17,14 +17,14 @@ public interface UserMapper {
           password,
           name,
           phone_number,
-          address,
+          address, addressDetail,
           nickname, login_type
         ) VALUES (
           #{email},
           #{password},
           #{name},
           #{phoneNumber},
-          #{address},
+          #{address}, #{addressDetail},
           #{nickname}, #{loginType}
         )
     """)
@@ -95,6 +95,29 @@ public interface UserMapper {
       @Param("phoneNumber") String phoneNumber,
       @Param("loginType") LoginType loginType
     );
+
+
+
+    /**
+     * 프로필 업데이트: 닉네임, 주소, 전화번호, 비밀번호(암호화된) 변경
+     */
+    @Update("""
+      <script>
+        UPDATE `user`
+        <set>
+          nickname      = #{nickname},
+          address       = #{address},
+          addressDetail = #{addressDetail},
+          phone_number  = #{phoneNumber}
+          <if test="password != null">
+            , password  = #{password}
+          </if>
+        </set>
+        WHERE email = #{email}
+      </script>
+    """)
+    void updateUser(User user);
+
     
     /**
      * 사용자 ID로 닉네임 조회

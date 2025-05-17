@@ -41,8 +41,10 @@ public class EmailService {
     {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
-        message.setSubject("subject");
+        message.setSubject(subject);
         message.setText(body);
         message.setFrom("hyeonri13@gmail.com"); // 보내는 사람 (Gmail 주소)
+
+        mailSender.send(message); // 실제 메일 발송
     }
 }

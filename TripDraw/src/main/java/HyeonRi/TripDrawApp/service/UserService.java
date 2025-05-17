@@ -2,6 +2,8 @@ package HyeonRi.TripDrawApp.service;
 
 import HyeonRi.TripDrawApp.domain.LoginType;
 import HyeonRi.TripDrawApp.domain.User;
+import HyeonRi.TripDrawApp.dto.UpdateProfileRequest;
+import HyeonRi.TripDrawApp.dto.UserProfileDto;
 import HyeonRi.TripDrawApp.dto.UserRegisterRequestDto;
 import HyeonRi.TripDrawApp.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -115,6 +117,7 @@ public class UserService {
                 + "임시 비밀번호: " + tempPw + "\n\n"
                 + "로그인 후 마이페이지에서 비밀번호를 꼭 변경해주세요.";
         emailService.sendNewPassword(email, subject, body);
+        System.out.println("분명 임시 비번 전송");
     }
 
     // (유틸) 랜덤 10글자 비밀번호 생성
@@ -126,5 +129,38 @@ public class UserService {
             sb.append(charPool.charAt(rnd.nextInt(charPool.length())));
         }
         return sb.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean checkPassword(String email, String rawPassword) {
+        // DB 에서 User 객체를 꺼내고
+        User u = findByEmail(email);
+        // 평문(rawPassword) vs. 해시(u.getPassword()) 비교
+        return passwordEncoder.matches(rawPassword, u.getPassword());
+    }
+
+    // 이메일을 기준으로 사람을 찾아
+    // 닉네임, 주소, 전화번호, 비밀번호 암호화 후 변경
+    @Transactional
+    public void updateProfile(String email, UpdateProfileRequest request) {
+        // 1) 기존 사용자 조회
+        User u = findByEmail(email);
+
+        // 2) 변경 가능한 필드만 덮어쓰기
+        u.setNickname(request.getNickname());
+        u.setAddress(request.getAddress());
+        u.setAddressDetail(request.getAddressDetail());
+        u.setPhoneNumber(request.getPhoneNumber());
+
+        String newPassword = request.getNewPassword();
+
+        // 3) 새 비밀번호가 전달됐으면 암호화 후 setPassword/update
+        if (newPassword != null && !newPassword.isBlank()) {
+            String encoded = passwordEncoder.encode(newPassword);
+            u.setPassword(encoded);
+        }
+
+        // 4) 매퍼를 통해 DB 반영
+        userMapper.updateUser(u);
     }
 }

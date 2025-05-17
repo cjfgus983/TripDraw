@@ -1,4 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
+
+import { useUserStore } from '@/stores/user';
+
+
 import MainPage from '@/pages/MainPage.vue';
 import FreeBoard from '@/pages/board/free/FreeBoard.vue'; // ← 새로 추가
 import FreeDetail from '../pages/board/free/FreeDetail.vue';
@@ -19,6 +23,7 @@ import SignUp from '../pages/user/SignUp.vue';
 import Loading from '../pages/drawing/Loading.vue';
 import MyPage from '../pages/user/MyPage.vue';
 import FindIdPassword from '../pages/user/FindIdPassword.vue';
+import EditProfile from '../pages/user/EditProfile.vue';
 
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
@@ -41,11 +46,23 @@ const routes = [
   { path: '/loading', name: 'Loading', component: Loading },
   { path: '/mypage', name: 'MyPage', component: MyPage },
   { path: '/findidpassword', name: 'FindIdPassword', component: FindIdPassword },
+  { path: '/editprofile', name: 'EditProfile', component: EditProfile, meta: { requiresPasswordConfirm: true }} ,
+  
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+
+// 메타 인증 없이 넘어가고자 한다면 mypage로 되돌리기
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore();
+  if (to.meta.requiresPasswordConfirm && !userStore.passwordConfirmed) {
+    return next('/mypage');
+  }
+  next();
 });
 
 export default router;

@@ -20,7 +20,11 @@ public class UserRegisterRequestDto {
 
     @NotBlank
     private String phoneNumber;
+    @NotBlank
     private String address;
+
+    private String addressDetail;
+    @NotBlank
     private String nickname;
 
 
