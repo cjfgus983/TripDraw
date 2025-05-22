@@ -364,62 +364,6 @@ let markers: google.maps.Marker[] = []
 let infoWindow: google.maps.InfoWindow
 let polyline: google.maps.Polyline | null = null
 
-// /** 선택된 카테고리 (PlaceType) */
-// const categories = [
-//   'tourist_attraction',
-//   'restaurant',
-//   'cafe'
-// ] as const
-// type Cat = typeof categories[number]
-// const selectedCategory = ref<Cat | null>(null)
-
-// /** 버튼 클릭: 토글 */
-// function selectCategory(catId: Cat) {
-//   selectedCategory.value = selectedCategory.value === catId ? null : catId
-//   refreshMarkers()
-// }
-
-// /** 마커 갱신 */
-// function refreshMarkers() {
-//   // 1) 기존 마커 지우기
-//   markers.forEach(m => m.setMap(null))
-//   markers = []
-
-//   // 2) 해당 타입만 검색 (selectedCategory가 null이면 전체 dayItems)
-//   const toSearch = dayItems.value.filter(item => {
-//     const type = itemTypeMap[item.category]
-//     return !selectedCategory.value || type === selectedCategory.value
-//   })
-
-//   toSearch.forEach(item => {
-//     const type = itemTypeMap[item.category]
-//     placesService.nearbySearch(
-//       {
-//         location: new google.maps.LatLng(currentCenter.lat, currentCenter.lng),
-//         radius: 5000,
-//         type
-//       },
-//       (results, status) => {
-//         if (
-//           status === google.maps.places.PlacesServiceStatus.OK &&
-//           Array.isArray(results) &&
-//           results.length > 0
-//         ) {
-//           const place = results[0]
-//           if (place.geometry?.location) {
-//             const m = new google.maps.Marker({
-//               map,
-//               position: place.geometry.location,
-//               title: item.name
-//             })
-//             markers.push(m)
-//           }
-//         }
-//       }
-//     )
-//   })
-// }
-
 function clearMarkers() {
   markers.forEach(m => m.setMap(null))
   markers = []
