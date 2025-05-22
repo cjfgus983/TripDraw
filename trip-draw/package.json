@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.8",
     "axios": "^1.9.0",
     "cropperjs": "^1.5.12",
     "fabric": "^4.6.0",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@types/fabric": "^5.3.10",
+    "@types/google.maps": "^3.58.1",
     "@types/lodash": "^4.17.16",
     "@types/node": "^22.15.3",
     "@vitejs/plugin-vue": "^5.2.2",
