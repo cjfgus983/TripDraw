@@ -1,308 +1,688 @@
-<!-- The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work. -->
 <template>
-    <div class="min-h-screen bg-gray-50">
+  <!-- 로딩 오버레이 -->
+  <div v-if="isLoading" class="fixed inset-0 bg-white bg-opacity-70 z-50 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
+  </div>
+  <div class="min-h-screen bg-gray-50">
     <div class="container mx-auto px-6 py-8 max-w-7xl">
-    <div class="flex flex-col md:flex-row gap-6">
-    <!-- 지도 섹션 (60%) -->
-    <div class="w-full md:w-3/5">
-    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
-    <!-- 카테고리 필터 -->
-    <div class="flex space-x-3 mb-4">
-    <button
-    v-for="(category, index) in categories"
-    :key="index"
-    @click="selectCategory(category.id)"
-    :class="[
-    'px-4 py-2 rounded-button whitespace-nowrap cursor-pointer transition-all',
-    selectedCategory === category.id
-    ? `bg-${category.color}-500 text-white`
-    : 'bg-gray-100 hover:bg-gray-200'
-    ]"
-    >
-    <i :class="`fas ${category.icon} mr-2`"></i>
-    {{ category.name }}
-    </button>
+      <!-- 상단 컨트롤 바 -->
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-2">
+        <!-- 검색바 -->
+        <input
+          ref="searchInput"
+          type="text"
+          placeholder="장소를 검색하세요"
+          class="w-full md:w-3/5 p-2 border rounded shadow-sm focus:outline-none focus:ring"
+        />
+
+        <!-- 오른쪽: 일차 선택 옵션 + 추천 버튼 -->
+        <div class="flex items-center space-x-2">
+          <select
+            v-model="dayOption"
+            class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring"
+          >
+            <option v-for="n in 5" :key="n" :value="n">{{ n }}일차</option>
+          </select>
+
+          <button
+            @click="fetchItinerary"
+            class="bg-[#9FB3DF] text-white px-4 py-2 rounded hover:bg-[#7E97D6]"
+          >
+            추천 여행경로 받기
+          </button>
+        </div>
+      </div>
+
+      <!-- 카테고리 토글 버튼 + 일차 버튼을 나란히 -->
+      <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <div class="flex space-x-3">
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            @click="selectCategory(cat.id)"
+            :class="[
+              'px-4 py-2 rounded-lg flex items-center gap-2 transition',
+              selectedCategory === cat.id
+                ? `text-white bg-${getCategoryColorById(cat.id)}`
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            ]"
+          >
+            <img :src="cat.icon" alt="" class="w-4 h-4" />
+            {{ cat.label }}
+          </button>
+        </div>
+
+        <!-- 일차 선택 버튼들 (위 오른쪽 정렬) -->
+        <div class="flex space-x-2">
+          <button
+            v-for="(day, idx) in itinerary"
+            :key="idx"
+            @click="onDayClick(idx)"
+            :class="[
+              'px-4 py-2 rounded',
+              selectedDay === idx
+                ? 'bg-[#9FB3DF] text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            ]"
+          >
+            {{ idx + 1 }}일차
+          </button>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-6">
+        <!-- 지도 -->
+        <div class="w-full md:w-3/5">
+          <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+            <div ref="mapContainer" class="w-full h-[600px] rounded-lg overflow-hidden"></div>
+          </div>
+        </div>
+
+        <!-- 드래그 가능한 리스트 -->
+        <div class="w-full md:w-2/5 flex flex-col">
+          <div class="bg-white rounded-lg shadow-md flex-1 flex flex-col max-h-[668px]">
+            <!-- 상단: 선택된 일차 텍스트 -->
+            <div class="p-4 border-b border-gray-200">
+              <h2 class="text-xl font-semibold text-gray-800">
+                {{ selectedDay + 1 }}일차 일정
+              </h2>
+            </div>
+
+            <!-- 수동 드래그 리스트 영역 -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-2">
+              <div
+                v-for="(item, idx) in dayItems"
+                :key="item.name + item.startTime"
+                class="p-3 border border-gray-200 rounded-lg hover:shadow-sm cursor-move bg-white"
+                draggable="true"
+                @dragstart="handleDragStart(idx)"
+                @dragover.prevent="handleDragOver(idx)"
+                @drop.prevent="handleDrop(idx)"
+                @dragend="handleDragEnd"
+                @click="onListItemClick(idx)"
+              >
+                <div class="flex justify-between items-center">
+                  <span class="font-medium text-gray-800">{{ item.category }}</span>
+                  <span class="text-sm text-gray-600">{{ item.startTime }} – {{ item.endTime }}</span>
+                </div>
+                <div class="mt-1 text-gray-700">{{ item.name }}</div>
+                <!-- 카테고리 라벨 -->
+                <div class="flex items-center mt-2">
+                  <span
+                    class="inline-block w-3 h-3 rounded-full mr-2"
+                    :class="`bg-${getCategoryColor(normalizeCategory(item.category))}`"></span>
+                  <span class="text-sm text-gray-600">
+                    {{ getCategoryName(normalizeCategory(item.category)) }}
+                  </span>
+                </div>
+                <!-- 드래그 오버 시 상단 표시 -->
+                <div
+                  v-if="dragOverIndex === idx && dragStartIndex !== idx"
+                  class="absolute top-0 left-0 w-full h-1 bg-blue-500"
+                ></div>
+              </div>
+            </div>
+          </div>
+          <!-- 하단: 적용하기 버튼 -->
+          <div class="mt-4 flex justify-end">
+            <button
+              @click="applyChanges"
+              :disabled="!isModified"
+              :class="[
+                'ml-auto block px-6 py-3 rounded whitespace-nowrap transition-colors',
+                isModified ? 'bg-[#9FB3DF] text-white hover:bg-[#8FA3CF]' : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              ]"
+            >
+              적용하기
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- 지도 -->
-    <div class="h-[600px] relative rounded-lg overflow-hidden" ref="mapContainer">
-    <div id="map" class="w-full h-full"></div>
-    </div>
-    </div>
-    </div>
-    <!-- 리스트 섹션 (40%) -->
-    <div class="w-full md:w-2/5">
-    <div class="bg-white rounded-lg shadow-md h-[600px] flex flex-col">
-    <!-- 리스트 헤더 -->
-    <div class="p-4 border-b border-gray-200">
-    <h2 class="text-xl font-semibold text-gray-800">방문 장소 목록</h2>
-    <p class="text-sm text-gray-500">선택한 카테고리: {{ getCategoryName(selectedCategory) }}</p>
-    </div>
-    <!-- 리스트 내용 -->
-    <div class="flex-1 overflow-y-auto p-4">
-    <div v-if="filteredPlaces.length === 0" class="flex flex-col items-center justify-center h-full text-gray-500">
-    <i class="fas fa-map-marker-alt text-4xl mb-3"></i>
-    <p>선택한 카테고리에 장소가 없습니다</p>
-    </div>
-    <div v-else>
-    <div
-    v-for="(place, index) in filteredPlaces"
-    :key="index"
-    class="mb-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-    :class="{
-      'border-blue-500 bg-blue-50': selectedPlace === place.id,
-      'opacity-50': draggedItemIndex === index,
-      'border-t-4 border-blue-500': dragOverItemIndex === index
-    }"
-    draggable="true"
-    @dragstart="handleDragStart(index)"
-    @dragover="handleDragOver($event, index)"
-    @drop="handleDrop"
-    @dragend="handleDragEnd"
-    @click="selectPlace(place.id)"
-    >
-    <div class="flex justify-between items-start">
-    <div>
-    <h3 class="font-medium text-gray-800">{{ place.name }}</h3>
-    <p class="text-sm text-gray-600 mt-1">{{ place.address }}</p>
-    <div class="flex items-center mt-2">
-    <span
-    class="inline-block w-3 h-3 rounded-full mr-2"
-    :class="`bg-${getCategoryColor(place.categoryId)}-500`"
-    ></span>
-    <span class="text-sm text-gray-600">{{ getCategoryName(place.categoryId) }}</span>
-    </div>
-    </div>
-    <div class="text-right">
-    <span class="text-sm font-medium bg-gray-100 px-2 py-1 rounded">{{ place.visitTime }}</span>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    <!-- 적용하기 버튼 -->
-    <div class="p-4 border-t border-gray-200">
-    <button
-    @click="applyChanges"
-    class="ml-auto block px-6 py-3 bg-blue-600 text-white rounded-button hover:bg-blue-700 transition-colors cursor-pointer whitespace-nowrap"
-    >
-    적용하기
-    </button>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </template>
-    <script lang="ts" setup>
-    import { ref, onMounted, computed, watch } from 'vue';
-    
-    const draggedItemIndex = ref<number | null>(null);
-    const dragOverItemIndex = ref<number | null>(null);
-    
-    const handleDragStart = (index: number) => {
-      draggedItemIndex.value = index;
-    };
-    
-    const handleDragOver = (event: DragEvent, index: number) => {
-      event.preventDefault();
-      dragOverItemIndex.value = index;
-    };
-    
-    const handleDrop = (event: DragEvent) => {
-      event.preventDefault();
-      if (draggedItemIndex.value !== null && dragOverItemIndex.value !== null) {
-        const items = [...filteredPlaces.value];
-        const draggedItem = items[draggedItemIndex.value];
-        items.splice(draggedItemIndex.value, 1);
-        items.splice(dragOverItemIndex.value, 0, draggedItem);
-        places.value = items;
+  </div>
+  <div class="hidden">
+    bg-teal-200 bg-indigo-200 bg-rose-200 bg-gray-300
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { ref, onMounted, computed, watch } from 'vue'
+import axios from 'axios'
+import { getGoogleMapsLoader } from '@/services/googleMapsLoader'
+import { usePlacesStore } from '@/stores/places'
+const store = usePlacesStore()
+const currentCenter = {
+  lat: store.center.latitude,
+  lng: store.center.longitude
+}
+
+/** 일정 아이템 인터페이스 */
+interface ItineraryItem {
+  name: string
+  category: string    // 예: 'TOUR', 'LUNCH', 'CAFE'
+  startTime: string
+  endTime: string
+}
+
+/** Itinerary → Google Places API type 매핑 */
+const itemTypeMap: Record<string, string> = {
+  TOUR:         'tourist_attraction',
+  BREAKFAST:    'restaurant',
+  LUNCH:        'restaurant',
+  CAFE:         'cafe',
+  DINNER:       'restaurant',
+  EVENING_TOUR: 'tourist_attraction',
+  EVENING_CAFE: 'cafe'
+}
+
+function getCategoryColor(category: string): string {
+  
+  switch (category.toUpperCase()) {
+    case 'TOUR':
+    case 'EVENING_TOUR':
+      return 'indigo-200'  // Soft Indigo
+    case 'LUNCH':
+    case 'DINNER':
+    case 'BREAKFAST':
+      return 'rose-200'    // Soft Rose
+    case 'CAFE':
+    case 'EVENING_CAFE':
+      return 'teal-200'    // Soft Teal
+    default:
+      return 'gray-300'
+  }
+}
+
+function normalizeCategory(raw: string): string {
+  switch (raw.toLowerCase()) {
+    case 'tours': return 'TOUR'
+    case 'restaurants': return 'LUNCH'
+    case 'cafes': return 'CAFE'
+    default: return raw.toUpperCase()
+  }
+}
+
+function getCategoryIcon(category: string): string {
+  switch (category.toUpperCase()) {
+    case 'TOUR': return '/icons/landmark.svg'
+    case 'LUNCH':
+    case 'DINNER':
+    case 'BREAKFAST': return '/icons/utensils.svg'
+    case 'CAFE':
+    case 'EVENING_CAFE': return '/icons/coffee.svg'
+    default: return ''
+  }
+}
+
+
+function getCategoryName(category: string): string {
+  switch (category.toUpperCase()) {
+    case 'TOUR':
+    case 'EVENING_TOUR':
+      return '관광지'
+    case 'LUNCH':
+    case 'DINNER':
+    case 'BREAKFAST':
+      return '음식점'
+    case 'CAFE':
+    case 'EVENING_CAFE':
+      return '카페'
+    default:
+      return '기타'
+  }
+}
+
+function getCategoryColorById(id: string): string {
+  switch (id) {
+    case 'tours': return 'indigo-200'  // 관광지
+    case 'restaurants': return 'rose-200'  // 음식점
+    case 'cafes': return 'teal-200'    // 카페
+    default: return 'gray-300'
+  }
+}
+
+
+const categories = [
+  { id: 'tours',       type: 'tourist_attraction', label: '관광지', icon: '/icons/landmark.svg' },
+  { id: 'restaurants', type: 'restaurant',         label: '음식점', icon: '/icons/utensils.svg' },
+  { id: 'cafes',       type: 'cafe',               label: '카페',    icon: '/icons/coffee.svg' }
+]
+
+const selectedCategory = ref<string | null>(null)
+
+function selectCategory(catId: string) {
+  selectedCategory.value = selectedCategory.value === catId ? null : catId
+  refreshMarkers()
+}
+
+function refreshMarkers() {
+  clearMarkers()
+
+  if (polyline) {
+  polyline.setMap(null)
+  polyline = null
+}
+
+
+  if (!selectedCategory.value) return
+
+  const rawCategory = selectedCategory.value || ''
+  const normalizedCategory = normalizeCategory(rawCategory)
+  const list = nearbyPlaces.value[rawCategory] || []
+
+  list.forEach(place => {
+    geocoder.geocode({ address: place.description }, (results, status) => {
+      if (status === google.maps.GeocoderStatus.OK && results?.[0]) {
+        const iconUrl = getCategoryIcon(normalizedCategory)
+
+        const marker = new google.maps.Marker({
+          map,
+          position: results[0].geometry.location,
+          title: place.name,
+          icon: {
+            url: iconUrl,
+            scaledSize: new google.maps.Size(32, 32)
+          }
+        })
+
+        marker.addListener('click', () => {
+          openInfo(marker, {
+            name: place.name,
+            category: normalizedCategory, // 여기도 정확히!
+            startTime: '',
+            endTime: ''
+          })
+        })
+
+        markers.push(marker)
       }
-      draggedItemIndex.value = null;
-      dragOverItemIndex.value = null;
-    };
-    
-    const handleDragEnd = () => {
-      draggedItemIndex.value = null;
-      dragOverItemIndex.value = null;
-    };
-    // 카테고리 정의
-    const categories = [
-    { id: 1, name: '관광지', color: 'blue', icon: 'fa-landmark' },
-    { id: 2, name: '음식점', color: 'red', icon: 'fa-utensils' },
-    { id: 3, name: '카페', color: 'green', icon: 'fa-coffee' }
-    ];
-    // 장소 데이터 (실제로는 API에서 가져올 것)
-    const places = ref([
-    {
-    id: 1,
-    name: '경복궁',
-    address: '서울 종로구 사직로 161',
-    categoryId: 1,
-    visitTime: '10:00 - 12:00',
-    lat: 37.579617,
-    lng: 126.977041
-    },
-    {
-    id: 2,
-    name: '광화문 광장',
-    address: '서울 종로구 세종로 172',
-    categoryId: 1,
-    visitTime: '12:30 - 13:30',
-    lat: 37.572976,
-    lng: 126.976882
-    },
-    {
-    id: 3,
-    name: '삼청동 수제비',
-    address: '서울 종로구 삼청로 100',
-    categoryId: 2,
-    visitTime: '13:00 - 14:00',
-    lat: 37.582839,
-    lng: 126.981549
-    },
-    {
-    id: 4,
-    name: '스타벅스 광화문점',
-    address: '서울 종로구 세종대로 167',
-    categoryId: 3,
-    visitTime: '14:30 - 15:30',
-    lat: 37.573214,
-    lng: 126.976879
-    },
-    {
-    id: 5,
-    name: '인사동 전통 찻집',
-    address: '서울 종로구 인사동길 12',
-    categoryId: 3,
-    visitTime: '16:00 - 17:00',
-    lat: 37.574187,
-    lng: 126.985565
-    },
-    {
-    id: 6,
-    name: '북촌 한옥마을',
-    address: '서울 종로구 계동길 37',
-    categoryId: 1,
-    visitTime: '15:00 - 17:00',
-    lat: 37.582285,
-    lng: 126.983922
-    },
-    {
-    id: 7,
-    name: '통인시장',
-    address: '서울 종로구 자하문로 15길',
-    categoryId: 2,
-    visitTime: '11:30 - 12:30',
-    lat: 37.579415,
-    lng: 126.969254
+    })
+  })
+
+  // 3) 찍힌 마커 전부를 포함하도록 줌·센터 조정
+  // (geocode 콜백 안에서 비동기이므로, 약간 딜레이를 줄 수도 있습니다)
+  setTimeout(() => {
+    if (markers.length === 0) return
+    const bounds = new google.maps.LatLngBounds()
+    markers.forEach(m => {
+      if (m.getPosition()) bounds.extend(m.getPosition()!)
+    })
+    map.fitBounds(bounds)
+  }, 500)
+}
+
+const itinerary = ref<ItineraryItem[][]>([])
+const selectedDay = ref(0)
+const dayItems = ref<ItineraryItem[]>([])
+const isLoading = ref(false)
+
+// 일차 선택 옵션 (v-model)
+const dayOption = ref(1)
+
+const dragStartIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
+
+function onDayClick(idx: number) {
+  selectedDay.value = idx
+  dayItems.value = itinerary.value[idx] || []
+}
+
+function handleDragStart(idx: number) {
+  dragStartIndex.value = idx
+}
+
+function handleDragOver(idx: number) {
+  dragOverIndex.value = idx
+}
+
+function handleDrop(idx: number) {
+  if (dragStartIndex.value === null) return
+  const items = [...dayItems.value]
+  const moved = items.splice(dragStartIndex.value, 1)[0]
+  items.splice(idx, 0, moved)
+  dayItems.value = items
+  itinerary.value[selectedDay.value] = items
+  dragStartIndex.value = null
+  dragOverIndex.value = null
+}
+
+function handleDragEnd() {
+  dragStartIndex.value = null
+  dragOverIndex.value = null
+}
+
+const nearbyPlaces = ref<{ [key: string]: any[]; cafes: any[]; restaurants: any[]; tours: any[] }>({
+  cafes: [], restaurants: [], tours: []
+})
+const mapContainer = ref<HTMLDivElement | null>(null)
+const searchInput = ref<HTMLInputElement|null>(null)
+const isModified = ref(false)
+let map: google.maps.Map
+let placesService: google.maps.places.PlacesService
+let geocoder: google.maps.Geocoder
+let markers: google.maps.Marker[] = []
+let infoWindow: google.maps.InfoWindow
+let polyline: google.maps.Polyline | null = null
+
+// /** 선택된 카테고리 (PlaceType) */
+// const categories = [
+//   'tourist_attraction',
+//   'restaurant',
+//   'cafe'
+// ] as const
+// type Cat = typeof categories[number]
+// const selectedCategory = ref<Cat | null>(null)
+
+// /** 버튼 클릭: 토글 */
+// function selectCategory(catId: Cat) {
+//   selectedCategory.value = selectedCategory.value === catId ? null : catId
+//   refreshMarkers()
+// }
+
+// /** 마커 갱신 */
+// function refreshMarkers() {
+//   // 1) 기존 마커 지우기
+//   markers.forEach(m => m.setMap(null))
+//   markers = []
+
+//   // 2) 해당 타입만 검색 (selectedCategory가 null이면 전체 dayItems)
+//   const toSearch = dayItems.value.filter(item => {
+//     const type = itemTypeMap[item.category]
+//     return !selectedCategory.value || type === selectedCategory.value
+//   })
+
+//   toSearch.forEach(item => {
+//     const type = itemTypeMap[item.category]
+//     placesService.nearbySearch(
+//       {
+//         location: new google.maps.LatLng(currentCenter.lat, currentCenter.lng),
+//         radius: 5000,
+//         type
+//       },
+//       (results, status) => {
+//         if (
+//           status === google.maps.places.PlacesServiceStatus.OK &&
+//           Array.isArray(results) &&
+//           results.length > 0
+//         ) {
+//           const place = results[0]
+//           if (place.geometry?.location) {
+//             const m = new google.maps.Marker({
+//               map,
+//               position: place.geometry.location,
+//               title: item.name
+//             })
+//             markers.push(m)
+//           }
+//         }
+//       }
+//     )
+//   })
+// }
+
+function clearMarkers() {
+  markers.forEach(m => m.setMap(null))
+  markers = []
+}
+
+function onListItemClick(idx: number) {
+  const marker = markers[idx]
+  if (marker) {
+    map.panTo(marker.getPosition()!)
+    openInfo(marker, dayItems.value[idx])
+  }
+}
+
+function openInfo(marker: google.maps.Marker, item: ItineraryItem) {
+  const content = `
+    <div style="min-width:180px; padding:8px">
+      <h3 style="margin:0 0 4px">${item.name}</h3>
+      <p style="margin:0 0 8px; font-size:0.875em;">
+        ${item.category} | ${item.startTime}–${item.endTime}
+      </p>
+      <button id="add-route-btn" style="
+        display:block;
+        width:100%;
+        padding:6px 0;
+        background:#9FB3DF;
+        color:#fff;
+        border:none;
+        border-radius:4px;
+        cursor:pointer;
+      ">
+        경로에 추가하기
+      </button>
+    </div>`
+  infoWindow.setContent(content)
+  infoWindow.open({ anchor: marker, map })
+
+  // infoWindow의 DOM이 렌더링 된 뒤 이벤트 바인딩
+  google.maps.event.addListenerOnce(infoWindow, 'domready', () => {
+    const btn = document.getElementById('add-route-btn')
+    btn?.addEventListener('click', () => {
+      // dayItems에 추가
+      dayItems.value.push({
+        name: item.name,
+        category: item.category,
+        startTime: item.startTime,
+        endTime: item.endTime
+      })
+      infoWindow.close()
+    })
+  })
+}
+function fetchNearbyByCenter(lat: number, lng: number) {
+  axios.get('/api/nearby', {
+    params: { lat, lng }
+  }).then(resp => {
+    nearbyPlaces.value = resp.data
+  }).catch(e => {
+    console.error('주변 장소 요청 실패:', e)
+  })
+}
+
+async function updateMarkers() {
+  if (!map || !placesService) return
+  clearMarkers()
+  if (polyline) polyline.setMap(null)
+
+  for (const item of dayItems.value) {
+    const results = await new Promise<google.maps.places.PlaceResult[]>((resolve) => {
+      placesService.textSearch({ query: item.name }, (res, status) => {
+        resolve(status === google.maps.places.PlacesServiceStatus.OK && res ? res : [])
+      })
+    })
+    const place = results[0]
+    if (place?.geometry?.location) {
+      const marker = new google.maps.Marker({
+        map,
+        position: place.geometry.location,
+        title: item.name,
+        label: { text: item.startTime, color: 'white', fontWeight: 'bold' }
+      })
+      marker.addListener('click', () => openInfo(marker, item))
+      markers.push(marker)
     }
-    ]);
-    // 상태 관리
-    const selectedCategory = ref(0); // 0은 모든 카테고리
-    const selectedPlace = ref<number | null>(null);
-    const map = ref<any>(null);
-    const markers = ref<any[]>([]);
-    const mapContainer = ref<HTMLElement | null>(null);
-    // 필터링된 장소 목록
-    const filteredPlaces = computed(() => {
-    if (selectedCategory.value === 0) {
-    return places.value;
+  }
+
+  const path = markers.map(m => ({ lat: m.getPosition()!.lat(), lng: m.getPosition()!.lng() }))
+  polyline = new google.maps.Polyline({ path, geodesic: true, strokeColor: '#3366FF', strokeOpacity: 0.8, strokeWeight: 4 })
+  polyline.setMap(map)
+
+  const bounds = new google.maps.LatLngBounds()
+  path.forEach(p => bounds.extend(p))
+  map.fitBounds(bounds)
+}
+
+watch(selectedDay, updateMarkers)
+
+watch(() => dayItems.value, () => {
+  isModified.value = true
+}, { deep: true })
+
+async function applyChanges() {
+  if (isModified.value) {
+    const token = localStorage.getItem('accessToken')
+    if (!token) {
+      alert('로그인이 필요합니다.')
+      return
     }
-    return places.value.filter(place => place.categoryId === selectedCategory.value);
-    });
-    // 카테고리 선택 함수
-    const selectCategory = (categoryId: number) => {
-    selectedCategory.value = categoryId;
-    updateMarkers();
-    };
-    // 장소 선택 함수
-    const selectPlace = (placeId: number) => {
-    selectedPlace.value = placeId;
-    // 선택된 장소의 마커로 지도 중심 이동
-    const place = places.value.find(p => p.id === placeId);
-    if (place && map.value) {
-    map.value.setCenter(new window.kakao.maps.LatLng(place.lat, place.lng));
-    // 해당 마커 찾기
-    const marker = markers.value.find(m => m.id === placeId);
-    if (marker) {
-    // 마커 정보창 표시 로직 (실제 구현 시 추가)
-    }
-    }
-    };
-    // 카테고리 이름 가져오기
-    const getCategoryName = (categoryId: number): string => {
-    if (categoryId === 0) return '전체';
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.name : '';
-    };
-    // 카테고리 색상 가져오기
-    const getCategoryColor = (categoryId: number): string => {
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.color : 'gray';
-    };
-    // 마커 업데이트 함수
-    const updateMarkers = () => {
-    // 기존 마커 제거
-    markers.value.forEach(marker => {
-    marker.setMap(null);
-    });
-    markers.value = [];
-    // 필터링된 장소에 대한 마커 생성
-    filteredPlaces.value.forEach(place => {
-    const category = categories.find(c => c.id === place.categoryId);
-    const markerColor = category ? category.color : 'gray';
-    // 마커 이미지 설정 (실제로는 카카오맵 API 사용)
-    const markerPosition = new window.kakao.maps.LatLng(place.lat, place.lng);
-    // 마커 생성 (실제 구현 시 카카오맵 API 사용)
-    const marker = new window.kakao.maps.Marker({
-    position: markerPosition,
-    map: map.value
-    });
-    // 마커에 ID 추가하여 나중에 참조할 수 있도록 함
-    marker.id = place.id;
-    // 마커 클릭 이벤트
-    window.kakao.maps.event.addListener(marker, 'click', () => {
-    selectPlace(place.id);
-    });
-    markers.value.push(marker);
-    });
-    };
-    // 적용하기 버튼 클릭 함수
-    const applyChanges = () => {
-    // 실제로는 API 호출 후 리다이렉트
-    alert('선택한 장소가 적용되었습니다. 페이지를 리다이렉트합니다.');
-    // window.location.href = '/next-page'; // 실제 구현 시 사용
-    };
-    // 카카오맵 초기화 함수
-    const initMap = () => {
-    // 실제 구현 시 카카오맵 API 키 필요
-    if (window.kakao && window.kakao.maps && mapContainer.value) {
-    const options = {
-    center: new window.kakao.maps.LatLng(37.576, 126.9769),
-    level: 5
-    };
-    map.value = new window.kakao.maps.Map(mapContainer.value, options);
-    // 초기 마커 표시
-    updateMarkers();
-    } else {
-    // 카카오맵 API가 로드되지 않은 경우 대체 UI 표시
-    console.error('카카오맵 API가 로드되지 않았습니다.');
-    }
-    };
-    // 카테고리 변경 시 마커 업데이트
-    watch(selectedCategory, () => {
-    updateMarkers();
-    });
-    onMounted(() => {
-    // 실제 구현 시 카카오맵 API 스크립트 로드 필요
-    // 여기서는 이미 로드되었다고 가정
-    setTimeout(() => {
-    initMap();
-    }, 500);
-    });
-    </script>
-    <style scoped>
+
+    isLoading.value = true;
+      try {
+        const resp = await axios.post(
+          'http://localhost:8080/api/itinerary/update-times',
+          { itinerary: itinerary.value },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        itinerary.value = resp.data;
+        dayItems.value = itinerary.value[selectedDay.value] || [];
+        await updateMarkers();
+      } catch (e) {
+        alert("일정 재계산에 실패했습니다.");
+        console.error(e);
+      } finally {
+      // 브라우저가 마커와 선을 렌더링할 시간 확보
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            isLoading.value = false
+          }, 800)  
+        })
+        isModified.value = false
+      }    
+  }
+}
+
+onMounted(async () => {
+  const loader = getGoogleMapsLoader()
+  const google = await loader.load()
+
+  // 1) 지도를 Pinia 의 center 로 초기화
+  map = new google.maps.Map(mapContainer.value!, {
+    center: {
+      lat: store.center.latitude,
+      lng: store.center.longitude
+    },
+    zoom: 12
+  })
+  placesService = new google.maps.places.PlacesService(map)
+  geocoder = new google.maps.Geocoder()
+  infoWindow = new google.maps.InfoWindow()
+  infoWindow = new google.maps.InfoWindow()
+
+  // SearchBox 설정
+  if (searchInput.value) {
+    const searchBox = new google.maps.places.SearchBox(searchInput.value)
+    // 입력창에 엔터 또는 추천 목록에서 선택 시
+    searchBox.addListener('places_changed', () => {
+      const places = searchBox.getPlaces()
+      if (!places || places.length === 0) return
+
+      // 이전 마커 제거
+      clearMarkers()
+
+      const bounds = new google.maps.LatLngBounds()
+      places.forEach(p => {
+        if (!p.geometry?.location) return
+
+        const item = {
+          name: p.name || '이름 없음',
+          category: 'TOUR',  // 또는 기본값
+          startTime: '',
+          endTime: ''
+        }
+
+        const marker = new google.maps.Marker({
+          map,
+          position: p.geometry.location,
+          title: p.name
+        })
+
+        marker.addListener('click', () => {
+          openInfo(marker, item)
+        })
+
+        openInfo(marker, item)  // ← 생성하자마자 info 창 열기
+        markers.push(marker)
+        bounds.extend(p.geometry.location)
+
+        fetchNearbyByCenter(p.geometry.location.lat(), p.geometry.location.lng())
+      })
+      // 검색된 장소 모두 보이도록 화면 조정
+      map.fitBounds(bounds)
+    })
+
+    // 입력창에 포커스 시, 지도의 바운드 내로 자동 제한
+    map.addListener('bounds_changed', () => {
+      searchBox.setBounds(map.getBounds() as google.maps.LatLngBounds)
+    })
+  }
+
+  // 2) Pinia center 위치에 마커 하나
+  const centerMarker = new google.maps.Marker({
+  map,
+  position: {
+    lat: store.center.latitude,
+    lng: store.center.longitude
+    },
+    title: store.center.name
+  })
+
+    centerMarker.addListener('click', () => {
+      openInfo(centerMarker, {
+        name: store.center.name,
+        category: 'TOUR',
+        startTime: '',
+        endTime: ''
+      })
+    })
+  const resp = await axios.get('/api/nearby', {
+    params: { lat: currentCenter.lat, lng: currentCenter.lng }
+  })
+  nearbyPlaces.value = resp.data
+})
+async function fetchItinerary() {
+  const token = localStorage.getItem('accessToken')
+  if (!token) {
+    alert('로그인이 필요합니다.')
+    return
+  }
+
+  isLoading.value = true
+
+  try {
+    const resp = await axios.post<ItineraryItem[][]>(
+      'http://localhost:8080/api/itinerary',
+      { places: [ store.center.name ], days: dayOption.value},
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    // 1) 일정 데이터 세팅
+    itinerary.value = resp.data
+    selectedDay.value = 0
+    dayItems.value = itinerary.value[0] || []
+
+    // 2) 지도에 일정 경로 & 마커
+    updateMarkers()
+  } catch (e) {
+    console.error(e)
+    alert('일정 추천에 실패했습니다.')
+  } finally{
+    // 브라우저가 마커와 선을 렌더링할 시간 확보
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        isLoading.value = false
+      }, 800)  
+    })
+  }
+}
+</script>
+
+<style scoped>
+.cursor-move { cursor: move; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
     .map-container {
     position: relative;
     width: 100%;
