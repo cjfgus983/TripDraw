@@ -55,7 +55,38 @@ public interface TripBoardMapper {
     @Options(useGeneratedKeys = true, keyProperty = "planBoardId")
     void insertBoard(TripBoardDto dto);
 
-    @Select("SELECT * FROM trip_board WHERE plan_board_id = #{planBoardId}")
+    @Select("""
+			  SELECT
+		    b.plan_board_id           AS planBoardId,
+		    b.board_title             AS boardTitle,
+		    b.board_content           AS boardContent,
+		    -- 콤마로 결합된 카테고리 문자열
+		    b.board_category          AS boardCategoryConcat,
+		    b.plan_code               AS planCode,
+		    DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt,
+		    -- 작성자 닉네임
+		    u.nickname                AS nickname,
+		    -- 1일차 장소 최대 5개
+		    SUBSTRING_INDEX(
+		      GROUP_CONCAT(l.address_name ORDER BY l.start_time SEPARATOR ','),
+		      ',',
+		      5
+		    )                         AS routeConcat,
+		    p.region				  AS region
+		  FROM trip_board b
+		  -- 작성자 정보 조인
+		  LEFT JOIN trip_plans p
+		  	ON b.plan_code = p.plan_code
+		  LEFT JOIN `user` u
+		    ON b.user_id = u.user_id
+		  -- 1일차 장소 정보 조인
+		  LEFT JOIN trip_location l
+		    ON b.plan_code = l.plan_code
+		   AND l.day_no  = 1
+		  WHERE b.plan_board_id = #{planBoardId}
+		  GROUP BY b.plan_board_id
+		  ORDER BY b.created_at DESC
+		""")
     TripBoardWithRouteDto selectBoardById(Long planBoardId);
 
     @Select("SELECT * FROM trip_board ORDER BY created_at DESC")

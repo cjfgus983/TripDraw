@@ -5,17 +5,20 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import HyeonRi.TripDrawApp.dto.tripPlan.DailyPlanResponse;
 import HyeonRi.TripDrawApp.dto.tripPlan.ItineraryItemDto;
 import HyeonRi.TripDrawApp.dto.tripPlan.ItineraryUpdateRequestDto;
 import HyeonRi.TripDrawApp.dto.tripPlan.TripPlanWithLocationsRequest;
 import HyeonRi.TripDrawApp.service.AiService;
 import HyeonRi.TripDrawApp.service.AiService.NearbyPlacesResult;
+import HyeonRi.TripDrawApp.service.board.tripPlan.TripLocationService;
 import HyeonRi.TripDrawApp.service.board.tripPlan.TripPlanService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TripPlanController {
     private final AiService aiService;
-    
+    private final TripLocationService locService;
     private final TripPlanService service;
 
     /**
@@ -70,9 +73,18 @@ public class TripPlanController {
     public ResponseEntity<String> createPlanAndLocations(
             @RequestBody TripPlanWithLocationsRequest req
     ) {
-    	System.out.println(req);
+    	//System.out.println(req);
         String planCode = service.createPlanWithLocations(req);
         return ResponseEntity.ok(planCode);
+    }
+    
+    /**
+     * Plan Code 하나로 해당 계획의 일차별 장소들을 묶어서 반환
+     */
+    @GetMapping("/plans-with-locations/{planCode}")
+    public ResponseEntity<DailyPlanResponse> getByPlanCode(@PathVariable String planCode) {
+        var dailyPlans = locService.getDailyPlans(planCode);
+        return ResponseEntity.ok(new DailyPlanResponse(dailyPlans));
     }
 
     @Data
