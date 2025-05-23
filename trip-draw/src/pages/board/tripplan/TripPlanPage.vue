@@ -93,7 +93,7 @@
               <div
                 v-for="(item, idx) in dayItems"
                 :key="item.name + item.startTime"
-                class="p-3 border border-gray-200 rounded-lg hover:shadow-sm cursor-move bg-white"
+                class="relative p-3 border border-gray-200 rounded-lg hover:shadow-sm cursor-move bg-white"
                 draggable="true"
                 @dragstart="handleDragStart(idx)"
                 @dragover.prevent="handleDragOver(idx)"
@@ -101,6 +101,13 @@
                 @dragend="handleDragEnd"
                 @click="onListItemClick(idx)"
               >
+              <button
+                @click.stop="removeItem(idx)"
+                class="absolute bottom-2 right-2 text-gray-400 hover:text-red-500"
+                title="삭제"
+              >
+                삭제
+              </button>
                 <div class="flex justify-between items-center">
                   <span class="font-medium text-gray-800">{{ item.category }}</span>
                   <span class="text-sm text-gray-600">{{ item.startTime }} – {{ item.endTime }}</span>
@@ -135,6 +142,71 @@
             >
               적용하기
             </button>
+            <button
+            @click="addToMyPlan"
+             :class="[
+               'ml-4 block px-6 py-3 rounded whitespace-nowrap transition-colors',
+               dayItems.length > 0
+                ? 'bg-[#9FB3DF] text-white hover:bg-[#8FA3CF]'
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+             ]"
+             :disabled="dayItems.length === 0"
+           >
+             나의 계획에 추가
+           </button>
+          </div>
+        </div>
+      </div>
+      <!-- 추가 카테고리 및 입력 섹션 -->
+      <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold mb-4">카테고리 선택</h3>
+          <div class="flex flex-wrap gap-3">
+            <button
+              v-for="tag in additionalTags"
+              :key="tag.id"
+              @click="toggleTag(tag.id)"
+              :class="[
+'px-4 py-2 rounded-button whitespace-nowrap cursor-pointer transition-all',
+selectedTags.includes(tag.id)
+? 'bg-[#9FB3DF] text-white'
+: 'bg-gray-100 hover:bg-gray-200'
+]"
+            >
+              {{ tag.name }}
+            </button>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >제목</label
+            >
+            <input
+              type="text"
+              v-model="title"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#9FB3DF] focus:border-[#9FB3DF]"
+              placeholder="제목을 입력하세요"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >내용</label
+            >
+            <textarea
+              v-model="content"
+              rows="20"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#9FB3DF] focus:border-[#9FB3DF]"
+              placeholder="내용을 입력하세요"
+            ></textarea>
+          </div>
+          <div class="flex justify-end">
+            <button
+              class="px-6 py-3 bg-[#9FB3DF] text-white rounded-button hover:bg-[#8FA3CF] transition-colors cursor-pointer whitespace-nowrap"
+              @click="submitForm"
+            >
+              등록하기
+            </button>
           </div>
         </div>
       </div>
@@ -149,6 +221,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { getGoogleMapsLoader } from '@/services/googleMapsLoader'
+import { useRouter } from 'vue-router' 
 import { usePlacesStore } from '@/stores/places'
 const store = usePlacesStore()
 const currentCenter = {
@@ -162,6 +235,30 @@ interface ItineraryItem {
   category: string    // 예: 'TOUR', 'LUNCH', 'CAFE'
   startTime: string
   endTime: string
+}
+
+/** 게시판 등록용 상태 */
+const title = ref('')
+const content = ref('')
+const selectedTags = ref<number[]>([])
+const additionalTags = [
+  { id: 1, name: '힐링' },
+  { id: 2, name: '액티비티' },
+  { id: 3, name: '데이트' },
+  { id: 4, name: '먹부림' },
+  { id: 5, name: '자연' },
+  { id: 6, name: '도심' },
+  { id: 7, name: '가족' },
+  { id: 8, name: '친구' },
+  { id: 9, name: '혼자' },
+  { id: 10, name: '비즈니스' }
+]
+
+/** 태그 토글 */
+function toggleTag(tagId: number) {
+  const idx = selectedTags.value.indexOf(tagId)
+  if (idx === -1) selectedTags.value.push(tagId)
+  else selectedTags.value.splice(idx, 1)
 }
 
 /** Itinerary → Google Places API type 매핑 */
@@ -357,6 +454,7 @@ const nearbyPlaces = ref<{ [key: string]: any[]; cafes: any[]; restaurants: any[
 const mapContainer = ref<HTMLDivElement | null>(null)
 const searchInput = ref<HTMLInputElement|null>(null)
 const isModified = ref(false)
+const userId = ref<number | null>(null);
 let map: google.maps.Map
 let placesService: google.maps.places.PlacesService
 let geocoder: google.maps.Geocoder
@@ -500,6 +598,7 @@ async function applyChanges() {
 onMounted(async () => {
   const loader = getGoogleMapsLoader()
   const google = await loader.load()
+  const token = localStorage.getItem('accessToken')
 
   // 1) 지도를 Pinia 의 center 로 초기화
   map = new google.maps.Map(mapContainer.value!, {
@@ -560,6 +659,8 @@ onMounted(async () => {
     map.addListener('bounds_changed', () => {
       searchBox.setBounds(map.getBounds() as google.maps.LatLngBounds)
     })
+
+    
   }
 
   // 2) Pinia center 위치에 마커 하나
@@ -580,10 +681,23 @@ onMounted(async () => {
         endTime: ''
       })
     })
-  const resp = await axios.get('/api/nearby', {
+  const resp = await axios.get('http://localhost:8080/api/nearby', {
     params: { lat: currentCenter.lat, lng: currentCenter.lng }
   })
   nearbyPlaces.value = resp.data
+
+  if (!token) return
+    try {
+    const { data } = await axios.get(
+      'http://localhost:8080/api/users/me',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    userId.value = data.userId
+  } catch {
+    // 토큰 만료 등 에러 처리
+    //localStorage.removeItem('accessToken')
+    //nickname.value = null
+  }
 })
 async function fetchItinerary() {
   const token = localStorage.getItem('accessToken')
@@ -617,6 +731,121 @@ async function fetchItinerary() {
         isLoading.value = false
       }, 800)  
     })
+  }
+}
+const router = useRouter()                       // ← 추가
+
+// “나의 계획에 추가” 클릭 핸들러
+async function addToMyPlan() {
+  // 배열에 최소 하나 있어야 눌렀을 때만 동작
+  if (dayItems.value.length === 0) return
+  
+const token = localStorage.getItem('accessToken')
+if (!token) {
+  alert('로그인이 필요합니다.')
+  return
+}
+
+const firstName = itinerary.value[0]?.[0]?.name || "";
+  const [ , planRegion = "" ] = firstName.split(",", 2).map(s => s.trim());
+
+// 1) 전체 itinerary를 dayNo 포함한 locations 배열로 변환
+const locations = itinerary.value.flatMap((day, idx) => 
+  day.map(item => ({
+    dayNo: idx + 1,
+    addressName: item.name,
+    addressCategory: item.category,
+    startTime: item.startTime + ':00',
+    endTime:   item.endTime   + ':00'
+  }))
+)
+
+try {
+  // 2) API 호출
+  const resp = await axios.post(
+    'http://localhost:8080/api/plans-with-locations',
+    {
+      userId: userId.value,  // 또는 로컬스토리지에서 꺼내든지
+      region: planRegion,
+      locations
+    },
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  // 3) 성공 처리
+  alert('추가되었습니다.')
+  router.push('/mypage')
+} catch (err) {
+  console.error(err)
+  alert('추가에 실패했습니다.')
+}                       // ← 이동할 라우트로 변경
+}
+
+function removeItem(idx: number) {
+  // 1) dayItems에서 삭제
+  dayItems.value.splice(idx, 1);
+  // 2) itinerary에도 반영
+  itinerary.value[selectedDay.value] = [...dayItems.value];
+  // 3) 변경 플래그
+  isModified.value = true;
+}
+async function submitForm() {
+  const token = localStorage.getItem('accessToken')
+  if (!token) {
+    alert('로그인이 필요합니다.')
+    return
+  }
+
+  const firstName = itinerary.value[0]?.[0]?.name || "";
+  const [ , planRegion = "" ] = firstName.split(",", 2).map(s => s.trim());
+
+  // 1) itinerary → locations 변환
+  const locations = itinerary.value.flatMap((day, idx) =>
+    day.map(item => ({
+      dayNo: idx + 1,
+      addressName:     item.name,
+      addressCategory: item.category,
+      startTime:       item.startTime + ':00',
+      endTime:         item.endTime   + ':00'
+    }))
+  )
+
+  // 1) 선택된 태그 ID 배열 → 태그 이름 배열
+  const tagNames = selectedTags.value
+    .map(id => additionalTags.find(t => t.id === id)?.name)
+    .filter((n): n is string => !!n)  // undefined 걸러내기
+  try {
+    // --- 1단계: 계획 + 장소들 생성 ---
+    const planResp = await axios.post<string>(
+      'http://localhost:8080/api/plans-with-locations',
+      {
+        userId: userId.value,
+        region: planRegion,
+        locations
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    const planCode = planResp.data  // 백엔드에서 반환한 plan_code
+
+    // --- 2단계: 게시글 등록 ---
+    await axios.post(
+      'http://localhost:8080/api/trip/boards',
+      {
+        planCode,
+        userId:        userId.value,
+        boardTitle:    title.value,
+        boardContent:  content.value,
+        boardCategory: tagNames.join(',')
+        //boardCategory: selectedTags.value.join(',') // 태그를 콤마로 묶어서 문자열로 보내거나,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+
+    alert('게시글이 등록되었습니다.')
+    router.push('/mypage')
+
+  } catch (err) {
+    console.error(err)
+    alert('등록 중 오류가 발생했습니다.')
   }
 }
 </script>

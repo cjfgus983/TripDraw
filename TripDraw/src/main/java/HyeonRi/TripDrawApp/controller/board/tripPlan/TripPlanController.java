@@ -1,4 +1,4 @@
-package HyeonRi.TripDrawApp.controller.board;
+package HyeonRi.TripDrawApp.controller.board.tripPlan;
 
 import java.io.IOException;
 import java.util.List;
@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import HyeonRi.TripDrawApp.dto.tripPlan.ItineraryItemDto;
 import HyeonRi.TripDrawApp.dto.tripPlan.ItineraryUpdateRequestDto;
+import HyeonRi.TripDrawApp.dto.tripPlan.TripPlanWithLocationsRequest;
 import HyeonRi.TripDrawApp.service.AiService;
 import HyeonRi.TripDrawApp.service.AiService.NearbyPlacesResult;
+import HyeonRi.TripDrawApp.service.board.tripPlan.TripPlanService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TripPlanController {
     private final AiService aiService;
+    
+    private final TripPlanService service;
 
     /**
      * POST /api/itinerary
@@ -61,7 +65,15 @@ public class TripPlanController {
     ) throws IOException {
         return aiService.recalculateItineraryTimes(req.getItinerary());
     }
-
+    
+    @PostMapping("/plans-with-locations")
+    public ResponseEntity<String> createPlanAndLocations(
+            @RequestBody TripPlanWithLocationsRequest req
+    ) {
+    	System.out.println(req);
+        String planCode = service.createPlanWithLocations(req);
+        return ResponseEntity.ok(planCode);
+    }
 
     @Data
     public static class ItineraryRequest {
