@@ -58,7 +58,7 @@ onMounted(async () => {
       'http://localhost:8080/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    // 스토어에 프로필 저장
+    // 스토어에 프로필 저장set
     userStore.setProfile({
       id: data.userId,
       email: data.email,

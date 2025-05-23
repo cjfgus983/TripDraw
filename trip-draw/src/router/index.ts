@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import { useUserStore } from '@/stores/user';
+import OAuthCallback from '@/pages/OAuthCallback.vue'
+
+
+// 카카오 로그인 후 콜백
 
 
 import MainPage from '@/pages/MainPage.vue';
@@ -47,6 +51,11 @@ const routes = [
   { path: '/mypage', name: 'MyPage', component: MyPage },
   { path: '/findidpassword', name: 'FindIdPassword', component: FindIdPassword },
   { path: '/editprofile', name: 'EditProfile', component: EditProfile, meta: { requiresPasswordConfirm: true }} ,
+  { // 카카오 콜백
+    path: '/oauth-callback',
+    name: 'OAuthCallback',
+    component: OAuthCallback
+  },
   
 ];
 

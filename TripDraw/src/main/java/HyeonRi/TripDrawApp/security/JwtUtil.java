@@ -1,5 +1,6 @@
 package HyeonRi.TripDrawApp.security;
 
+import HyeonRi.TripDrawApp.domain.LoginType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -18,9 +19,10 @@ public class JwtUtil {
     private final long ACCESS_EXP_MS  = 1000 * 60 * 60 * 2;      // 2시간
     private final long REFRESH_EXP_MS = 1000 * 60 * 60 * 24 * 7; // 7일
 
-    public String generateAccessToken(String email) {
+    public String generateAccessToken(String email, LoginType loginType) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("loginType", loginType)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXP_MS))
                 .signWith(SignatureAlgorithm.HS256, SECRET)
@@ -52,6 +54,19 @@ public class JwtUtil {
                 .getBody()
                 .getSubject();
     }
+
+    public LoginType getLoginTypeFromToken(String token) {
+        Claims body = Jwts.parser()
+                .setSigningKey(SECRET)
+                .parseClaimsJws(token)
+                .getBody();
+        String type = body.get("loginType", String.class);
+        return LoginType.valueOf(type);
+    }
+
+
+
+
 }
 
 

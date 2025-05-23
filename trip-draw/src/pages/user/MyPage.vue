@@ -359,6 +359,7 @@ const filteredPlans = computed(() => travelPlans.value);
   const modalTitle = ref("");
   const modalMessage = ref("");
   const modalCallback = ref<() => void>(() => {});
+
   const verifyPassword = async () => {
   try {
     // 1) DB 검증
@@ -382,14 +383,34 @@ const filteredPlans = computed(() => travelPlans.value);
     );
   };
   // 실제 회원탈퇴 처리 함수
-  const deleteAccount = () => {
-    // 여기서 실제 탈퇴 로직 구현 (API 호출 등)
-    showAlertModal(
-      "탈퇴 완료",
-      "회원탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.",
-    );
-    // 실제로는 로그아웃 처리 및 메인 페이지로 리다이렉트 등의 작업 필요
-  };
+  async function deleteAccount() {
+    try {
+      // POST로 비밀번호 검증 + 삭제 엔드포인트 호출
+      await axios.post("/api/users/delete-user", {
+        password: deletePassword.value
+      });
+
+      // 성공
+      showAlertModal(
+        "탈퇴 완료",
+        "회원탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.",
+      );
+
+      // 원하시면 userStore.logout() 같은 로그아웃 처리 후 리다이렉트
+      localStorage.removeItem('accessToken')
+      userStore.clearProfile()
+      userStore.logout();
+      router.push("/");
+
+    } catch (error: any) {
+      // 401 Unauthorized → 비밀번호 불일치
+      if (error.response?.status === 401) {
+        showAlertModal("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
+      } else {
+        showAlertModal("오류", "문제가 발생했습니다. 다시 시도해주세요.");
+      }
+    }
+  }
   // 알림 모달 표시 함수
   const showAlertModal = (title: string, message: string) => {
     modalType.value = "alert";

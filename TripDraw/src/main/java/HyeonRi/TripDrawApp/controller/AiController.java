@@ -46,6 +46,7 @@ public class AiController {
             List<PlaceInfoDto> places = aiService.recommendPlacesByGpt(body.get("imageUrl"));
             return ResponseEntity.ok(places);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).body(List.of());
         }
     }

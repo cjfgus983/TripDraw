@@ -1,5 +1,6 @@
 package HyeonRi.TripDrawApp.controller;
 
+import HyeonRi.TripDrawApp.domain.LoginType;
 import HyeonRi.TripDrawApp.dto.LoginRequestDto;
 import HyeonRi.TripDrawApp.dto.LoginResponseDto;
 import HyeonRi.TripDrawApp.security.JwtUtil;
@@ -35,7 +36,7 @@ public class AuthController {
         );
 
         // 2) 토큰 생성
-        String accessToken  = jwtUtil.generateAccessToken(request.getEmail());
+        String accessToken  = jwtUtil.generateAccessToken(request.getEmail(), LoginType.GENERAL);
         String refreshToken = jwtUtil.generateRefreshToken(request.getEmail());
 
         // 3) 리프레시 토큰을 HttpOnly 쿠키로 세팅
@@ -58,7 +59,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String email = jwtUtil.getEmailFromToken(rt);
-        String newAccessToken = jwtUtil.generateAccessToken(email);
+        String newAccessToken = jwtUtil.generateAccessToken(email, LoginType.GENERAL);
         return ResponseEntity.ok(new LoginResponseDto(newAccessToken));
     }
 

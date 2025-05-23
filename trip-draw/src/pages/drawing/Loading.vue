@@ -89,8 +89,11 @@ const floatingBubbles = [
   { x:50, y:85, size:28, color:"#9FB3DF", delay:0.3, class:"float-animation-3" },
 ]
 
-// 진행률
+// 진행률 & 단계 관리
 const progress = ref(0)
+const phase = ref(1)  // 1: transform, 2: recommend
+const maxProgress = computed(() => phase.value === 1 ? 50 : 99)
+
 let intervalId: number
 
 // 상태 텍스트
@@ -130,17 +133,22 @@ async function processImage() {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
   aiStore.setResultUrl(tr.transformedImageUrl)
+  progress.value = maxProgress.value  // =50
+  phase.value = 2
 
   // 2) 추천 API
   await aiStore.fetchRecommendedPlaces()
+  progress.value = maxProgress.value  // =100
 }
 
 // 마운트 시 실행
 onMounted(() => {
   // 진행률 애니메이션
   intervalId = window.setInterval(() => {
-    if (progress.value < 99) progress.value++
-  }, 100)
+    if (progress.value < maxProgress.value) {
+      progress.value++
+    }
+  }, 200)
 
   processImage()
     .then(() => {

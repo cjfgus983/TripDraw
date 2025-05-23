@@ -4,6 +4,7 @@ package HyeonRi.TripDrawApp.mapper;
 import HyeonRi.TripDrawApp.domain.LoginType;
 import HyeonRi.TripDrawApp.domain.User;
 import HyeonRi.TripDrawApp.dto.UserRegisterRequestDto;
+import lombok.extern.java.Log;
 import org.apache.ibatis.annotations.*;
 
 import java.util.Optional;
@@ -116,4 +117,23 @@ public interface UserMapper {
       </script>
     """)
     void updateUser(User user);
+
+    @Delete("""
+        DELETE FROM `user`
+        WHERE email = #{email}
+        AND login_type = #{loginType}
+    """)
+    void deleteUser(@Param("email") String email, @Param("loginType") LoginType loginType);
+
+    @Update("""
+        UPDATE `user`
+        SET nickname = #{nickname}
+        WHERE email = #{email}
+          AND login_type = #{loginType}
+    """)
+    int updateNicknameByEmailAndLoginType(
+            @Param("email") String email,
+            @Param("loginType") LoginType loginType,
+            @Param("nickname") String nickname
+    );
 }
