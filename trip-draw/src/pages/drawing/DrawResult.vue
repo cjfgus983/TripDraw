@@ -146,7 +146,16 @@ function selectPlace(idx: number) { selectedPlaceIndex.value = idx }
 function redrawImage() { router.push('/drawpage') }
 function goToPlanning() {
   if (selectedPlaceIndex.value !== null) {
-    router.push(`/plan/${selectedPlaceIndex.value}`)
+    // 1) 선택된 place 객체 꺼내기
+    const place = placeObjects.value[selectedPlaceIndex.value]
+    const name = place.name
+
+    // 2) Pinia에 저장
+    aiStore.setSelectedPlaceName(name)
+
+    // 3) localStorage에 저장
+    localStorage.setItem('selectedPlaceName', name)
+    router.push(`/tripplanpage`)
   }
 }
 function scrollToSection(idx: number) {

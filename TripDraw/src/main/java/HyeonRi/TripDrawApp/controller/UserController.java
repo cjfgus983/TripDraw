@@ -10,6 +10,7 @@ import HyeonRi.TripDrawApp.dto.findEmail.FindEmailRequestDto;
 import HyeonRi.TripDrawApp.dto.findEmail.FindEmailResponseDto;
 import HyeonRi.TripDrawApp.dto.findEmail.FindEmailVerifyRequestDto;
 import HyeonRi.TripDrawApp.dto.findPassword.FindPasswordRequestDto;
+import HyeonRi.TripDrawApp.security.CustomUserDetails;
 import HyeonRi.TripDrawApp.service.EmailService;
 import HyeonRi.TripDrawApp.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -70,25 +71,26 @@ public class UserController {
 
     // 토큰에서 이메일을 이용해 사용자의 정보를 알아내기 위함 (비밀번호 제외)
     @GetMapping("/me")
-    public ResponseEntity<UserProfileDto> getProfile(Authentication authentication) {
-        System.out.println("123");
-        System.out.println(authentication.getName());
+    public ResponseEntity<UserProfileDto> getProfile(
+            @AuthenticationPrincipal CustomUserDetails principal
+    ) {
+        String email     = principal.getUsername();
+        LoginType type   = principal.getLoginType();
 
-        String email = authentication.getName();
+        System.out.println(type);
 
-        User u = userService.findByEmail(email);              // 엔티티 조회
+        // 혹은 DB에서 다시 정확히 조회하고 싶다면
+        User u = userService.findByEmailAndLoginType(email, type);
+
         UserProfileDto dto = new UserProfileDto(
-                u.getUserId(),
-                u.getEmail(),
-                u.getName(),
-                u.getPhoneNumber(),
-                u.getAddress(),
-                u.getAddressDetail(),
-                u.getNickname(),
-                u.getRole()
+                u.getUserId(), u.getEmail(), u.getName(),
+                u.getPhoneNumber(), u.getAddress(),
+                u.getAddressDetail(), u.getNickname(),
+                u.getRole(), u.getLoginType()
         );
         return ResponseEntity.ok(dto);
     }
+
 
 
 
@@ -172,6 +174,25 @@ public class UserController {
         String email = authentication.getName();
         userService.updateProfile(email, request);
         return ResponseEntity.ok().build();
+    }
+
+    // 회원 탈퇴를 의뢰할 것
+    @PostMapping("/delete-user")
+    public ResponseEntity<String> DeleteUser(@RequestBody Map<String,String> body,
+                                                 Authentication authentication) {
+        String rawPw = body.get("password"); // 입력 받은 패스워드
+        System.out.println(rawPw); // 한번 출력해보고
+
+        String email = authentication.getName(); // 인증에서 이메일을 받아옴
+        System.out.println(email); // 이메일도 일치하는가
+
+        if (!userService.checkPassword(email, rawPw)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호 틀림");
+        }
+
+        userService.deleteUser(email);
+
+        return ResponseEntity.ok("회원 삭제 완료");
     }
 
 

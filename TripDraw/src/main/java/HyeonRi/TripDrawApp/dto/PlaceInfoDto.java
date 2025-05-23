@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 public class PlaceInfoDto {
     private String name;
     private String description;
-    private String photoReference;
+    private String photoURL;
 }

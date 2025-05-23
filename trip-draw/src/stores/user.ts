@@ -42,5 +42,10 @@ export const useUserStore = defineStore('user', {
     resetPasswordConfirmation() {
       this.passwordConfirmed = false
     },
+
+    logout() {
+      this.clearProfile()
+      this.resetPasswordConfirmation()
+    },
   }
 })

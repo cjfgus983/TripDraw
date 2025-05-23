@@ -1,23 +1,20 @@
 package HyeonRi.TripDrawApp.config;
 
+import HyeonRi.TripDrawApp.security.*;
+import HyeonRi.TripDrawApp.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import HyeonRi.TripDrawApp.security.CustomUserDetailsService;
-import HyeonRi.TripDrawApp.security.JwtAuthenticationFilter;
-import HyeonRi.TripDrawApp.security.JwtUtil;
-import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,9 +23,14 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
 
+    private final CustomOAuth2UserService OAuth2UserService;
+    private final OAuth2SuccessHandler successHandler;
+    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
+
     // 1) PasswordEncoder 빈
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -45,10 +47,10 @@ public class SecurityConfig {
 
     // 3) SecurityFilterChain 설정
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
         // JWT 필터
         JwtAuthenticationFilter jwtFilter =
-                new JwtAuthenticationFilter(jwtUtil, userDetailsService);
+                new JwtAuthenticationFilter(jwtUtil, userService);
 
         http
                 // 3-1) CSRF, CORS
@@ -60,29 +62,23 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-
-                // 3-3) URL별 접근 제어
-//                .authorizeHttpRequests(auth -> auth
-//                        // 회원가입, 로그인, 토큰 리프레시 등은 인증 없이 허용
-//                        .requestMatchers("/api/users/signup", "/api/auth/**").permitAll()
-//                        // Swagger UI, static 리소스 등도 여기에 추가 가능
-//                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-//                        // 그 외엔 모두 인증 필요
-//                        .anyRequest().authenticated()
-//                )
                 .authorizeHttpRequests(auth -> auth
-                		// Preflight OPTIONS 는 모두 허용
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 회원가입·로그인·토큰 리프레시
                         .requestMatchers("/api/users/signup", "/api/auth/**").permitAll()
                         // 이메일 인증(발송/검증) 및 중복체크
                         .requestMatchers("/api/users/**").permitAll()
                         // Swagger UI, static 리소스
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // 파일 업로드
-                        .requestMatchers("/uploads/**").permitAll()
+
                         // 그 외는 모두 인증 필요
                         .anyRequest().authenticated()
+                )
+                //OAuth2 로그인 설정
+                .oauth2Login(oauth -> oauth
+                        .authorizationEndpoint(a -> a.baseUri("/oauth2/authorization"))
+                        .redirectionEndpoint(r -> r.baseUri("/login/oauth2/code/*"))
+                        .userInfoEndpoint(u -> u.userService(OAuth2UserService))
+                        .successHandler(successHandler)
                 )
 
 

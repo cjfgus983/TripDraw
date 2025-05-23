@@ -169,7 +169,7 @@ const handleLogin = async () => {
 };
 
 const handleKakaoLogin = () => {
-  /* … */
+  window.location.href = "/oauth2/authorization/kakao";
 };
 const goToSignup = () => router.push("/signup");
 const goToFindIdPassword = () => router.push("/findidpassword");

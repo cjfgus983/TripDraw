@@ -13,7 +13,7 @@ interface PlaceInfo {
 interface BackendPlace {
   name: string
   description: string
-  photoReference: string
+  photoURL: string
 }
 
 // stores/ai.ts
@@ -24,6 +24,8 @@ export const useAiStore = defineStore('ai', {
     resultUrl: '' as string,
     // 여기를 추가합니다:
     recommendedPlaces: [] as PlaceInfo[],
+    selectedPlaceName: null as string | null,
+
   }),
   actions: {
     setOriginalDataUrl(dataUrl: string) { this.originalDataUrl = dataUrl },
@@ -42,16 +44,21 @@ export const useAiStore = defineStore('ai', {
                 { imageUrl: this.resultUrl }
               )
         
-              // 2) photoReference를 our proxy URL로 바꿔서 PlaceInfo[] 생성
+              
+            // 2) 받아온 imageUrl을 그대로 쓰면 끝
               const places: PlaceInfo[] = data.map(p => ({
-                name: p.name,
+                name:        p.name,
                 description: p.description,
-                imageUrl: `/api/places/photo?reference=${encodeURIComponent(p.photoReference)}`
-          }))
+                imageUrl:    p.photoURL
+              })
+            )
           // 3) state에 저장
           this.setRecommendedPlaces(places)
-        }
-        
+        },
+        setSelectedPlaceName(name: string) {
+          this.selectedPlaceName = name
+        },
+    
   },
 })
 

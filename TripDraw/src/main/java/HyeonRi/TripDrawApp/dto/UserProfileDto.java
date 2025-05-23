@@ -1,6 +1,7 @@
 // src/main/java/HyeonRi/TripDrawApp/dto/UserProfileDto.java
 package HyeonRi.TripDrawApp.dto;
 
+import HyeonRi.TripDrawApp.domain.LoginType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -15,4 +16,5 @@ public class UserProfileDto {
     private String addressDetail;
     private String nickname;
     private String role;
+    private LoginType loginType;
 }

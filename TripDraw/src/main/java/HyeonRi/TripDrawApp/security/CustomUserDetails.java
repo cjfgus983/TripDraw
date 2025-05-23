@@ -1,5 +1,6 @@
 package HyeonRi.TripDrawApp.security;
 
+import HyeonRi.TripDrawApp.domain.LoginType;
 import HyeonRi.TripDrawApp.domain.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -59,4 +60,9 @@ public class CustomUserDetails implements UserDetails {
     public String getNickname() {
         return user.getNickname();
     }
+
+    public LoginType getLoginType() {
+        return user.getLoginType();
+    }
+
 }

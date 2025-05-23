@@ -14,11 +14,23 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,14 +47,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AiService {
 
+    private final S3Service s3Service;
     @Value("${openai.api.key}")
     private String apiKey;
 
     @Value("${google.places.api.key}")
     private String googleApiKey;
 
-
-
+    
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
@@ -150,7 +162,7 @@ public class AiService {
                 "다음은 이미지 설명입니다:\n\"%s\"\n" +
                         "이 설명을 바탕으로 전 세계의 관련 명소 3곳을 제안해주세요. " +
                         "반환 형식은 JSON 배열로, 예시:\n" +
-                        "[\"후지산, 일본\", \"타임스퀘어, 미국 뉴욕\", \"시드니 오페라하우스, 호주\"]",
+                        "[\"후지산,일본\", \"타임스퀘어,미국,뉴욕\", \"오페라하우스,시드니,호주\"]",
                 description
         );
 
@@ -604,41 +616,81 @@ public class AiService {
     }
 
 
-    private String fetchPhotoReference(String place) throws IOException {
-        // 2) 폴백: textsearch/json 호출
-        String tsUrl = UriComponentsBuilder
-                .fromHttpUrl("https://maps.googleapis.com/maps/api/place/textsearch/json")
-                .queryParam("query", place)
-                .queryParam("key", googleApiKey)
-                .toUriString();
-
-        System.out.println("▶ [fetchPhotoReference][textsearch] URL: " + tsUrl);
-
-        JsonNode tsRoot = restTemplate.getForObject(tsUrl, JsonNode.class);
-        JsonNode results = tsRoot.path("results");
-        if (results.isArray() && results.size() > 0) {
-            JsonNode photos = results.get(0).path("photos");
-            if (photos.isArray() && photos.size() > 0) {
-                return photos.get(0).path("photo_reference").asText();
-            }
-        }
-        // 모두 실패하면 null
-        return null;
-    }
+//    private String fetchPhotoReference(String place) throws IOException {
+//        // 2) 폴백: textsearch/json 호출
+//        String tsUrl = UriComponentsBuilder
+//                .fromHttpUrl("https://maps.googleapis.com/maps/api/place/textsearch/json")
+//                .queryParam("query", place)
+//                .queryParam("key", googleApiKey)
+//                .toUriString();
+//
+//        System.out.println("▶ [fetchPhotoReference][textsearch] URL: " + tsUrl);
+//
+//        JsonNode tsRoot = restTemplate.getForObject(tsUrl, JsonNode.class);
+//        JsonNode results = tsRoot.path("results");
+//        if (results.isArray() && results.size() > 0) {
+//            JsonNode photos = results.get(0).path("photos");
+//            if (photos.isArray() && photos.size() > 0) {
+//                return photos.get(0).path("photo_reference").asText();
+//            }
+//        }
+//        // 모두 실패하면 null
+//        return null;
+//    }
 
 
     /** Google Text Search로 첫 번째 photo_reference 가져오기 */
-    private String fetchPhotoUrl(String photoReference) {
-        String url = UriComponentsBuilder
-                .fromHttpUrl("https://maps.googleapis.com/maps/api/place/photo")
-                .queryParam("maxwidth", 400)
-                .queryParam("photoreference", photoReference)
-                .queryParam("key", googleApiKey)
-                .toUriString();
-        System.out.println("▶ [fetchPhotoUrl] url    : " + url);
-        return url;
-    }
+//    private String fetchPhotoUrl(String photoReference) {
+//        String url = UriComponentsBuilder
+//                .fromHttpUrl("https://maps.googleapis.com/maps/api/place/photo")
+//                .queryParam("maxwidth", 400)
+//                .queryParam("photoreference", photoReference)
+//                .queryParam("key", googleApiKey)
+//                .toUriString();
+//        System.out.println("▶ [fetchPhotoUrl] url    : " + url);
+//        return url;
+//    }
 
+
+    /**
+     * 외부 URL에서 바이트를 GET 요청으로 받아와
+     * Spring의 MockMultipartFile로 감싸 MultipartFile 형태로 리턴.
+     */
+    private MultipartFile downloadAsMultipart(String imageUrl) throws IOException {
+        System.out.println("▶ downloadAsMultipart 호출, imageUrl = " + imageUrl);
+
+        // 1) URLConnection 으로 연결
+        URL url = new URL(imageUrl);
+        URLConnection conn = url.openConnection();
+
+        // 2) Content-Type, InputStream 가져오기
+        String contentType = conn.getContentType();
+        System.out.println("    contentType = " + contentType);
+
+        byte[] bytes;
+        try (InputStream in = conn.getInputStream()) {
+            bytes = in.readAllBytes();
+            System.out.println("    bytes length = " + bytes.length);
+        } catch (IOException e) {
+            System.err.println("    ▶ URLConnection 에서 바이트 읽기 실패!");
+            throw e;
+        }
+
+        // 3) 파일 이름 추출 (경로의 마지막 부분)
+        String filename = Paths.get(url.getPath()).getFileName().toString();
+        if (filename == null || filename.isBlank()) {
+            filename = "generated.png";
+        }
+        System.out.println("    filename = " + filename);
+
+        // 4) MockMultipartFile 생성 후 반환
+        return new MockMultipartFile(
+                "file",         // form field name
+                filename,       // original filename
+                contentType,    // content type
+                bytes           // file content
+        );
+    }
 
 
 
@@ -659,11 +711,26 @@ public class AiService {
             String shortDesc = fetchDescription(nc);
             System.out.println("▶ place desc = " + shortDesc);
 
-            String ref = fetchPhotoReference(nc);
-            String imgUrl = (ref != null) ? fetchPhotoUrl(ref) : null;
-            System.out.println("▶ final imgUrl = " + imgUrl);
+            // 1) S3 에 해당 이미지 있으면 URL 바로 사용
+            String encoded = URLEncoder
+                    .encode(nc, StandardCharsets.UTF_8.toString());
+            String key = "places/" + encoded + ".png";
 
-            out.add(new PlaceInfoDto(nc, shortDesc, ref));
+
+            String imgUrl;
+            if (s3Service.exists(key)) {
+                // S3Service가 제공하는 URL만 가져오기
+                imgUrl = s3Service.getUrl(key);
+            } else {
+                // DALL·E로 이미지 생성
+                String dalleUrl = generateImageFromPrompt(nc);
+                System.out.println("여기까지 옴");
+                MultipartFile fake = downloadAsMultipart(dalleUrl);
+                // S3에 업로드 후 URL 반환
+                imgUrl = s3Service.upload(fake, key);
+            }
+
+            out.add(new PlaceInfoDto(nc, shortDesc, imgUrl));
         }
 
         System.out.println(">>> done: " + out);
@@ -683,14 +750,14 @@ public class AiService {
     /**
      +     * Google Photo API로부터 실제 이미지 바이트를 가져오는 프록시용 메서드
      +     */
-    public ByteArrayResource downloadPhotoBytes(String photoReference) {
-        String url = UriComponentsBuilder
-                .fromHttpUrl("https://maps.googleapis.com/maps/api/place/photo")
-                .queryParam("maxwidth", 400)
-                .queryParam("photoreference", photoReference)
-                .queryParam("key", googleApiKey)
-                .toUriString();
-        System.out.println("▶ [downloadPhotoBytes] proxy URL = " + url);
-        return restTemplate.getForObject(url, ByteArrayResource.class);
-    }
+//    public ByteArrayResource downloadPhotoBytes(String photoReference) {
+//        String url = UriComponentsBuilder
+//                .fromHttpUrl("https://maps.googleapis.com/maps/api/place/photo")
+//                .queryParam("maxwidth", 400)
+//                .queryParam("photoreference", photoReference)
+//                .queryParam("key", googleApiKey)
+//                .toUriString();
+//        System.out.println("▶ [downloadPhotoBytes] proxy URL = " + url);
+//        return restTemplate.getForObject(url, ByteArrayResource.class);
+//    }
 }
