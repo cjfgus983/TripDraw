@@ -26,6 +26,18 @@ CREATE TABLE free (
   PRIMARY KEY (free_id)
 );
 
+ALTER TABLE free
+ADD COLUMN dislike_count INT NOT NULL DEFAULT 0 AFTER like_count;
+
+CREATE TABLE free_reaction (
+  reaction_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+  free_id       BIGINT NOT NULL,
+  user_id       BIGINT NOT NULL,
+  reaction_type ENUM('LIKE','DISLIKE') NOT NULL,
+  created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_free_user (free_id, user_id)
+);
+
 -- 3. free_comments
 CREATE TABLE free_comments (
   comment_id  BIGINT   NOT NULL AUTO_INCREMENT,
@@ -38,33 +50,51 @@ CREATE TABLE free_comments (
   FOREIGN KEY (free_id) REFERENCES free(free_id)
 );
 
+-- DROP TABLE trip_plans;
+-- DROP TABLE trip_board;
+-- DROP TABLE trip_location;
+-- DROP TABLE trip_comment;
+
 -- 4. trip_plans
 CREATE TABLE trip_plans (
-  plan_code        VARCHAR(100) NOT NULL COMMENT '계획 공유용 코드',
-  user_id          BIGINT       NOT NULL,
-  trip_category    VARCHAR(100) NOT NULL,
-  plan_title       VARCHAR(100) NOT NULL,
-  plan_description VARCHAR(100) NOT NULL,
-  PRIMARY KEY (plan_code)
+  plan_code      VARCHAR(100) NOT NULL COMMENT '계획 공유용 코드',
+  user_id        BIGINT       NOT NULL COMMENT '계획 작성자',
+  created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (plan_code),
+  FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
+
+ALTER TABLE trip_plans
+  ADD COLUMN region VARCHAR(100) NOT NULL DEFAULT ''
+    COMMENT '여행 지역'
+    AFTER user_id;
 
 -- 5. trip_location
 CREATE TABLE trip_location (
-  location_id   BIGINT       NOT NULL AUTO_INCREMENT,
-  plan_code     VARCHAR(100) NOT NULL COMMENT '계획 공유용 코드',
-  address_name  VARCHAR(100) NOT NULL,
-  address       VARCHAR(100) NOT NULL,
-  start_time    TIME         NOT NULL COMMENT '정렬 기준',
-  end_time      TIME         NOT NULL,
-  PRIMARY KEY (location_id, plan_code),
+  location_id     BIGINT     NOT NULL AUTO_INCREMENT,
+  plan_code       VARCHAR(100) NOT NULL COMMENT '계획 공유용 코드',
+  day_no          TINYINT      NOT NULL COMMENT '몇 일차',
+  address_name    VARCHAR(100) NOT NULL,
+  address_category VARCHAR(100) NOT NULL,
+  start_time      TIME         NOT NULL,
+  end_time        TIME         NOT NULL,
+  PRIMARY KEY (location_id),
+  INDEX idx_plan_day (plan_code, day_no),
   FOREIGN KEY (plan_code) REFERENCES trip_plans(plan_code)
 );
 
 -- 6. trip_board
 CREATE TABLE trip_board (
-  plan_board_id BIGINT       NOT NULL AUTO_INCREMENT,
-  plan_code     VARCHAR(100) NOT NULL COMMENT '계획 공유용 코드',
-  PRIMARY KEY (plan_board_id)
+  plan_board_id   BIGINT       NOT NULL AUTO_INCREMENT,
+  plan_code       VARCHAR(100) NOT NULL COMMENT '게시할 여행 계획 코드',
+  user_id         BIGINT       NOT NULL COMMENT '게시자(user_id)',
+  board_title     VARCHAR(100) NOT NULL,
+  board_content   TEXT         NOT NULL,
+  board_category  VARCHAR(100) NOT NULL,
+  created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (plan_board_id),
+  FOREIGN KEY (plan_code) REFERENCES trip_plans(plan_code),
+  FOREIGN KEY (user_id)   REFERENCES user(user_id)
 );
 
 -- 7. trip_comment
@@ -163,6 +193,13 @@ CREATE TABLE `user` (
                     COMMENT '사용자 권한',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `UK_user_email_login_type` (`email`,`login_type`)
-)
+);
 
-
+CREATE TABLE user_favorite_boards (
+  user_id       BIGINT  NOT NULL,
+  plan_board_id BIGINT  NOT NULL,
+  favorited_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, plan_board_id),
+  FOREIGN KEY (user_id)       REFERENCES user(user_id),
+  FOREIGN KEY (plan_board_id) REFERENCES trip_board(plan_board_id)
+);
