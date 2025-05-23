@@ -32,7 +32,7 @@ import EditProfile from '../pages/user/EditProfile.vue';
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
   { path: '/freeboard', name: 'FreeBoard', component: FreeBoard }, // ← 추가된 라우트
-  { path: '/freedetail', name: 'FreeDetail', component: FreeDetail },
+  { path: '/freedetail/:freeId', name: 'FreeDetail', component: FreeDetail, props: true  },
   { path: '/freeregist', name: 'FreeRegist', component: FreeRegist },
   { path: '/noticeboard', name: 'NoticeBoard', component: NoticeBoard },
   { path: '/noticedetail', name: 'NoticeDetail', component: NoticeDetail },

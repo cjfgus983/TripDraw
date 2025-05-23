@@ -1,7 +1,8 @@
 package HyeonRi.TripDrawApp.config;
 
-import HyeonRi.TripDrawApp.security.*;
-import HyeonRi.TripDrawApp.service.UserService;
+import HyeonRi.TripDrawApp.security.CustomUserDetailsService;
+import HyeonRi.TripDrawApp.security.JwtAuthenticationFilter;
+import HyeonRi.TripDrawApp.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,18 +24,11 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
 
-    private final CustomOAuth2UserService OAuth2UserService;
-    private final OAuth2SuccessHandler successHandler;
-    private final PasswordEncoder passwordEncoder;
-    private final UserService userService;
-
-
     // 1) PasswordEncoder 빈
     @Bean
-    public static PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 
     // 2) AuthenticationManager 빈 등록 (UserDetailsService + PasswordEncoder 연결)
     @Bean
@@ -49,10 +43,10 @@ public class SecurityConfig {
 
     // 3) SecurityFilterChain 설정
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // JWT 필터
         JwtAuthenticationFilter jwtFilter =
-                new JwtAuthenticationFilter(jwtUtil, userService);
+                new JwtAuthenticationFilter(jwtUtil, userDetailsService);
 
         http
                 // 3-1) CSRF, CORS
@@ -64,6 +58,16 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
+
+                // 3-3) URL별 접근 제어
+//                .authorizeHttpRequests(auth -> auth
+//                        // 회원가입, 로그인, 토큰 리프레시 등은 인증 없이 허용
+//                        .requestMatchers("/api/users/signup", "/api/auth/**").permitAll()
+//                        // Swagger UI, static 리소스 등도 여기에 추가 가능
+//                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+//                        // 그 외엔 모두 인증 필요
+//                        .anyRequest().authenticated()
+//                )
                 .authorizeHttpRequests(auth -> auth
                         // 회원가입·로그인·토큰 리프레시
                         .requestMatchers("/api/users/signup", "/api/auth/**").permitAll()
@@ -74,13 +78,6 @@ public class SecurityConfig {
 
                         // 그 외는 모두 인증 필요
                         .anyRequest().authenticated()
-                )
-                 //OAuth2 로그인 설정
-                .oauth2Login(oauth -> oauth
-                        .authorizationEndpoint(a -> a.baseUri("/oauth2/authorization"))
-                        .redirectionEndpoint(r -> r.baseUri("/login/oauth2/code/*"))
-                        .userInfoEndpoint(u -> u.userService(OAuth2UserService))
-                        .successHandler(successHandler)
                 )
 
 

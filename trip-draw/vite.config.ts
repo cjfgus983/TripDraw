@@ -8,7 +8,15 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, 'src') }
   },
   server: {
+    // 개발용 프록시 설정
     proxy: {
+      // 정적 파일 (이미지 등)
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        // 필요하다면 경로 재작성도 지정할 수 있습니다.
+        // rewrite: (p) => p.replace(/^\/uploads/, '/uploads')
+      },
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
@@ -23,4 +31,4 @@ export default defineConfig({
     }
     
   }
-})
+});
