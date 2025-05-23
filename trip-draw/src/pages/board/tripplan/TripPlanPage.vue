@@ -133,6 +133,13 @@
           <!-- 하단: 적용하기 버튼 -->
           <div class="mt-4 flex justify-end">
             <button
+                @click="openPasteModal"
+                class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-button whitespace-nowrap cursor-pointer transition-colors flex items-center"
+              >
+                <i class="fas fa-clipboard mr-2"></i>
+                붙여넣기
+              </button>
+            <button
               @click="applyChanges"
               :disabled="!isModified"
               :class="[
@@ -155,6 +162,43 @@
              나의 계획에 추가
            </button>
           </div>
+          <!-- 붙여넣기 모달 -->
+            <div
+              v-if="showPasteModal"
+              class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+              <div class="bg-white rounded-lg w-[500px] shadow-xl">
+                <div class="p-6 border-b border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800">
+                    내용 붙여넣기
+                  </h3>
+                </div>
+                <div class="p-6">
+                  <textarea
+                    v-model="pasteContent"
+                    rows="6"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#9FB3DF] focus:border-[#9FB3DF]"
+                    placeholder="내용을 붙여넣으세요"
+                  ></textarea>
+                </div>
+                <div
+                  class="p-6 border-t border-gray-200 flex justify-end gap-3"
+                >
+                  <button
+                    @click="closePasteModal"
+                    class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-button whitespace-nowrap"
+                  >
+                    취소
+                  </button>
+                  <button
+                    @click="handlePaste"
+                    class="px-4 py-2 bg-[#9FB3DF] hover:bg-[#8FA3CF] text-white rounded-button whitespace-nowrap"
+                  >
+                    붙여넣기
+                  </button>
+                </div>
+              </div>
+            </div>
         </div>
       </div>
       <!-- 추가 카테고리 및 입력 섹션 -->
@@ -290,12 +334,15 @@ function getCategoryColor(category: string): string {
   }
 }
 
-function normalizeCategory(raw: string): string {
+function normalizeCategory(raw: string | undefined): string {
+  if (typeof raw !== 'string') {
+    return '';      // 혹은 '기타' 등 기본 카테고리
+  }
   switch (raw.toLowerCase()) {
-    case 'tours': return 'TOUR'
+    case 'tours':       return 'TOUR'
     case 'restaurants': return 'LUNCH'
-    case 'cafes': return 'CAFE'
-    default: return raw.toUpperCase()
+    case 'cafes':       return 'CAFE'
+    default:            return raw.toUpperCase()
   }
 }
 
@@ -514,7 +561,7 @@ function openInfo(marker: google.maps.Marker, item: ItineraryItem) {
   })
 }
 function fetchNearbyByCenter(lat: number, lng: number) {
-  axios.get('/api/nearby', {
+  axios.get('http://localhost:8080/api/nearby', {
     params: { lat, lng }
   }).then(resp => {
     nearbyPlaces.value = resp.data
@@ -846,6 +893,73 @@ async function submitForm() {
   } catch (err) {
     console.error(err)
     alert('등록 중 오류가 발생했습니다.')
+  }
+}
+// 붙여넣기 모달 관련
+const showPasteModal = ref(false)
+const pasteContent   = ref('')
+
+// 모달 열기/닫기
+function openPasteModal() {
+  showPasteModal.value = true
+}
+function closePasteModal() {
+  pasteContent.value = ''
+  showPasteModal.value = false
+}
+
+// 붙여넣기 처리 → Plan Code 로 서버 호출
+async function handlePaste() {
+  const planCode = pasteContent.value.trim()
+  if (!planCode) {
+    alert('Plan Code를 입력하세요.')
+    return
+  }
+
+  const token = localStorage.getItem('accessToken')
+  if (!token) {
+    alert('로그인이 필요합니다.')
+    return
+  }
+
+  isLoading.value = true
+  try {
+    const { data } = await axios.get<{
+      dailyPlans: Array<{
+        dayNo: number,
+        activities: {
+          name: string,
+          category: string,
+          startTime: string,
+          endTime: string
+        }[]
+      }>
+    }>(
+      `http://localhost:8080/api/plans-with-locations/${planCode}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+
+    // 서버가 넘겨준 dailyPlans → itinerary 형식으로 변환
+    itinerary.value = data.dailyPlans
+      .sort((a,b) => a.dayNo - b.dayNo)
+      .map(day => 
+        day.activities.map(act => ({
+          name: act.name,
+          category: act.category,
+          startTime: act.startTime.slice(0,5), // "HH:mm"
+          endTime:   act.endTime.slice(0,5)
+        }))
+      )
+    console.log('변환된 itinerary:', itinerary.value);
+    selectedDay.value = 0
+    dayItems.value   = itinerary.value[0] || []
+    updateMarkers()
+    closePasteModal()
+  } catch (e) {
+    console.error('Plan Code 로드 실패', e)
+    alert('유효한 Plan Code 가 아닙니다.')
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
