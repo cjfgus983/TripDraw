@@ -264,6 +264,7 @@ interface TravelPlan {
   favorite: boolean;
 }
 interface APIPlan {
+  favorite: boolean;
   nickname: string;
   planBoardId: number;
   planCode: string;
@@ -281,6 +282,8 @@ interface APIPlan {
 // 여행 계획 데이터
 const travelPlans = ref<TravelPlan[]>([]);
 
+const userId = ref<number>(0);
+
 // API 호출하여 데이터 로드
 onMounted(async () => {
   try {
@@ -289,9 +292,16 @@ onMounted(async () => {
       alert("로그인이 필요합니다.");
       return;
     }
+
+    const { data: me } = await axios.get<{ userId: number }>(
+      'http://localhost:8080/api/users/me',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    userId.value = me.userId
+
     const { data } = await axios.get<APIPlan[]>(
       "http://localhost:8080/api/trip/boards",
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` }, params: { userId: userId.value } }
     );
     travelPlans.value = data.map(p => ({
       planBoardId:       p.planBoardId,
@@ -306,7 +316,7 @@ onMounted(async () => {
       userId:            p.userId ?? 0,
       region:            p.region ?? "미정",
       nickname:          p.nickname?.toString() ?? "알 수 없음",
-      favorite:          false
+      favorite:          p.favorite ?? false
     }));
   } catch (err) {
     console.error("API 호출 실패", err);
@@ -349,15 +359,49 @@ function nextPage()    { if (currentPage.value < totalPages.value) currentPage.v
 function goToPage(n:number) { currentPage.value = n; }
 
 // 즐겨찾기 토글 (최대 3개)
-function toggleFavorite(id: number) {
+async function toggleFavorite(id: number) {
   const idx = travelPlans.value.findIndex(p => p.planBoardId === id);
   if (idx === -1) return;
+  // 즐겨찾기 제한
   const favCount = travelPlans.value.filter(p => p.favorite).length;
   if (!travelPlans.value[idx].favorite && favCount >= 3) {
     alert("즐겨찾기는 최대 3개까지만 가능합니다.");
     return;
   }
-  travelPlans.value[idx].favorite = !travelPlans.value[idx].favorite;
+
+  const token = localStorage.getItem("accessToken");
+  if (!token) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  try {
+    if (!travelPlans.value[idx].favorite) {
+      // 즐겨찾기 추가
+      await axios.post(
+        `http://localhost:8080/api/trip/boards/${id}/favorite`,
+        null,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { userId: userId.value }
+        }
+      );
+      travelPlans.value[idx].favorite = true;
+    } else {
+      // 즐겨찾기 해제
+      await axios.delete(
+        `http://localhost:8080/api/trip/boards/${id}/favorite`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { userId: userId.value }
+        }
+      );
+      travelPlans.value[idx].favorite = false;
+    }
+  } catch (e) {
+    console.error("즐겨찾기 API 오류", e);
+    alert("즐겨찾기 처리에 실패했습니다.");
+  }
 }
 </script>
 
