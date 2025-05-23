@@ -42,13 +42,20 @@ public class TripBoardController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TripBoardWithRouteDto> getBoard(@PathVariable Long id) {
-        return ResponseEntity.ok(service.getBoard(id));
+    public ResponseEntity<TripBoardWithRouteDto> getBoard(@PathVariable Long id,  @RequestParam Long userId) {
+    	TripBoardWithRouteDto dto = service.getBoard(id);
+        dto.setFavorite(favoriteService.isFavorited(userId, id));
+        return ResponseEntity.ok(dto);
+    	
     }
 
     @GetMapping
-    public ResponseEntity<List<TripBoardWithRouteDto>> listBoards() {
-        return ResponseEntity.ok(service.getAllBoardsWithRoute());
+    public ResponseEntity<List<TripBoardWithRouteDto>> listBoards(@RequestParam Long userId) {
+    	 List<Long> favs = favoriteService.getUserFavorites(userId);
+         List<TripBoardWithRouteDto> dtos = service.getAllBoardsWithRoute().stream()
+           .peek(dto -> dto.setFavorite(favs.contains(dto.getPlanBoardId())))
+           .collect(Collectors.toList());
+         return ResponseEntity.ok(dtos);
     }
 
     @PutMapping("/{id}")
@@ -110,21 +117,5 @@ public class TripBoardController {
       return ResponseEntity.noContent().build();
     }
 
-    // --- 목록 조회에 유저 즐겨찾기 포함 --- 
-    @GetMapping
-    public ResponseEntity<List<TripBoardWithRouteDto>> listBoards(@RequestParam Long userId) {
-      List<Long> favs = favoriteService.getUserFavorites(userId);
-      List<TripBoardWithRouteDto> dtos = service.getAllBoardsWithRoute().stream()
-        .peek(dto -> dto.setFavorite(favs.contains(dto.getPlanBoardId())))
-        .collect(Collectors.toList());
-      return ResponseEntity.ok(dtos);
-    }
 
-    // --- 상세 조회에 즐겨찾기 상태 포함 ---
-    @GetMapping("/{id}")
-    public ResponseEntity<TripBoardWithRouteDto> getBoard(@PathVariable Long id, @RequestParam Long userId) {
-    	TripBoardWithRouteDto dto = service.getBoard(id);
-      dto.setFavorite(favoriteService.isFavorited(userId, id));
-      return ResponseEntity.ok(dto);
-    }
 }
