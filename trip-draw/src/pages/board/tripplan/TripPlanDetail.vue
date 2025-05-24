@@ -1,413 +1,438 @@
-<!-- The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work. -->
 <template>
-    <div class="min-h-screen bg-gray-50">
-      <div class="container mx-auto px-6 py-8 max-w-7xl">
-        <div class="flex flex-col md:flex-row gap-6">
-          <!-- 지도 섹션 (60%) -->
-          <div class="w-full md:w-3/5">
-            <div class="bg-white rounded-lg shadow-md p-4 mb-4">
-              <!-- 카테고리 필터 -->
-              <div class="flex space-x-3 mb-4">
-                <button
-                  v-for="(category, index) in categories"
-                  :key="index"
-                  @click="selectCategory(category.id)"
-                  :class="[
-  'px-4 py-2 rounded-button whitespace-nowrap cursor-pointer transition-all',
-  selectedCategory === category.id
-  ? `bg-${category.color}-500 text-white`
-  : 'bg-gray-100 hover:bg-gray-200'
-  ]"
-                >
-                  <i :class="`fas ${category.icon} mr-2`"></i>
-                  {{ category.name }}
-                </button>
-              </div>
-              <!-- 지도 -->
-              <div
-                class="h-[668px] relative rounded-lg overflow-hidden"
-                ref="mapContainer"
-              >
-                <div id="map" class="w-full h-full"></div>
-              </div>
+  <div class="min-h-screen bg-white">
+    <div class="w-full flex flex-col p-8">
+      <!-- Back Button -->
+      <div class="w-4/5 mx-auto mb-4">
+        <button
+          @click="goBackToList"
+          class="bg-[#9FB3DF] text-white px-4 py-2 rounded-button flex items-center gap-2 whitespace-nowrap"
+        >
+          <i class="fas fa-arrow-left"></i> 목록으로 돌아가기
+        </button>
+      </div>
+
+      <!-- Plan Header -->
+      <div class="bg-[#FFF1D5] rounded-lg p-6 mb-6 shadow-md w-4/5 mx-auto">
+        <div class="flex justify-between items-start">
+          <div>
+            <!-- 제목 -->
+            <h1 class="text-3xl font-bold mb-1">{{ selectedPlan.boardTitle }}</h1>
+            <!-- 작성일 -->
+            <div class="text-xs text-gray-500 mb-3">{{ selectedPlan.createdAt }}</div>
+            <!-- 카테고리 · 작성자 · 지역 -->
+            <div class="flex items-center gap-3 mb-4">
+              <span
+                v-for="cat in selectedPlan.boardCategoryList"
+                :key="cat"
+                class="bg-[#9FB3DF] text-white px-3 py-1 rounded-md text-xs"
+              >{{ cat }}</span>
+              <span class="text-gray-600">작성자: {{ selectedPlan.nickname }}</span>
+              <span class="text-gray-600">지역: {{ selectedPlan.region }}</span>
             </div>
           </div>
-          <!-- 리스트 섹션 (40%) -->
-          <div class="w-full md:w-2/5">
-            <div class="bg-white rounded-lg shadow-md flex flex-col h-[668px]">
-              <!-- 리스트 헤더 -->
-              <div class="p-4 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800">
-                  방문 장소 목록
-                </h2>
-                <p class="text-sm text-gray-500">
-                  선택한 카테고리: {{ getCategoryName(selectedCategory) }}
-                </p>
-              </div>
-              <!-- 리스트 내용 -->
-              <div class="flex-1 overflow-y-auto p-4">
-                <div
-                  v-if="filteredPlaces.length === 0"
-                  class="flex flex-col items-center justify-center h-full text-gray-500"
-                >
-                  <i class="fas fa-map-marker-alt text-4xl mb-3"></i>
-                  <p>선택한 카테고리에 장소가 없습니다</p>
-                </div>
-                <div v-else>
-                  <div
-                    v-for="(place, index) in filteredPlaces"
-                    :key="index"
-                    class="mb-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-                    :class="{
-  'border-blue-500 bg-blue-50': selectedPlace === place.id,
-  'opacity-50': draggedItemIndex === index,
-  'border-t-4 border-blue-500': dragOverItemIndex === index
-  }"
-                    draggable="true"
-                    @dragstart="handleDragStart(index)"
-                    @dragover="handleDragOver($event, index)"
-                    @drop="handleDrop"
-                    @dragend="handleDragEnd"
-                    @click="selectPlace(place.id)"
-                  >
-                    <div class="flex justify-between items-start">
-                      <div>
-                        <h3 class="font-medium text-gray-800">
-                          {{ place.name }}
-                        </h3>
-                        <p class="text-sm text-gray-600 mt-1">
-                          {{ place.address }}
-                        </p>
-                        <div class="flex items-center mt-2">
-                          <span
-                            class="inline-block w-3 h-3 rounded-full mr-2"
-                            :class="`bg-${getCategoryColor(place.categoryId)}-500`"
-                          ></span>
-                          <span class="text-sm text-gray-600"
-                            >{{ getCategoryName(place.categoryId) }}</span
-                          >
-                        </div>
-                      </div>
-                      <div class="text-right">
-                        <span
-                          class="text-sm font-medium bg-gray-100 px-2 py-1 rounded"
-                          >{{ place.visitTime }}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- 수정하기 버튼 -->
-              <div class="p-4 border-t border-gray-200">
-                <button
-                  @click="applyChanges"
-                  :disabled="!isModified"
-                  :class="[
-  'ml-auto block px-6 py-3 rounded-button whitespace-nowrap cursor-pointer transition-colors',
-  isModified ? 'bg-[#9FB3DF] text-white hover:bg-[#8FA3CF]' : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-  ]"
-                >
-                  수정하기
-                </button>
-              </div>
-            </div>
+          <div class="flex items-center gap-3">
+            <button
+              @click="copyToClipboard"
+              class="bg-[#9FB3DF] text-white px-4 py-2 rounded-button flex items-center gap-2 cursor-pointer whitespace-nowrap"
+            >
+              <i class="fas fa-copy"></i>
+              <span>공유하기</span>
+            </button>
+          <!-- 즐겨찾기 -->
+          <div @click="toggleFavorite" class="cursor-pointer">
+            <i
+              class="fas fa-star text-2xl"
+              :class="selectedPlan.favorite ? 'text-yellow-400' : 'text-gray-300'"
+            />
           </div>
         </div>
-        <!-- 추가 카테고리 및 입력 섹션 -->
-        <div class="mt-8 bg-white rounded-lg shadow-md p-6">
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-4">카테고리 선택</h3>
-            <div class="flex flex-wrap gap-3">
-              <button
-                v-for="tag in additionalTags"
-                :key="tag.id"
-                @click="toggleTag(tag.id)"
-                :class="[
-  'px-4 py-2 rounded-button whitespace-nowrap cursor-pointer transition-all',
-  selectedTags.includes(tag.id)
-  ? 'bg-[#9FB3DF] text-white'
-  : 'bg-gray-100 hover:bg-gray-200'
-  ]"
-              >
-                {{ tag.name }}
-              </button>
+        </div>
+
+        <!-- Route Overview -->
+        <div class="flex items-center gap-3 flex-wrap mt-2">
+          <template v-for="(loc, idx) in selectedPlan.route" :key="idx">
+            <span class="bg-white px-3 py-2 rounded text-base font-medium whitespace-nowrap">
+              {{ loc }}
+            </span>
+            <i
+              v-if="idx < selectedPlan.route.length - 1"
+              class="fas fa-arrow-right text-[#9EC6F3] text-lg"
+            />
+            <!-- Copy Success Modal -->
+            <div
+              v-if="showCopyModal"
+              class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+              <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4">
+                <div class="text-center mb-6">
+                  <h2 class="text-2xl font-bold mb-2">
+                    경로코드가 복사되었습니다!
+                  </h2>
+                  <p class="text-gray-600">
+                    계획짜기에서 가져오기 버튼을 통해 경로를 수정할 수 있어요!
+                  </p>
+                </div>
+
+                <button
+                  @click="goToPlanPage"
+                  class="w-full bg-[#9FB3DF] text-white py-3 rounded-button mb-6 hover:bg-[#8FA3CF] transition-colors whitespace-nowrap"
+                >
+                  계획짜기
+                </button>
+
+                <div class="bg-gray-50 p-4 rounded-lg relative">
+                  <div class="max-h-40 overflow-y-auto mb-2 text-sm">
+                    <pre class="whitespace-pre-wrap">{{ copiedText }}</pre>
+                  </div>
+                  <div
+                    class="absolute top-4 right-4 text-green-500 flex items-center"
+                  >
+                    <i class="fas fa-check mr-2"></i>
+                    <span>복사됨</span>
+                  </div>
+                </div>
+
+                <button
+                  @click="showCopyModal = false"
+                  class="mt-6 w-full border border-gray-300 text-gray-700 py-2 rounded-button hover:bg-gray-50 transition-colors whitespace-nowrap"
+                >
+                  닫기
+                </button>
+              </div>
             </div>
+          </template>
+        </div>
+      </div>
+      <!-- Daily Plans -->
+<div class="w-4/5 mx-auto pb-6">
+  <h2 class="text-2xl font-bold mb-4 text-[#9FB3DF]">일차별 여행 계획</h2>
+  <div class="space-y-6">
+    <div
+      v-for="day in dailyPlans"
+      :key="day.dayNo"
+      class="bg-white rounded-lg shadow-md p-6"
+    >
+      <h3 class="text-xl font-semibold mb-4 text-[#9FB3DF] border-b pb-2">
+        Day {{ day.dayNo }}
+      </h3>
+      <div class="space-y-4">
+        <div
+          v-for="activity in day.activities"
+          :key="activity.locationId"
+          class="flex gap-4 p-3 rounded-md hover:bg-gray-50"
+        >
+          <div class="w-1/6 text-sm text-gray-500">
+            {{ formatTime(activity.startTime) }} – {{ formatTime(activity.endTime) }}
           </div>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2"
-                >제목</label
-              >
-              <input
-                type="text"
-                v-model="title"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#9FB3DF] focus:border-[#9FB3DF]"
-                placeholder="제목을 입력하세요"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2"
-                >내용</label
-              >
-              <textarea
-                v-model="content"
-                rows="20"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#9FB3DF] focus:border-[#9FB3DF]"
-                placeholder="내용을 입력하세요"
-              ></textarea>
-            </div>
-            <div class="flex justify-end">
-              <button
-                class="px-6 py-3 bg-[#9FB3DF] text-white rounded-button hover:bg-[#8FA3CF] transition-colors cursor-pointer whitespace-nowrap"
-                @click="submitForm"
-              >
-                등록하기
-              </button>
+          <div class="flex-grow">
+            <div class="flex items-center gap-2 mb-1">
+              <h4 class="font-medium text-lg">{{ activity.addressName }}</h4>
+              <span
+                class="bg-[#BDDDE4] text-gray-700 px-2 py-1 rounded text-xs"
+              >{{ activity.addressCategory }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</div>
+
+      <!-- 게시글 본문 -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6 w-4/5 mx-auto">
+        <h3 class="text-xl font-semibold mb-4 text-[#9FB3DF]">여행 설명</h3>
+        <p class="text-gray-700 whitespace-pre-line">{{ selectedPlan.boardContent }}</p>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="bg-white rounded-lg shadow-md p-6 mt-6 w-4/5 mx-auto">
+        <h3 class="text-xl font-semibold mb-4 text-[#9FB3DF]">
+          댓글 ({{ comments.length }})
+        </h3>
+
+        <!-- New Comment -->
+        <div class="mb-6 bg-gray-50 p-4 rounded-md">
+          <textarea
+            v-model="newComment"
+            placeholder="댓글을 작성해주세요..."
+            class="w-full p-3 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9FB3DF] min-h-[100px]"
+          />
+          <div class="flex justify-end mt-2">
+            <button
+              @click="addComment"
+              class="bg-[#9FB3DF] text-white px-4 py-2 rounded-button"
+            >댓글 작성</button>
+          </div>
+        </div>
+
+        <!-- Comment List -->
+        <div class="space-y-4">
+          <div v-for="c in comments" :key="c.commentId" class="border-b pb-4">
+            <div class="flex justify-between items-start">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[#FFF1D5] rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-[#9FB3DF]" />
+                </div>
+                <div>
+                  <div class="font-medium">{{ c.nickname }}</div>
+                  <div class="text-xs text-gray-500">{{ c.createdAt }}</div>
+                </div>
+              </div>
+              <div v-if="c.userId === currentUserId" class="flex gap-2">
+                <button
+                  v-if="editingId !== c.commentId"
+                  @click="startEdit(c)"
+                  class="text-[#9FB3DF]"
+                >수정</button>
+                <button @click="deleteComment(c.commentId)" class="text-red-500">삭제</button>
+              </div>
+            </div>
+            <div class="mt-2 pl-12">
+              <div v-if="editingId === c.commentId">
+                <textarea
+                  v-model="editCommentText"
+                  class="w-full p-3 rounded-md bg-white"
+                />
+                <div class="flex justify-end gap-2 mt-2">
+                  <button @click="cancelEdit" class="bg-gray-300 px-3 rounded">취소</button>
+                  <button @click="saveEdit" class="bg-[#9FB3DF] px-3 rounded text-white">저장</button>
+                </div>
+              </div>
+              <p v-else class="text-gray-700">{{ c.content }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import axios from "axios";
+
+interface DayPlan {
+  dayNo: number;
+  activities: {
+    locationId: number;
+    planCode: string;
+    dayNo: number;
+    addressName: string;
+    addressCategory: string;
+    startTime: string;
+    endTime: string;
+  }[];
+}
+
+interface PlanDetailWithDays {
+  board: PlanDetail;      // 기존 board 메타
+  dailyPlans: DayPlan[];  // 방금 추가된 일차별 리스트
+}
+
+
+// API에서 내려주는 DTO 구조에 맞춘 타입
+interface PlanDetail {
+  planBoardId: number;
+  planCode: string;
+  boardTitle: string;
+  boardContent: string;
+  boardCategory: string;
+  boardCategoryList: string[];
+  createdAt: string;
+  routeConcat: string;
+  route: string[];
+  userId: number;
+  region: string;
+  nickname: string;
+  favorite: boolean;
+  dailyPlans: number;
+}
+
+interface CommentDto {
+  commentId: number;
+  userId: number;
+  nickname: string;
+  content: string;
+  createdAt: string;
+}
+
+const route = useRoute();
+const router = useRouter();
+const planBoardId = Number(route.params.id);
+const token = localStorage.getItem("accessToken");
+const currentUserId = ref<number>(0);
+
+// 상세와 댓글 상태
+const selectedPlan = ref<PlanDetail>({
+  planBoardId: 0,
+  planCode: "",
+  boardTitle: "",
+  boardContent: "",
+  boardCategory: "",
+  boardCategoryList: [],
+  createdAt: "",
+  routeConcat: "",
+  route: [],
+  userId: 0,
+  region: "",
+  nickname: "",
+  favorite: false,
+  dailyPlans: 0,
+});
+
+const dailyPlans   = ref<DayPlan[]>([]);
+const comments      = ref<CommentDto[]>([]);
+const newComment    = ref("");
+const editingId     = ref<number|null>(null);
+const editCommentText = ref("");
+
+// 1) 내 정보, 2) 상세, 3) 댓글 불러오기
+async function loadAll() {
+  if (!token) {
+    alert("로그인이 필요합니다.");
+    return router.push("/login");
+  }
+
+  // 내 정보
+  const me = await axios.get<{ userId: number }>(
+    "http://localhost:8080/api/users/me",
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  currentUserId.value = me.data.userId;
+
+  // 게시글 상세
+  const bd = await axios.get<PlanDetail>(
+    `http://localhost:8080/api/trip/boards/${planBoardId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params:  { userId: currentUserId.value }
+    }
+  );
+  selectedPlan.value = bd.data;
+
+  // 댓글 목록
+  const cm = await axios.get<CommentDto[]>(
+    `http://localhost:8080/api/trip/boards/${planBoardId}/comments`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  comments.value = cm.data;
   
-  <script lang="ts" setup>
-  import { ref, onMounted, computed, watch } from "vue";
-  const title = ref("");
-  const content = ref("");
-  const selectedTags = ref<number[]>([]);
-  const isModified = ref(false);
-  const additionalTags = [
-    { id: 1, name: "힐링" },
-    { id: 2, name: "액티비티" },
-    { id: 3, name: "데이트" },
-    { id: 4, name: "먹부림" },
-    { id: 5, name: "자연" },
-    { id: 6, name: "도심" },
-  ];
-  const toggleTag = (tagId: number) => {
-    const index = selectedTags.value.indexOf(tagId);
-    if (index === -1) {
-      selectedTags.value.push(tagId);
-    } else {
-      selectedTags.value.splice(index, 1);
+  // 일차별 계획
+  const resp = await axios.get<PlanDetailWithDays>(
+    `http://localhost:8080/api/trip/boards/${planBoardId}/detail-with-locations`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params:  { userId: currentUserId.value }
     }
+  );
+  selectedPlan.value = resp.data.board;
+  dailyPlans.value   = resp.data.dailyPlans;
+}
+
+onMounted(loadAll);
+
+// 뒤로 가기
+function goBackToList() {
+  router.push({ name: "TripPlanBoard" });
+}
+
+// 계획짜기 페이지로 이동
+function goToPlanPage() {
+  router.push({ name: "TripPlanPage" });
+}
+
+// 즐겨찾기 토글
+async function toggleFavorite() {
+  const url = `http://localhost:8080/api/trip/boards/${planBoardId}/favorite`;
+  const cfg = {
+    headers: { Authorization: `Bearer ${token}` },
+    params:  { userId: currentUserId.value }
   };
-  const submitForm = () => {
-    // 실제 구현 시 API 호출
-    console.log({
-      title: title.value,
-      content: content.value,
-      selectedTags: selectedTags.value,
+  if (!selectedPlan.value.favorite) {
+    await axios.post(url, null, cfg);
+  } else {
+    await axios.delete(url, cfg);
+  }
+  selectedPlan.value.favorite = !selectedPlan.value.favorite;
+}
+
+// 댓글 CRUD
+async function addComment() {
+  if (!newComment.value.trim()) return;
+  await axios.post(
+    `http://localhost:8080/api/trip/boards/${planBoardId}/comments`,
+    { userId: currentUserId.value, content: newComment.value },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  newComment.value = "";
+  await loadAll();
+}
+
+function startEdit(c: CommentDto) {
+  editingId.value = c.commentId;
+  editCommentText.value = c.content;
+}
+function cancelEdit() {
+  editingId.value = null;
+  editCommentText.value = "";
+}
+async function saveEdit() {
+  if (editingId.value === null || !editCommentText.value.trim()) return;
+  await axios.put(
+    `http://localhost:8080/api/trip/boards/${planBoardId}/comments/${editingId.value}`,
+    { userId: currentUserId.value, content: editCommentText.value },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  cancelEdit();
+  await loadAll();
+}
+
+async function deleteComment(commentId: number) {
+  if (!confirm("정말 삭제하시겠습니까?")) return;
+  await axios.delete(
+    `http://localhost:8080/api/trip/boards/${planBoardId}/comments/${commentId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  await loadAll();
+}
+// Format time helper
+const formatTime = (timeString: string) => {
+  const [hours, minutes] = timeString.split(":");
+  return `${hours}:${minutes}`;
+};
+
+// Clipboard copy functionality
+// Add new refs for modal control and copied text
+const showCopyModal = ref(false);
+const copiedText = ref("");
+
+const copyToClipboard = () => {
+  const code = selectedPlan.value.planCode;
+  navigator.clipboard.writeText(code)
+    .then(() => {
+      copiedText.value = code;
+      showCopyModal.value = true;
+    })
+    .catch((err) => {
+      console.error("클립보드 복사 실패:", err);
+      alert("클립보드 복사에 실패했습니다. 다시 시도해주세요.");
     });
-  };
-  const draggedItemIndex = ref<number | null>(null);
-  const dragOverItemIndex = ref<number | null>(null);
-  const handleDragStart = (index: number) => {
-    draggedItemIndex.value = index;
-  };
-  const handleDragOver = (event: DragEvent, index: number) => {
-    event.preventDefault();
-    dragOverItemIndex.value = index;
-  };
-  const handleDrop = (event: DragEvent) => {
-    event.preventDefault();
-    if (draggedItemIndex.value !== null && dragOverItemIndex.value !== null) {
-      const items = [...filteredPlaces.value];
-      const draggedItem = items[draggedItemIndex.value];
-      items.splice(draggedItemIndex.value, 1);
-      items.splice(dragOverItemIndex.value, 0, draggedItem);
-      places.value = items;
-      isModified.value = true;
-    }
-    draggedItemIndex.value = null;
-    dragOverItemIndex.value = null;
-  };
-  const handleDragEnd = () => {
-    draggedItemIndex.value = null;
-    dragOverItemIndex.value = null;
-  };
-  const categories = [
-    { id: 1, name: "관광지", color: "blue", icon: "fa-landmark" },
-    { id: 2, name: "음식점", color: "red", icon: "fa-utensils" },
-    { id: 3, name: "카페", color: "green", icon: "fa-coffee" },
-  ];
-  const places = ref([
-    {
-      id: 1,
-      name: "경복궁",
-      address: "서울 종로구 사직로 161",
-      categoryId: 1,
-      visitTime: "10:00 - 12:00",
-      lat: 37.579617,
-      lng: 126.977041,
-    },
-    {
-      id: 2,
-      name: "광화문 광장",
-      address: "서울 종로구 세종로 172",
-      categoryId: 1,
-      visitTime: "12:30 - 13:30",
-      lat: 37.572976,
-      lng: 126.976882,
-    },
-    {
-      id: 3,
-      name: "삼청동 수제비",
-      address: "서울 종로구 삼청로 100",
-      categoryId: 2,
-      visitTime: "13:00 - 14:00",
-      lat: 37.582839,
-      lng: 126.981549,
-    },
-    {
-      id: 4,
-      name: "스타벅스 광화문점",
-      address: "서울 종로구 세종대로 167",
-      categoryId: 3,
-      visitTime: "14:30 - 15:30",
-      lat: 37.573214,
-      lng: 126.976879,
-    },
-    {
-      id: 5,
-      name: "인사동 전통 찻집",
-      address: "서울 종로구 인사동길 12",
-      categoryId: 3,
-      visitTime: "16:00 - 17:00",
-      lat: 37.574187,
-      lng: 126.985565,
-    },
-    {
-      id: 6,
-      name: "북촌 한옥마을",
-      address: "서울 종로구 계동길 37",
-      categoryId: 1,
-      visitTime: "15:00 - 17:00",
-      lat: 37.582285,
-      lng: 126.983922,
-    },
-    {
-      id: 7,
-      name: "통인시장",
-      address: "서울 종로구 자하문로 15길",
-      categoryId: 2,
-      visitTime: "11:30 - 12:30",
-      lat: 37.579415,
-      lng: 126.969254,
-    },
-  ]);
-  const selectedCategory = ref(0);
-  const selectedPlace = ref<number | null>(null);
-  const map = ref<any>(null);
-  const markers = ref<any[]>([]);
-  const mapContainer = ref<HTMLElement | null>(null);
-  const filteredPlaces = computed(() => {
-    if (selectedCategory.value === 0) {
-      return places.value;
-    }
-    return places.value.filter(
-      (place) => place.categoryId === selectedCategory.value,
-    );
-  });
-  const selectCategory = (categoryId: number) => {
-    selectedCategory.value =
-      categoryId === selectedCategory.value ? 0 : categoryId;
-    updateMarkers();
-  };
-  const selectPlace = (placeId: number) => {
-    selectedPlace.value = placeId;
-    const place = places.value.find((p) => p.id === placeId);
-    if (place && map.value) {
-      map.value.setCenter(new window.kakao.maps.LatLng(place.lat, place.lng));
-      const marker = markers.value.find((m) => m.id === placeId);
-      if (marker) {
-        // 마커 정보창 표시 로직
-      }
-    }
-  };
-  const getCategoryName = (categoryId: number): string => {
-    if (categoryId === 0) return "전체";
-    const category = categories.find((c) => c.id === categoryId);
-    return category ? category.name : "";
-  };
-  const getCategoryColor = (categoryId: number): string => {
-    const category = categories.find((c) => c.id === categoryId);
-    return category ? category.color : "gray";
-  };
-  const updateMarkers = () => {
-    markers.value.forEach((marker) => {
-      marker.setMap(null);
-    });
-    markers.value = [];
-    filteredPlaces.value.forEach((place) => {
-      const category = categories.find((c) => c.id === place.categoryId);
-      const markerPosition = new window.kakao.maps.LatLng(place.lat, place.lng);
-      const marker = new window.kakao.maps.Marker({
-        position: markerPosition,
-        map: map.value,
-      });
-      marker.id = place.id;
-      window.kakao.maps.event.addListener(marker, "click", () => {
-        selectPlace(place.id);
-      });
-      markers.value.push(marker);
-    });
-  };
-  const applyChanges = () => {
-    if (isModified.value) {
-      alert("수정사항이 저장되었습니다.");
-      isModified.value = false;
-    }
-  };
-  const initMap = () => {
-    if (window.kakao && window.kakao.maps && mapContainer.value) {
-      const options = {
-        center: new window.kakao.maps.LatLng(37.576, 126.9769),
-        level: 5,
-      };
-      map.value = new window.kakao.maps.Map(mapContainer.value, options);
-      updateMarkers();
-    } else {
-      console.error("카카오맵 API가 로드되지 않았습니다.");
-    }
-  };
-  watch(selectedCategory, () => {
-    updateMarkers();
-  });
-  onMounted(() => {
-    setTimeout(() => {
-      initMap();
-    }, 500);
-  });
-  </script>
-  
-  <style scoped>
-  .map-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-  [draggable="true"] {
-    cursor: move;
-    user-select: none;
-  }
-  [draggable="true"]:hover {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
-  }
-  </style>
-  
+};
+</script>
+
+<style scoped>
+/* Hide number input arrows */
+input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius:10px; }
+::-webkit-scrollbar-thumb { background: #9FB3DF; border-radius:10px; }
+::-webkit-scrollbar-thumb:hover { background: #9EC6F3; }
+</style>

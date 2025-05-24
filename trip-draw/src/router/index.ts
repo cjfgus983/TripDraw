@@ -45,7 +45,7 @@ const routes = [
   { path: '/drawpage', name: 'DrawPage', component: DrawPage },
   { path: '/drawresult', name: 'DrawResult', component: DrawResult },
   { path: '/tripplanpage', name: 'TripPlanPage', component: TripPlanPage },
-  { path: '/tripplandetail', name: 'TripPlanDetail', component: TripPlanDetail },
+  { path: '/tripplandetail/:id', name: 'TripPlanDetail', component: TripPlanDetail, props: true  },
   { path: '/tripplanboard', name: 'TripPlanBoard', component: TripPlanBoard },
   { path: '/login', name: 'Login', component: Login },
   { path: '/signup', name: 'SignUp', component: SignUp },
