@@ -15,12 +15,14 @@ public class NoticeDto {
 
     @NonNull
     private Long userId;
+    
+    private String nickname;
 
     @NonNull
     private String title;
 
-    @NonNull
     private String content;
+    private String contentHtml;
 
     @NonNull
     private LocalDateTime createdAt;

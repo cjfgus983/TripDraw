@@ -154,7 +154,7 @@
               ref="editorRef"
               contenteditable="true"
               class="w-full min-h-[400px] p-4 border-2 border-[#BDDDE4] rounded-b-lg focus:outline-none"
-              :style="{ textAlign: alignment }"
+              :style="`text-align: ${alignment}`"
               @input="handleInput"
               placeholder="내용을 입력해주세요"
             ></div>
@@ -176,6 +176,11 @@
   
   <script lang="ts" setup>
   import { ref, reactive, onMounted } from "vue";
+  import axios from "axios";
+  import { useRouter } from "vue-router";
+
+  const router = useRouter();
+
   
   // 제목
   const title = ref("");
@@ -226,11 +231,25 @@
     "#FF9800",
   ];
   
+// 현재 로그인한 유저 ID
+const userId = ref<number|null>(null);
+// 중요 공지 여부 (원하시면 UI에 토글 추가)
+const isPinned = ref(false);
+
+// 토큰
+const token = localStorage.getItem("accessToken");
+
   // 에디터 초기화
   onMounted(() => {
-    if (editorRef.value) {
-      editorRef.value.focus();
-    }
+    if (editorRef.value) editorRef.value.focus();
+
+  if (!token) return;
+  axios.get<{ userId: number }>(
+    "http://localhost:8080/api/users/me",
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  .then(r => { userId.value = r.data.userId })
+  .catch(err => console.error("내 정보 로드 실패", err))
   });
   
   // 텍스트 포맷 적용
@@ -304,7 +323,7 @@
   };
   
   // 폼 제출
-  const submitForm = () => {
+  async function submitForm() {
     if (!title.value.trim()) {
       alert("제목을 입력해주세요.");
       return;
@@ -314,22 +333,29 @@
       alert("내용을 입력해주세요.");
       return;
     }
-  
-    // 여기에 API 호출 또는 데이터 처리 로직 추가
-    console.log({
+if (!userId.value) {
+  alert("로그인이 필요합니다.");
+  return router.push("/login");
+}
+
+try {
+  await axios.post(
+    "http://localhost:8080/api/notice",
+    {
+      userId: userId.value,
       title: title.value,
       content: content.value,
-    });
-  
-    alert("공지사항이 등록되었습니다.");
-  
-    // 폼 초기화
-    title.value = "";
-    if (editorRef.value) {
-      editorRef.value.innerHTML = "";
-    }
-    content.value = "";
-  };
+      isPinned: isPinned.value
+    },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  alert("공지사항이 등록되었습니다.");
+  router.push({ name: "NoticeBoard" });
+} catch (err) {
+  console.error("등록 실패", err);
+  alert("등록 중 오류가 발생했습니다.");
+}
+  }
   </script>
   
   <style scoped>
