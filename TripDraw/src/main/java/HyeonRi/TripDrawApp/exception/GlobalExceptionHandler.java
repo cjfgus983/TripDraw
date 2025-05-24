@@ -19,11 +19,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String,String>> handleAny(Exception e) {
-        // 콘솔에 스택트레이스 찍기
+    public ResponseEntity<Map<String, String>> handleAny(Exception e) {
         e.printStackTrace();
-        // 클라이언트로는 JSON 에러 메시지만
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", e.getMessage()));
+        String msg = e.getMessage() != null
+                ? e.getMessage()
+                : "알 수 없는 서버 오류가 발생했습니다.";
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", msg));
     }
 }

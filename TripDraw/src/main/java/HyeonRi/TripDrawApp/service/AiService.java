@@ -1,16 +1,16 @@
 package HyeonRi.TripDrawApp.service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import HyeonRi.TripDrawApp.dto.board.drawing.DrawingDto;
+
+import HyeonRi.TripDrawApp.dto.DrawingResult;
+import HyeonRi.TripDrawApp.dto.PlaceWithLatLng;
+import HyeonRi.TripDrawApp.mapper.DrawingMapper;
+import HyeonRi.TripDrawApp.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,7 +20,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -57,7 +56,11 @@ public class AiService {
     
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    
+
+    private final DrawingMapper drawingMapper;
+    private final JwtUtil jwtUtil;
+
+
     private static final Map<String,String> COUNTRY_CODE = Map.of(
     	    "한국", "KR",
     	    "일본", "JP",
@@ -69,16 +72,51 @@ public class AiService {
     /**
      * 1) 이미지 설명 → 2) 그 설명으로 “새 이미지 생성” (edit이 아니라 generation 사용)
      */
-    public String transformWithDallE(MultipartFile file) throws IOException {
-        // Base64로 dataUri 준비
+//    public String transformWithDallE(MultipartFile file) throws IOException {
+//        // Base64로 dataUri 준비
+//        String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+//        String dataUri = "data:" + file.getContentType() + ";base64," + base64;
+//
+//        // 1) GPT vision에 이미지 넣어 설명 받기
+//        String description = describeImageByDataUri(dataUri);
+//
+//        // 2) 받은 설명으로 DALL·E 3 호출해 새 이미지 생성
+//        return generateImageFromPrompt(description);
+//    }
+    // after
+    public DrawingResult transformWithDallE(Long userId, MultipartFile file) throws IOException {
+        // 1) 원본 S3 업로드
+        String originalKey = "drawings/original/" + UUID.randomUUID() + ".png";
+        String originalUrl = s3Service.upload(file, originalKey);
+
+        // 2) AI 변환 → 외부 URL 받아오기
+        String externalAiUrl = generateImageFromPrompt(describeImageByDataUri(toDataUri(file)));
+        // 3) 외부 URL 이미지 다운로드 → MultipartFile로 감싸기
+        MultipartFile gptMultipart = downloadAsMultipart(externalAiUrl);
+        // 4) 우리 S3에 업로드
+        String gptKey = "drawings/gpt/" + UUID.randomUUID() + ".png";
+        String aiUrl = s3Service.upload(gptMultipart, gptKey);
+
+
+        System.out.println("변환된 aiUrl >> " + aiUrl);
+
+
+        DrawingDto dto = new DrawingDto();
+        dto.setUserId(userId);
+        dto.setRecommendLocation("tmp");   // 혹은 실제 recommendLocation 변수
+        dto.setOriginalImageUrl(originalUrl);
+        dto.setGptImageUrl(aiUrl);
+
+        drawingMapper.insertDrawing(dto);
+
+        return new DrawingResult(originalUrl, aiUrl, dto.getCreatedAt());
+    }
+
+
+    /** MultipartFile → data URI 변환 헬퍼 */
+    private String toDataUri(MultipartFile file) throws IOException {
         String base64 = Base64.getEncoder().encodeToString(file.getBytes());
-        String dataUri = "data:" + file.getContentType() + ";base64," + base64;
-
-        // 1) GPT vision에 이미지 넣어 설명 받기
-        String description = describeImageByDataUri(dataUri);
-
-        // 2) 받은 설명으로 DALL·E 3 호출해 새 이미지 생성
-        return generateImageFromPrompt(description);
+        return "data:" + file.getContentType() + ";base64," + base64;
     }
 
 
@@ -108,10 +146,11 @@ public class AiService {
                 .put("text", "이 이미지를 아주 구체적으로 설명해주세요.");
 
         // 1-2) 이미지 파트 (여기에 dataUri 또는 public URL)
-        ObjectNode img = contentArr.addObject()
-                .put("type", "image_url")
-                .putObject("image_url");
-        img.put("url", dataUri);   // dataUri 대신 외부 업로드된 URL을 써도 됩니다.
+        ObjectNode imgPart = contentArr.addObject();
+        imgPart.put("type", "image_url");
+        // image_url 객체를 만들고, 그 안에 url을 채워줍니다
+        ObjectNode imageUrlNode = imgPart.putObject("image_url");
+        imageUrlNode.put("url", dataUri);
 
         // 2) 호출
         HttpHeaders h = new HttpHeaders();
@@ -152,19 +191,27 @@ public class AiService {
 
 /// ////////////////////////////////////////////////////////////////////////////////////////////
 
+    // todo
     // (1) GPT에 이미지 URL 보내서 장소명 3개 뽑기 (기존 로직과 동일)
-    public List<String> fetchPlaceNamesByDescription(String description) throws IOException {
+    public List<PlaceWithLatLng> fetchPlaceNamesByDescription(String description) throws IOException {
         String url = "https://api.openai.com/v1/chat/completions";
 
-        // 2) 사용자 프롬프트: 이미지 설명 기반 3개 명소 제안, JSON 배열로 반환
-        String system = "당신은 여행 전문가입니다. 오타 없이 정확한 한국어 명소 이름을 반환해주세요.";
-        String user = String.format(
-                "다음은 이미지 설명입니다:\n\"%s\"\n" +
-                        "이 설명을 바탕으로 전 세계의 관련 명소 3곳을 제안해주세요. " +
-                        "반환 형식은 JSON 배열로, 예시:\n" +
-                        "[\"후지산,일본\", \"타임스퀘어,미국,뉴욕\", \"오페라하우스,시드니,호주\"]",
-                description
-        );
+        // 2) 사용자 프롬프트: 장소 이름과 위경도(lat,lng) 포함해서 JSON 배열로 반환
+                String system = "당신은 여행 전문가이자 지도 API 전문가입니다. " +
+                        "오타 없이 정확한 명소 이름과 각 장소의 위도(latitude) 및 경도(longitude)를 반환해주세요." +
+                        "꼭 실존하는 장소여야 합니다." +
+                        "반드시 순수 JSON 배열만, 다른 설명 문구나 마크다운, 따옴표, 문장 없이 그대로 출력해야 합니다.";
+                String user = String.format(
+                        "다음은 이미지 설명입니다:\n\"%s\"\n" +
+                                "이 설명을 바탕으로 전 세계의 관련 명소 3곳을 제안해주세요. 꼭 실존하는 장소여야 합니다." +
+                                "반환 형식은 JSON 배열로, 예시:\n" +
+                                "[" +
+                                "{\"name\":\"후지산\",\"country\":\"일본\",\"lat\":35.3606,\"lng\":138.7274}," +
+                                "{\"name\":\"타임스퀘어\",\"country\":\"미국,뉴욕\",\"lat\":40.7580,\"lng\":-73.9855}," +
+                                "{\"name\":\"오페라하우스\",\"country\":\"호주,시드니\",\"lat\":-33.8568,\"lng\":151.2153}" +
+                                "]",
+                        description
+                );
 
 
         ObjectNode payload = objectMapper.createObjectNode()
@@ -187,15 +234,20 @@ public class AiService {
         );
         System.out.println("▶ [fetchPlaceNames] stripped content: " + content);
 
+        // JSON → DTO 리스트로 변환
         JsonNode arr = objectMapper.readTree(content);
-        List<String> names = new ArrayList<>();
-        arr.forEach(n -> {
-            String s = n.asText();
-            System.out.println("▶ [fetchPlaceNames] parsed item: " + s);
-            names.add(s);
-        });
-        System.out.println("▶ [fetchPlaceNames] final list: " + names);
-        return names;
+        List<PlaceWithLatLng> list = new ArrayList<>();
+        for (JsonNode node : arr) {
+            PlaceWithLatLng dto = new PlaceWithLatLng();
+            dto.setName(node.path("name").asText());
+            // 아직 상세설명(description)과 photoURL은 빈 문자열로
+            dto.setDescription("");
+            dto.setPhotoURL("");
+            dto.setLatitude(node.path("lat").asDouble());
+            dto.setLongitude(node.path("lng").asDouble());
+            list.add(dto);
+        }
+        return list;
     }
 
 
@@ -544,6 +596,8 @@ public class AiService {
             String name    = node.path("name").asText("");
             String address = node.path("vicinity").asText("");
             String photoRef = null;
+//            double latitude = node.path("lat").asDouble();
+//            double longitude = node.path("lng").asDouble();
             JsonNode photos = node.path("photos");
             if (photos.isArray() && photos.size() > 0) {
                 photoRef = photos.get(0).path("photo_reference").asText(null);
@@ -697,23 +751,23 @@ public class AiService {
     /**
     * vkakf
     * */
-    public List<PlaceInfoDto> recommendPlacesByGpt(String imageUrl) throws IOException {
+    public List<PlaceWithLatLng> recommendPlacesByGpt(String imageUrl) throws IOException {
         System.out.println(">>> start recommend, imageUrl=" + imageUrl);
 
         String desc = describeImageByDataUri(imageUrl);
         System.out.println("▶ image description = " + desc);
 
-        List<String> names = fetchPlaceNamesByDescription(desc);
-        List<PlaceInfoDto> out = new ArrayList<>();
+        List<PlaceWithLatLng> places = fetchPlaceNamesByDescription(desc);
+        List<PlaceWithLatLng> out = new ArrayList<>();
 
-        for (String nc : names) {
-            System.out.println("\n--- processing: " + nc + " ---");
-            String shortDesc = fetchDescription(nc);
+        for (PlaceWithLatLng place : places) {
+            String name = place.getName().trim();
+            String shortDesc = fetchDescription(name);
             System.out.println("▶ place desc = " + shortDesc);
 
             // 1) S3 에 해당 이미지 있으면 URL 바로 사용
             String encoded = URLEncoder
-                    .encode(nc, StandardCharsets.UTF_8.toString());
+                    .encode(name, StandardCharsets.UTF_8.toString());
             String key = "places/" + encoded + ".png";
 
 
@@ -723,14 +777,17 @@ public class AiService {
                 imgUrl = s3Service.getUrl(key);
             } else {
                 // DALL·E로 이미지 생성
-                String dalleUrl = generateImageFromPrompt(nc);
+                String dalleUrl = generateImageFromPrompt(name);
                 System.out.println("여기까지 옴");
                 MultipartFile fake = downloadAsMultipart(dalleUrl);
                 // S3에 업로드 후 URL 반환
                 imgUrl = s3Service.upload(fake, key);
             }
 
-            out.add(new PlaceInfoDto(nc, shortDesc, imgUrl));
+            double latitude = place.getLatitude();
+            double longitude = place.getLongitude();
+
+            out.add(new PlaceWithLatLng(name, shortDesc, imgUrl, latitude, longitude));
         }
 
         System.out.println(">>> done: " + out);
@@ -759,5 +816,32 @@ public class AiService {
 //                .toUriString();
 //        System.out.println("▶ [downloadPhotoBytes] proxy URL = " + url);
 //        return restTemplate.getForObject(url, ByteArrayResource.class);
+//    }
+
+    /**
+     * 1) S3에 원본 업로드
+     * 2) AI 변환 호출
+     * 3) DB에 저장
+     */
+//    public DrawingResult processAndSaveDrawing(MultipartFile file, String recommendLocation) throws IOException {
+//        // --- 0) userId 뽑아오기 (세큐리티 컨텍스트에서) ---
+//        Long userId = jwtUtil.getUserIdFromContext();
+//
+//        // --- 1) 원본 업로드 ---
+//        String originalKey = "drawings/original/" + UUID.randomUUID() + ".png";
+//        String originalUrl = s3Service.upload(file, originalKey);
+//
+//        // --- 2) AI 변환 ---
+//        String gptUrl = transformWithDallE(file);
+//
+//        // --- 3) DB에 저장 ---
+//        drawingMapper.insertDrawing(
+//                userId,
+//                recommendLocation,
+//                originalUrl,
+//                gptUrl
+//        );
+//
+//        return new DrawingResult(originalUrl, gptUrl);
 //    }
 }
