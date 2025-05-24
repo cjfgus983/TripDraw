@@ -1,7 +1,9 @@
 package HyeonRi.TripDrawApp.controller;
 
 
+import HyeonRi.TripDrawApp.dto.DrawingResult;
 import HyeonRi.TripDrawApp.dto.PlaceInfoDto;
+import HyeonRi.TripDrawApp.dto.PlaceWithLatLng;
 import HyeonRi.TripDrawApp.service.AiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -21,19 +23,24 @@ public class AiController {
 
     /**
      * 1) DALL·E 편집 API 호출 후 URL 반환
+     *
+     *  아이디를 넘김
+     *
      */
     @PostMapping(value = "/transform", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> transformImage(
-            @RequestPart("file") MultipartFile file
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("userId") Long userId
     ) {
         try {
-            String transformedUrl = aiService.transformWithDallE(file);
-            return ResponseEntity.ok(Map.of("transformedImageUrl", transformedUrl));
+            DrawingResult dr = aiService.transformWithDallE(userId, file);
+            return ResponseEntity.ok(Map.of(
+                    "originalImageUrl", dr.getOriginalUrl(),
+                    "gptImageUrl",      dr.getGptUrl()
+            ));
         } catch (IOException e) {
-            // 로깅 추가 가능
-            return ResponseEntity
-                    .status(500)
-                    .body(Map.of("error", "이미지 변환 중 오류가 발생했습니다."));
+            return ResponseEntity.status(500)
+                    .body(Map.of("error","이미지 변환 중 오류가 발생했습니다."));
         }
     }
 
@@ -41,9 +48,9 @@ public class AiController {
      * 2) GPT API 호출해 여행지 추천
      */
     @PostMapping("/recommend")
-    public ResponseEntity<List<PlaceInfoDto>> recommendPlaces(@RequestBody Map<String,String> body) {
+    public ResponseEntity<List<PlaceWithLatLng>> recommendPlaces(@RequestBody Map<String,String> body) {
         try {
-            List<PlaceInfoDto> places = aiService.recommendPlacesByGpt(body.get("imageUrl"));
+            List<PlaceWithLatLng> places = aiService.recommendPlacesByGpt(body.get("imageUrl"));
             return ResponseEntity.ok(places);
         } catch (Exception e) {
             e.printStackTrace();

@@ -2,16 +2,34 @@ DROP DATABASE IF EXISTS tripdrawdb;
 CREATE SCHEMA tripdrawdb;
 USE tripdrawdb;
 
+-- 0. user 먼저 생성
+CREATE TABLE `user` (
+  `user_id`       BIGINT           NOT NULL AUTO_INCREMENT,
+  `email`         VARCHAR(100)     NOT NULL,
+  `password`      VARCHAR(100)     NOT NULL,
+  `name`          VARCHAR(100)     NOT NULL,
+  `phone_number`  VARCHAR(100)     DEFAULT NULL,
+  `address`       VARCHAR(100)     DEFAULT NULL,
+  `addressDetail` VARCHAR(100)     DEFAULT NULL,
+  `nickname`      VARCHAR(100)     DEFAULT NULL,
+  `login_type`    ENUM('GENERAL','KAKAO','GOOGLE') NOT NULL,
+  `role`          VARCHAR(255)     NOT NULL DEFAULT 'USER',
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `UK_user_email_login_type` (`email`,`login_type`)
+);
+
 -- 1. drawing
 CREATE TABLE drawing (
-  drawing_id       BIGINT       NOT NULL AUTO_INCREMENT,
-  image_type       ENUM('original','gpt') NOT NULL,
-  user_id          BIGINT       NOT NULL,
-  recommend_location VARCHAR(100) NOT NULL,
-  created_at       DATETIME     NOT NULL,
-  image_url        VARCHAR(255) NOT NULL,
-  PRIMARY KEY (drawing_id, image_type)
+  drawing_id          BIGINT       NOT NULL AUTO_INCREMENT,
+  user_id             BIGINT       NOT NULL,
+  recommend_location  VARCHAR(100) NOT NULL,
+  original_image_url  VARCHAR(512) NOT NULL,
+  gpt_image_url       VARCHAR(512) NOT NULL,
+  created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (drawing_id),
+  FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`)
 );
+
 
 -- 2. free
 CREATE TABLE free (
@@ -162,38 +180,31 @@ CREATE TABLE free_image (
   FOREIGN KEY (free_id) REFERENCES free(free_id)
 );
 
--- 13. drawing_board
+-- 13. 그림 게시판
+DROP TABLE IF EXISTS drawing_board;
 CREATE TABLE drawing_board (
-  drawing_board_id BIGINT     NOT NULL AUTO_INCREMENT,
-  drawing_id       BIGINT     NOT NULL,
-  image_type       ENUM('original','gpt') NOT NULL,
-  user_id          BIGINT     NOT NULL,
+  drawing_board_id BIGINT       NOT NULL AUTO_INCREMENT,
+  drawing_id       BIGINT       NOT NULL,
+  user_id          BIGINT       NOT NULL,
   title            VARCHAR(255) NOT NULL,
-  content          TEXT       NOT NULL,
-  view_count       INT        NOT NULL,
-  like_count       INT        NOT NULL,
-  created_at       DATETIME   NOT NULL,
-  updated_at       DATETIME   NOT NULL,
-  PRIMARY KEY (drawing_board_id, drawing_id, image_type),
-  FOREIGN KEY (drawing_id, image_type) REFERENCES drawing(drawing_id, image_type)
+  content          TEXT         ,
+  view_count       INT          NOT NULL DEFAULT 0,
+  like_count       INT          NOT NULL DEFAULT 0,
+  created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (drawing_board_id),
+  FOREIGN KEY (drawing_id) REFERENCES drawing(drawing_id),
+  FOREIGN KEY (user_id)    REFERENCES `user`(user_id)
 );
 
--- 14. user
-CREATE TABLE `user` (
-  `user_id`       BIGINT           NOT NULL AUTO_INCREMENT,
-  `email`         VARCHAR(100)     NOT NULL,
-  `password`      VARCHAR(100)     NOT NULL,
-  `name`          VARCHAR(100)     NOT NULL,
-  `phone_number`  VARCHAR(100)     DEFAULT NULL,
-  `address`       VARCHAR(100)     DEFAULT NULL,
-  `addressDetail`      VARCHAR(100)     DEFAULT NULL,
-  `nickname`      VARCHAR(100)     DEFAULT NULL,
-  `login_type`    ENUM('GENERAL','KAKAO','GOOGLE')
-                    COMMENT '로그인 유형',
-  `role`          VARCHAR(255)     NOT NULL DEFAULT 'USER'
-                    COMMENT '사용자 권한',
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `UK_user_email_login_type` (`email`,`login_type`)
+-- 16. 그림 게시판 좋아요 위한 테이블
+CREATE TABLE user_drawing_like (
+  user_id           BIGINT      NOT NULL,
+  drawing_board_id  BIGINT      NOT NULL,
+  created_at        DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, drawing_board_id),
+  FOREIGN KEY (user_id)          REFERENCES `user`(user_id),
+  FOREIGN KEY (drawing_board_id) REFERENCES drawing_board(drawing_board_id)
 );
 
 CREATE TABLE user_favorite_boards (

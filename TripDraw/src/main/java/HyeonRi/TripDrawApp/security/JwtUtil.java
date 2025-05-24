@@ -5,6 +5,8 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -64,8 +66,14 @@ public class JwtUtil {
         return LoginType.valueOf(type);
     }
 
-
-
+//    public Long getUserIdFromContext() {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails)) {
+//            throw new IllegalStateException("인증 정보가 없습니다.");
+//        }
+//        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
+//        return user.getUser().getUserId();
+//    }
 
 }
 

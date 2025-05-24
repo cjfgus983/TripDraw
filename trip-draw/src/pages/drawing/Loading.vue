@@ -72,9 +72,12 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import axios from 'axios'
 import { useAiStore } from '../../stores/ai'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+
 
 const aiStore = useAiStore()
 const router = useRouter()
+const userStore = useUserStore()
 
 // 떠다니는 버블 데이터
 const floatingBubbles = [
@@ -127,13 +130,28 @@ async function processImage() {
     const blob = await res.blob()
     form.append('file', blob, 'drawing.png')
   }
+  // 1) userId 추출 & null 체크
+  const userId = userStore.id
+  if (!userId) {
+    console.error('로그인된 유저가 없습니다!')
+    return
+  }
+  // 이제 userId는 string 으로 좁혀졌습니다
+  form.append('userId', userId)
 
-  // 1) DALL·E 편집
-  const { data: tr } = await axios.post('/api/ai/transform', form, {
+  // 1) DALL·E 편집 호출
+  const { data } = await axios.post<{
+    originalImageUrl: string
+    gptImageUrl:      string
+  }>('/api/ai/transform', form, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
-  aiStore.setResultUrl(tr.transformedImageUrl)
-  progress.value = maxProgress.value  // =50
+
+  // 반환된 URL을 스토어에 저장
+  aiStore.setOriginalDataUrl(data.originalImageUrl)  // 필요하면
+  aiStore.setResultUrl(data.gptImageUrl)             // gptImageUrl로 변경
+
+  progress.value = maxProgress.value
   phase.value = 2
 
   // 2) 추천 API

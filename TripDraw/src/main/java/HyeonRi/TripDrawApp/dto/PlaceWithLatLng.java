@@ -1,4 +1,3 @@
-// src/main/java/HyeonRi/TripDrawApp/dto/PlaceInfo.java
 package HyeonRi.TripDrawApp.dto;
 
 import lombok.AllArgsConstructor;
@@ -8,10 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlaceInfoDto {
+public class PlaceWithLatLng {
     private String name;
     private String description;
     private String photoURL;
-//    private double latitude;
-//    private double longitude;
+    private double latitude;
+    private double longitude;
 }

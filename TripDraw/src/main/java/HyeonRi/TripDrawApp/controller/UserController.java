@@ -88,6 +88,7 @@ public class UserController {
                 u.getAddressDetail(), u.getNickname(),
                 u.getRole(), u.getLoginType()
         );
+
         return ResponseEntity.ok(dto);
     }
 
@@ -194,6 +195,4 @@ public class UserController {
 
         return ResponseEntity.ok("회원 삭제 완료");
     }
-
-
 }
