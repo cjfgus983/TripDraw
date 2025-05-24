@@ -28,6 +28,8 @@ import Loading from '../pages/drawing/Loading.vue';
 import MyPage from '../pages/user/MyPage.vue';
 import FindIdPassword from '../pages/user/FindIdPassword.vue';
 import EditProfile from '../pages/user/EditProfile.vue';
+import DrawingRegist from '@/pages/board/drawing/DrawingRegist.vue';
+import DrawingBoard from '@/pages/board/drawing/DrawingBoard.vue';
 
 const routes = [
   { path: '/', name: 'Main', component: MainPage },
@@ -51,6 +53,8 @@ const routes = [
   { path: '/mypage', name: 'MyPage', component: MyPage },
   { path: '/findidpassword', name: 'FindIdPassword', component: FindIdPassword },
   { path: '/editprofile', name: 'EditProfile', component: EditProfile, meta: { requiresPasswordConfirm: true }} ,
+  { path: '/drawingregist', name: 'DrawingRegist', component: DrawingRegist },
+  { path: '/drawingboard', name: 'DrawingBoard', component: DrawingBoard },
   { // 카카오 콜백
     path: '/oauth-callback',
     name: 'OAuthCallback',

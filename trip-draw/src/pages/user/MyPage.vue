@@ -6,75 +6,61 @@
           마이페이지
         </h1>
         <!-- 탭 메뉴 -->
-        <div class="bg-white rounded-lg shadow-sm mb-6">
-          <div class="flex border-b">
-            <button
-              v-for="(tab, index) in tabs"
-              :key="index"
-              @click="activeTab = tab.id"
-              :class="[
-  'flex-1 py-4 px-4 text-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap',
-  activeTab === tab.id ? 'text-[#9FB3DF] border-b-2 border-[#9FB3DF]' : 'text-gray-600 hover:text-[#9EC6F3]'
-  ]"
-            >
-              {{ tab.name }}
-            </button>
-          </div>
+      <div class="bg-white rounded-lg shadow-sm mb-6">
+        <div class="flex border-b">
+          <button
+            v-for="(tab, index) in tabs"
+            :key="index"
+            @click="activeTab = tab.id"
+            :class="[
+              'flex-1 py-4 px-4 text-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap',
+              activeTab === tab.id ? 'text-[#9FB3DF] border-b-2 border-[#9FB3DF]' : 'text-gray-600 hover:text-[#9EC6F3]'
+            ]"
+          >
+            {{ tab.name }}
+          </button>
         </div>
-        <!-- 탭 콘텐츠 -->
-        <div class="bg-white rounded-lg shadow-sm p-6 min-h-[600px]">
-          <!-- 내 그림 -->
-          <div v-if="activeTab === 'myDrawings'" class="fade-in">
-            <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-semibold text-gray-800">내 그림</h2>
-              <button
-                class="bg-[#9EC6F3] text-white px-4 py-2 rounded-md hover:bg-[#9FB3DF] transition cursor-pointer !rounded-button whitespace-nowrap"
-              >
-                새 그림 업로드
-              </button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div
-                v-for="(drawing, index) in myDrawings"
-                :key="index"
-                class="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition"
-              >
-                <div class="relative">
-                  <img
-                    :src="drawing.imageUrl"
-                    alt="그림"
-                    class="w-full h-48 object-cover object-top"
-                  />
-                  <div class="absolute top-2 right-2 flex space-x-1">
-                    <button
-                      class="bg-white p-2 rounded-full shadow hover:bg-gray-100 cursor-pointer !rounded-button whitespace-nowrap"
-                    >
-                      <i class="fas fa-pencil-alt text-gray-600"></i>
-                    </button>
-                    <button
-                      class="bg-white p-2 rounded-full shadow hover:bg-gray-100 cursor-pointer !rounded-button whitespace-nowrap"
-                    >
-                      <i class="fas fa-trash-alt text-gray-600"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="p-4">
-                  <h3 class="font-medium text-gray-800">{{ drawing.title }}</h3>
-                  <p class="text-sm text-gray-500 mt-1">{{ drawing.date }}</p>
-                </div>
+      </div>
+      <!-- 탭 콘텐츠 -->
+      <div class="bg-white rounded-lg shadow-sm p-6 min-h-[600px]">
+        <!-- 내 그림 -->
+        <div v-if="activeTab === 'myDrawings'" class="fade-in">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">내 그림</h2>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              v-for="(drawing, index) in myDrawings"
+              :key="index"
+              class="relative border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition cursor-pointer"
+              @click="openImageModal(drawing)"
+            >
+            <img
+                :src="drawing.originalUrl"
+                alt="그림"
+                class="w-full h-48 object-cover object-top cursor-pointer"
+                @click="openImageModal(drawing)"
+              />
+              <!-- 삭제 버튼 -->
+              <div class="absolute top-2 right-2 flex space-x-1">
+                <button
+                  @click.stop="deleteDrawing(drawing.drawingId, index)"
+                  class="bg-white p-2 rounded-full shadow hover:bg-gray-100 cursor-pointer !rounded-button"
+                >
+                  <i class="fas fa-trash-alt text-gray-600"></i>
+                </button>
+              </div>
+              <div class="p-4">
+                <h3 class="font-medium text-gray-800">내가 그린 그림</h3>
+                <p class="text-sm text-gray-500 mt-1">{{ drawing.date }}</p>
               </div>
             </div>
-            <div v-if="myDrawings.length === 0" class="text-center py-12">
-              <i class="fas fa-paint-brush text-gray-300 text-5xl mb-4"></i>
-              <p class="text-gray-500">아직 업로드한 그림이 없습니다.</p>
-              <button
-                class="mt-4 bg-[#9EC6F3] text-white px-4 py-2 rounded-md hover:bg-[#9FB3DF] transition cursor-pointer !rounded-button whitespace-nowrap"
-              >
-                첫 그림 업로드하기
-              </button>
-            </div>
           </div>
-          <!-- 내 여행계획 -->
+          <div v-if="myDrawings.length === 0" class="text-center py-12">
+            <i class="fas fa-paint-brush text-gray-300 text-5xl mb-4"></i>
+            <p class="text-gray-500">아직 업로드한 그림이 없습니다.</p>
+          </div>
+        </div>
           <!-- 내 여행계획 -->
         <div v-if="activeTab === 'myTravelPlans'" class="fade-in">
           <div class="flex justify-between items-center mb-6">
@@ -253,6 +239,30 @@
         </div>
       </div>
     </div>
+      <!-- 상세 이미지 모달 -->
+    <div
+      v-if="showImageModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg p-4 max-w-2xl w-full relative overflow-auto max-h-[80vh]">
+        <button
+          @click="closeImageModal"
+          class="absolute top-2 right-2 text-gray-600"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="flex flex-col md:flex-row gap-4 p-2">
+          <div class="flex-1 overflow-auto">
+            <h4 class="font-medium mb-2">내가 그린 그림</h4>
+            <img :src="selectedDrawing?.originalUrl" alt="Original" class="w-full h-auto object-contain" />
+          </div>
+          <div class="flex-1 overflow-auto">
+            <h4 class="font-medium mb-2">AI 변환 그림</h4>
+            <img :src="selectedDrawing?.gptUrl" alt="GPT" class="w-full h-auto object-contain" />
+          </div>
+        </div>
+      </div>
+    </div>
   </template>
   
   <script lang="ts" setup>
@@ -278,49 +288,53 @@ const filteredPlans = computed(() => travelPlans.value);
     { id: "deleteAccount", name: "회원탈퇴" },
   ];
   const activeTab = ref("myDrawings");
-  // 내 그림 데이터
-  const myDrawings = ref([
-    {
-      id: 1,
-      title: "서울 야경 스케치",
-      region: "제주도",
-      date: "2025-04-28",
-      imageUrl:
-        "https://readdy.ai/api/search-image?query=beautiful%20artistic%20sketch%20of%20Seoul%20night%20skyline%20with%20vibrant%20colors%20and%20detailed%20architecture%2C%20traditional%20Korean%20elements%20mixed%20with%20modern%20buildings%2C%20high%20quality%20art%20style%20with%20soft%20lighting%20effects&width=400&height=300&seq=1&orientation=landscape",
-    },
-    {
-      id: 2,
-      title: "제주도 바다",
-      region: "제주도",
-      date: "2025-04-15",
-      imageUrl:
-        "https://readdy.ai/api/search-image?query=artistic%20painting%20of%20Jeju%20island%20ocean%20view%20with%20volcanic%20rocks%20and%20clear%20blue%20water%2C%20beautiful%20Korean%20coastal%20landscape%20with%20soft%20clouds%20and%20peaceful%20atmosphere%2C%20high%20quality%20art%20style&width=400&height=300&seq=2&orientation=landscape",
-    },
-    {
-      id: 3,
-      title: "부산 해운대",
-      region: "제주도",
-      date: "2025-03-22",
-      imageUrl:
-        "https://readdy.ai/api/search-image?query=colorful%20artistic%20impression%20of%20Haeundae%20Beach%20in%20Busan%20with%20city%20skyline%2C%20vibrant%20sunset%20colors%20reflecting%20on%20water%2C%20detailed%20Korean%20coastal%20cityscape%20with%20artistic%20style%20and%20soft%20brush%20strokes&width=400&height=300&seq=3&orientation=landscape",
-    },
-    {
-      id: 4,
-      title: "경복궁 풍경",
-      region: "제주도",
-      date: "2025-03-10",
-      imageUrl:
-        "https://readdy.ai/api/search-image?query=traditional%20Korean%20painting%20style%20of%20Gyeongbokgung%20Palace%20with%20cherry%20blossoms%2C%20detailed%20architecture%20with%20traditional%20Korean%20elements%2C%20soft%20pastel%20colors%20with%20elegant%20composition%2C%20artistic%20high%20quality%20illustration&width=400&height=300&seq=4&orientation=landscape",
-    },
-    {
-      id: 5,
-      title: "남산타워 일몰",
-      region: "제주도",
-      date: "2025-02-18",
-      imageUrl:
-        "https://readdy.ai/api/search-image?query=artistic%20rendering%20of%20Namsan%20Tower%20during%20sunset%20with%20Seoul%20cityscape%2C%20beautiful%20orange%20and%20purple%20sky%2C%20detailed%20Korean%20urban%20landscape%20with%20artistic%20style%20and%20dramatic%20lighting%20effects&width=400&height=300&seq=5&orientation=landscape",
-    },
-  ]);
+
+  interface DrawingItem {
+    drawingId: number;
+    originalUrl: string;
+    gptUrl: string;
+    date: string;
+}
+
+
+const myDrawings = ref<DrawingItem[]>([]);
+const selectedDrawing = ref<DrawingItem | null>(null);
+const showImageModal = ref(false);
+
+function openImageModal(drawing: DrawingItem) {
+  selectedDrawing.value = drawing;
+  showImageModal.value = true;
+}
+function closeImageModal() {
+  showImageModal.value = false;
+  selectedDrawing.value = null;
+}
+
+
+onMounted(async () => {
+  if (activeTab.value !== 'myDrawings') return;
+  try {
+    const { data } = await axios.get<{
+      drawingId: number;
+      originalUrl: string;
+      gptUrl: string;
+      createdAt: string;
+    }[]>('/api/mypage/drawings');
+
+    myDrawings.value = data.map(item => {
+      const dt = new Date(item.createdAt.replace(' ', 'T'));
+      return {
+        drawingId: item.drawingId,
+        originalUrl: item.originalUrl,
+        gptUrl: item.gptUrl,
+        date: dt.toLocaleString(),
+      };
+    });
+  } catch (err) {
+    console.error('내 그림 불러오기 실패', err);
+  }
+});
+
   // 여행 계획 데이터
   const travelPlans = ref([
   {
@@ -437,6 +451,16 @@ const filteredPlans = computed(() => travelPlans.value);
     }
     showModal.value = false;
   };
+
+  async function deleteDrawing(drawingId: number, index: number) {
+  try {
+    await axios.delete(`/api/mypage/drawings/${drawingId}`);
+    // 성공 시 화면에서 바로 제거
+    myDrawings.value.splice(index, 1);
+  } catch (err) {
+    console.error('삭제 실패', err);
+  }
+}
   </script>
   
   <style scoped>

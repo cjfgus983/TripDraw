@@ -1,12 +1,16 @@
 import { defineStore } from 'pinia'
 
 import axios from 'axios'
+import { usePlacesStore } from '@/stores/places'   
+
 
 // 1) PlaceInfo 타입 선언
 interface PlaceInfo {
   name: string
   description: string
   imageUrl: string
+  latitude: number
+  longitude: number
 }
 
 // (백엔드에서 내려오는 형태)
@@ -14,6 +18,9 @@ interface BackendPlace {
   name: string
   description: string
   photoURL: string
+  latitude: number
+  longitude: number
+
 }
 
 // stores/ai.ts
@@ -49,16 +56,28 @@ export const useAiStore = defineStore('ai', {
               const places: PlaceInfo[] = data.map(p => ({
                 name:        p.name,
                 description: p.description,
-                imageUrl:    p.photoURL
+                imageUrl:    p.photoURL,
+                latitude:   p.latitude,
+                longitude: p.longitude
               })
             )
           // 3) state에 저장
           this.setRecommendedPlaces(places)
         },
-        setSelectedPlaceName(name: string) {
-          this.selectedPlaceName = name
-        },
+        setSelectedPlaceName(place: PlaceInfo) {
+            // 1) ai 스토어 state 갱신
+            this.selectedPlaceName = place.name
+      
+            // 2) places 스토어 인스턴스 가져오기
+            const placesStore = usePlacesStore()
+        
+            // 3) places 스토어의 center 에 name/lat/lng 만 넣기
+            placesStore.center = {
+              name:      place.name,
+              latitude:  place.latitude,
+              longitude: place.longitude
+            }
+          },
     
   },
 })
-
