@@ -151,10 +151,8 @@ function goToPlanning() {
     const name = place.name
 
     // 2) Pinia에 저장
-    aiStore.setSelectedPlaceName(name)
+    aiStore.setSelectedPlaceName(place)
 
-    // 3) localStorage에 저장
-    localStorage.setItem('selectedPlaceName', name)
     router.push(`/tripplanpage`)
   }
 }
