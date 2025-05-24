@@ -23,6 +23,7 @@ public class NoticeController {
 
     @GetMapping("/{noticeId}")
     public ResponseEntity<NoticeDto> getNotice(@PathVariable Long noticeId) {
+    	noticeService.incrementViewCount(noticeId);
         return ResponseEntity.ok(noticeService.getNotice(noticeId));
     }
 
@@ -43,4 +44,11 @@ public class NoticeController {
         noticeService.deleteNotice(noticeId);
         return ResponseEntity.ok().build();
     }
+    
+//    @PatchMapping("/{noticeId}/views")
+//    public ResponseEntity<Void> incrementViews(@PathVariable Long noticeId) {
+//        noticeService.incrementViewCount(noticeId);
+//        return ResponseEntity.noContent().build();
+//    }
+
 }
