@@ -1,5 +1,6 @@
 // src/stores/user.ts
 import { defineStore } from 'pinia'
+import axios from 'axios'
 
 interface UserProfile {
   id: string
@@ -13,14 +14,13 @@ export const useUserStore = defineStore('user', {
     email: null as string | null,
     nickname: null as string | null,
 
-    // 여기를 추가하세요:
+    token: localStorage.getItem('token') as string | null,  // ← 추가
     passwordConfirmed: false as boolean,
   }),
   getters: {
     isLoggedIn: (state) => !!state.nickname,
-
-    // 비밀번호 인증 여부를 쉽게 꺼내 쓰고 싶으면 getter 추가
     isPasswordConfirmed: (state) => state.passwordConfirmed,
+    authHeader: (state) => state.token ? `Bearer ${state.token}` : null
   },
   actions: {
     setProfile(profile: UserProfile) {
@@ -34,11 +34,20 @@ export const useUserStore = defineStore('user', {
       this.nickname = null
     },
 
-    // 비밀번호 인증이 성공했을 때 호출
+    setToken(token: string) {
+      this.token = token
+      localStorage.setItem('token', token)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    },
+    clearToken() {
+      this.token = null
+      localStorage.removeItem('token')
+      delete axios.defaults.headers.common['Authorization']
+    },
+
     confirmPassword() {
       this.passwordConfirmed = true
     },
-    // (필요시) 인증 상태 리셋
     resetPasswordConfirmation() {
       this.passwordConfirmed = false
     },
@@ -46,6 +55,7 @@ export const useUserStore = defineStore('user', {
     logout() {
       this.clearProfile()
       this.resetPasswordConfirmation()
-    },
+      this.clearToken()
+    }
   }
 })
