@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import HyeonRi.TripDrawApp.dto.tripPlan.TripLocationDto;
 import HyeonRi.TripDrawApp.dto.tripPlan.TripPlanWithLocationsRequest;
+import HyeonRi.TripDrawApp.dto.tripPlan.TripPlanWithRouteDto;
 import HyeonRi.TripDrawApp.mapper.board.tripPlan.TripLocationMapper;
 import HyeonRi.TripDrawApp.mapper.board.tripPlan.TripPlanMapper;
 import lombok.RequiredArgsConstructor;
@@ -58,4 +59,9 @@ public class TripPlanService {
         }
         return sb.toString();
     }
+    
+    public List<TripPlanWithRouteDto> getMyPlans(Long userId) {
+        return planMapper.selectMyPlansWithRoute(userId);
+    }
+
 }

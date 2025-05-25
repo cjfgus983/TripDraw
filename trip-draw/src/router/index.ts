@@ -44,7 +44,7 @@ const routes = [
   { path: '/contactregist', name: 'ContactRegist', component: ContactRegist },
   { path: '/drawpage', name: 'DrawPage', component: DrawPage },
   { path: '/drawresult', name: 'DrawResult', component: DrawResult },
-  { path: '/tripplanpage', name: 'TripPlanPage', component: TripPlanPage },
+  { path: '/tripplanpage/:planCode?', name: 'TripPlanPage', component: TripPlanPage, props: true }, // planCode가 있을 수도 있고 없을 수도 있음
   { path: '/tripplandetail/:id', name: 'TripPlanDetail', component: TripPlanDetail, props: true  },
   { path: '/tripplanboard', name: 'TripPlanBoard', component: TripPlanBoard },
   { path: '/login', name: 'Login', component: Login },
