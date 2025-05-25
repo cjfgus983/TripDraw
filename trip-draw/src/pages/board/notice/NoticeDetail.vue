@@ -1,178 +1,268 @@
-<!-- The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work. -->
 <template>
-    <div class="min-h-screen bg-gray-50">
-      <div class="max-w-5xl mx-auto px-4 py-8">
-        <!-- 상단 네비게이션 -->
-        <div class="mb-8">
-          <a
-            href="https://readdy.ai/home/c35feb0c-4e46-4d7a-be66-c91e9b24361e/fb46eb57-06bb-44c0-b376-1af6e2b92609"
-            data-readdy="true"
-            class="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors cursor-pointer !rounded-button whitespace-nowrap"
-          >
-            <i class="fas fa-arrow-left mr-2"></i>
-            목록으로 돌아가기
-          </a>
-        </div>
-        <!-- 공지사항 헤더 -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div class="border-b border-gray-200 pb-5">
-            <h1 class="text-2xl font-bold mb-4">
-              <span class="text-red-600 font-bold">[중요]</span> 사이트 개편 안내
-              및 서비스 일시 중단 안내
+  <div class="min-h-screen bg-gray-50 py-8 px-4">
+    <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-6">
+      <!-- 상단 네비게이션 -->
+      <div class="mb-8">
+        <button @click="$router.back()"
+                class="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors rounded-button whitespace-nowrap">
+          <i class="fas fa-arrow-left mr-2"></i>
+          목록으로 돌아가기
+        </button>
+      </div>
+
+      <!-- 공지사항 헤더 -->
+      <div v-if="notice" class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="border-b border-gray-200 pb-5 flex justify-between items-start">
+          <div>
+            <h1 class="text-2xl font-bold mb-2">
+              <span v-if="notice.isPinned" class="text-red-600 font-bold mr-2">[중요]</span>
+              <!-- 뷰 모드 -->
+              <span v-if="!isEditing">{{ notice.title }}</span>
+              <!-- 편집 모드 -->
+              <input
+                v-else
+                v-model="editTitle"
+                class="w-full px-3 py-1 border rounded"
+                placeholder="제목을 입력하세요"
+              />
             </h1>
             <div class="flex flex-wrap gap-6 text-sm text-gray-600">
               <div class="flex items-center">
                 <i class="fas fa-user-circle mr-2"></i>
-                <span>작성자: 시스템 관리자</span>
+                <span>작성자: {{ notice.nickname }}</span>
               </div>
               <div class="flex items-center">
                 <i class="fas fa-calendar-alt mr-2"></i>
-                <span>작성일: 2024.02.15</span>
+                <span>작성일: {{ formatDate(notice.createdAt) }}</span>
               </div>
               <div class="flex items-center">
                 <i class="fas fa-eye mr-2"></i>
-                <span>조회수: 1,254회</span>
+                <span>조회수: {{ notice.viewCount.toLocaleString() }}회</span>
               </div>
             </div>
           </div>
-          <!-- 공지사항 본문 -->
-          <div class="py-6 text-gray-700 leading-relaxed">
-            <section class="mb-8">
-              <h2 class="text-xl font-bold mb-4">개편 목적 및 개요</h2>
-              <p class="mb-4">
-                안녕하세요, 고객 여러분. 저희 서비스를 이용해 주셔서 감사합니다.
-                더 나은 서비스 제공을 위해 사이트 전반에 걸친 개편 작업을 진행할
-                예정입니다. 이번 개편은 사용자 경험 향상과 시스템 안정성 강화를
-                목표로 하고 있습니다.
-              </p>
-              <p>
-                개편을 통해 더욱 직관적인 인터페이스와 빠른 응답 속도, 그리고
-                새로운 기능들이 추가될 예정입니다. 이에 따라 아래와 같이 일시적인
-                서비스 중단이 있을 예정이오니 양해 부탁드립니다.
-              </p>
-            </section>
-            <section class="mb-8">
-              <h2 class="text-xl font-bold mb-4">서비스 중단 일정</h2>
-              <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-                <p class="font-bold">서비스 중단 시간</p>
-                <p>
-                  2024년 5월 10일(금) 오후 11:00 ~ 2024년 5월 11일(토) 오전 06:00
-                  (총 7시간)
-                </p>
-              </div>
-              <p>
-                위 시간 동안 모든 서비스 이용이 불가능하며, 작업이 예상보다 일찍
-                완료될 경우 서비스가 조기에 재개될 수 있습니다. 작업 진행 상황은
-                공식 SNS 채널을 통해 실시간으로 안내해 드릴 예정입니다.
-              </p>
-            </section>
-            <section class="mb-8">
-              <h2 class="text-xl font-bold mb-4">영향 받는 서비스 목록</h2>
-              <ul class="list-disc pl-5 mb-4 space-y-2">
-                <li>웹사이트 및 모바일 웹 서비스 전체</li>
-                <li>모바일 애플리케이션 (iOS, Android)</li>
-                <li>API 연동 서비스</li>
-                <li>회원 관리 시스템</li>
-                <li>결제 시스템</li>
-              </ul>
-              <p>
-                서비스 중단 기간 동안 진행 중이던 작업은 자동 저장되지 않을 수
-                있으니, 중요한 데이터는 미리 백업해 주시기 바랍니다.
-              </p>
-            </section>
-            <section class="mb-8">
-              <h2 class="text-xl font-bold mb-4">개편 후 변경사항</h2>
-              <div class="grid md:grid-cols-2 gap-4 mb-4">
-                <div class="bg-white border border-gray-200 rounded-lg p-4">
-                  <h3 class="font-bold mb-2">UI/UX 개선</h3>
-                  <p>
-                    더욱 직관적이고 사용하기 쉬운 인터페이스로 개선되며, 모바일
-                    환경에서의 사용성이 크게 향상됩니다.
-                  </p>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-lg p-4">
-                  <h3 class="font-bold mb-2">성능 최적화</h3>
-                  <p>
-                    페이지 로딩 속도가 평균 40% 향상되며, 대용량 데이터 처리
-                    능력이 강화됩니다.
-                  </p>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-lg p-4">
-                  <h3 class="font-bold mb-2">신규 기능 추가</h3>
-                  <p>
-                    실시간 협업 기능, 고급 분석 도구, 개인화된 대시보드 등 다양한
-                    신규 기능이 추가됩니다.
-                  </p>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-lg p-4">
-                  <h3 class="font-bold mb-2">보안 강화</h3>
-                  <p>
-                    최신 보안 프로토콜 적용으로 더욱 안전한 서비스 이용이
-                    가능해집니다.
-                  </p>
-                </div>
-              </div>
-              <p>
-                자세한 변경사항은 개편 완료 후 별도의 안내 공지를 통해 상세히
-                안내드릴 예정입니다.
-              </p>
-            </section>
-            <section class="mb-4">
-              <h2 class="text-xl font-bold mb-4">사용자 유의사항</h2>
-              <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-4">
-                <p class="font-bold mb-2">서비스 이용 전 확인사항</p>
-                <ul class="list-disc pl-5 space-y-1">
-                  <li>
-                    개편 후 첫 접속 시 캐시 삭제 및 새로고침이 필요할 수 있습니다.
-                  </li>
-                  <li>모바일 앱은 최신 버전으로 업데이트가 필요합니다.</li>
-                  <li>
-                    일부 기존 URL이 변경될 수 있으니 북마크는 개편 후 다시 설정해
-                    주세요.
-                  </li>
-                </ul>
-              </div>
-              <p>
-                개편 후 서비스 이용에 어려움이 있으시거나 문의사항이 있으신 경우,
-                고객센터(1588-0000)로 연락 주시거나 홈페이지 내 문의하기를 통해
-                문의해 주시기 바랍니다. 24시간 내에 답변 드리겠습니다.
-              </p>
-            </section>
-            <div class="mt-8 pt-6 border-t border-gray-200">
-              <p class="text-gray-600">
-                저희 서비스를 이용해 주시는 고객 여러분께 다시 한번 감사드리며, 더
-                나은 서비스로 보답하겠습니다.
-              </p>
-              <p class="font-bold mt-2">감사합니다.</p>
-            </div>
-          </div>
-        </div>
-        <!-- 관리자 기능 -->
-        <div v-if="isAdmin" class="flex justify-end space-x-4 mt-6">
-          <button
-            class="px-6 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-400 transition-colors cursor-pointer !rounded-button whitespace-nowrap"
-          >
-            <i class="fas fa-edit mr-2"></i>수정
-          </button>
-          <button
-            class="px-6 py-2 bg-red-300 text-white rounded-md hover:bg-red-400 transition-colors cursor-pointer !rounded-button whitespace-nowrap"
-          >
-            <i class="fas fa-trash-alt mr-2"></i>삭제
-          </button>
-        </div>
+
+          <!-- 관리자 기능: 수정/저장/취소/삭제 버튼 -->
+      <div v-if="isAdmin" class="flex items-center space-x-2">
+        <!-- 뷰 모드 -->
+        <button
+          v-if="!isEditing"
+          @click="goToEdit"
+          class="px-4 py-2 bg-blue-300 text-white rounded hover:bg-blue-400 transition-colors"
+        >
+          <i class="fas fa-edit mr-1"></i>수정
+        </button>
+        <button
+          v-if="!isEditing"
+          @click="deleteNotice"
+          class="px-4 py-2 bg-red-400 text-white rounded hover:bg-red-500 transition-colors"
+        >
+          <i class="fas fa-trash mr-1"></i>삭제
+        </button>
+
+        <!-- 편집 모드 -->
+        <button
+          v-if="isEditing"
+          @click="saveEdit"
+          class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+        >
+          저장
+        </button>
+        <button
+          v-if="isEditing"
+          @click="cancelEdit"
+          class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition-colors"
+        >
+          취소
+        </button>
       </div>
     </div>
-  </template>
-  
-  <script lang="ts" setup>
-  import { ref } from "vue";
-  // 관리자 권한 여부 (실제로는 로그인 상태와 권한에 따라 결정됨)
-  const isAdmin = ref(true);
-  </script>
-  
-  <style scoped>
-  .notice-content p {
-    margin-bottom: 1rem;
+
+        <!-- 공지사항 본문 -->
+        <div class="notice-content text-gray-700 leading-relaxed mt-4">
+          <!-- 뷰 모드 -->
+           <div v-if="!isEditing" v-html="notice.content"></div>
+          <!-- 편집 모드 -->
+          <div
+            v-else
+            ref="editRef"
+            contenteditable="true"
+            class="w-full min-h-[200px] p-4 border rounded"
+            @input="onEditInput"
+            v-html="editContent"
+          ></div>
+        </div>
+      </div>
+
+      <div v-else class="text-center py-16 text-gray-500">
+        로딩 중...
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { useRoute, useRouter } from 'vue-router'
+
+// 인터페이스
+interface NoticeDto {
+  noticeId:   number
+  userId:     number
+  nickname:   string
+  title:      string
+  content:    string    // stored raw HTML or markdown
+  createdAt:  string    // ISO 문자열
+  viewCount:  number
+  isPinned:   boolean
+}
+
+// 라우터, 토큰
+const route = useRoute()
+const router = useRouter()
+const noticeId = Number(route.params.noticeId)
+const token    = localStorage.getItem('accessToken')
+
+// 공지와 편집 상태
+const notice      = ref<NoticeDto|null>(null)
+const isEditing   = ref(false)
+const editTitle   = ref('')
+const editContent = ref('')
+const editRef     = ref<HTMLElement|null>(null)
+
+// 사용자 정보
+const userId   = ref<number|null>(null)
+const nickname = ref<string>('')
+const role     = ref<string>('')
+
+// ADMIN 여부
+const isAdmin = computed(() => role.value === 'ADMIN')
+
+function onEditInput(e: Event) {
+  const html = (e.target as HTMLElement).innerHTML;
+  editContent.value = html;
+}
+// 컴포넌트 마운트 시
+onMounted(async () => {
+  if (!token) return
+
+  try {
+    // 1) 내 정보 (userId, nickname, role) 가져오기
+    const me = await axios.get<{
+      userId: number,
+      nickname: string,
+      role: string
+    }>(
+      'http://localhost:8080/api/users/me',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    userId.value   = me.data.userId
+    nickname.value = me.data.nickname
+    role.value     = me.data.role
+
+    // 2) 조회수 1 증가 (PATCH 엔드포인트 추가 필요)
+    // await axios.patch(
+    //   `http://localhost:8080/api/notice/${noticeId}/views`,
+    //   null,
+    //   { headers: { Authorization: `Bearer ${token}` } }
+    // )
+
+    // 3) 공지 상세 가져오기
+    const { data } = await axios.get<NoticeDto>(
+      `http://localhost:8080/api/notice/${noticeId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    notice.value = data
+  } catch (err) {
+    console.error('공지 상세 로드 실패', err)
+    alert('공지사항을 불러오지 못했습니다.')
   }
-  </style>
-  
+})
+
+// 날짜 포맷 헬퍼 (YYYY.MM.DD)
+function formatDate(iso: string) {
+  const d  = new Date(iso)
+  const yy = d.getFullYear()
+  const mm = String(d.getMonth()+1).padStart(2,'0')
+  const dd = String(d.getDate()).padStart(2,'0')
+  return `${yy}.${mm}.${dd}`
+}
+
+// “수정” 눌렀을 때 편집 모드로 전환
+function goToEdit() {
+  if (!notice.value) return
+  isEditing.value   = true
+  editTitle.value   = notice.value.title
+  editContent.value = notice.value.content
+  // 포커스 주기
+  setTimeout(() => editRef.value?.focus(), 0)
+}
+
+// “취소” 눌렀을 때 원복
+function cancelEdit() {
+  isEditing.value = false
+}
+
+// “저장” 눌렀을 때 API 호출
+async function saveEdit() {
+  if (!notice.value) return
+  try {
+    await axios.put(
+      `http://localhost:8080/api/notice/${noticeId}`,
+      {
+        title:       editTitle.value,
+        content:     editContent.value,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    // 업데이트 후 다시 상세 조회
+    const { data } = await axios.get<NoticeDto>(
+      `http://localhost:8080/api/notice/${noticeId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    notice.value    = data
+    isEditing.value = false
+    alert('수정되었습니다.')
+  } catch (e) {
+    console.error('수정 실패', e)
+    alert('수정에 실패했습니다.')
+  }
+}
+async function deleteNotice() {
+  if (!confirm('정말 삭제하시겠습니까?')) return
+  if (!token) return
+  try {
+    await axios.delete(
+      `/api/notice/${noticeId}`,
+      { headers:{ Authorization:`Bearer ${token}` } }
+    )
+    alert('삭제되었습니다.')
+    router.push({ name: 'NoticeBoard' })
+  } catch (e) {
+    console.error(e)
+    alert('삭제에 실패했습니다.')
+  }
+}
+</script>
+
+<style scoped>
+.notice-content p {
+  margin-bottom: 1rem;
+}
+/* Tailwind 커스텀 색상 */
+.border-gray-200 { border-color: #e5e7eb; }
+.text-gray-500   { color: #6b7280; }
+.text-gray-600   { color: #4b5563; }
+.text-gray-700   { color: #374151; }
+.bg-gray-50      { background-color: #f9fafb; }
+.bg-white        { background-color: #ffffff; }
+.shadow-md       { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.rounded-lg      { border-radius: 0.5rem; }
+.p-6             { padding: 1.5rem; }
+.mb-6            { margin-bottom: 1.5rem; }
+.mb-8            { margin-bottom: 2rem; }
+input {
+  outline: none;
+}
+</style>

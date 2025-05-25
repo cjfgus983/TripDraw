@@ -1,11 +1,13 @@
 package HyeonRi.TripDrawApp.service.board;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import HyeonRi.TripDrawApp.dto.board.notice.NoticeDto;
 import HyeonRi.TripDrawApp.mapper.board.NoticeMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +33,10 @@ public class NoticeService {
 
     public int deleteNotice(Long id) {
         return noticeMapper.deleteNotice(id);
+    }
+    
+    @Transactional
+    public void incrementViewCount(Long noticeId) {
+    	noticeMapper.incrementViewCount(noticeId);
     }
 }

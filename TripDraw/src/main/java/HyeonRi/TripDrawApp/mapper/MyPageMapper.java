@@ -35,4 +35,14 @@ public interface MyPageMapper {
         @Param("userId") Long userId,
         @Param("drawingId") Long drawingId
     );
+    
+    @Delete("DELETE FROM trip_location WHERE plan_code = #{planCode}")
+    void deleteLocationsByPlanCode(String planCode);
+
+    @Delete("""
+      DELETE FROM trip_plans
+       WHERE plan_code = #{planCode}
+         AND user_id   = #{userId}
+    """)
+    int deletePlan(@Param("planCode") String planCode, @Param("userId") Long userId);
 }

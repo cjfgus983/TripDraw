@@ -265,13 +265,14 @@ selectedTags.includes(tag.id)
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { getGoogleMapsLoader } from '@/services/googleMapsLoader'
-import { useRouter } from 'vue-router' 
+import { useRouter, useRoute } from 'vue-router' 
 import { usePlacesStore } from '@/stores/places'
 const store = usePlacesStore()
 const currentCenter = {
   lat: store.center.latitude,
   lng: store.center.longitude
 }
+const route          = useRoute()
 
 /** 일정 아이템 인터페이스 */
 interface ItineraryItem {
@@ -660,6 +661,12 @@ onMounted(async () => {
   infoWindow = new google.maps.InfoWindow()
   infoWindow = new google.maps.InfoWindow()
 
+  const code = String(route.params.planCode || '').trim()
+  if (code) {
+    // 붙여넣기 모달 대신 바로 불러오기
+    loadPlan(code)
+  }
+
   // SearchBox 설정
   if (searchInput.value) {
     const searchBox = new google.maps.places.SearchBox(searchInput.value)
@@ -916,14 +923,13 @@ async function handlePaste() {
     return
   }
 
-  const token = localStorage.getItem('accessToken')
-  if (!token) {
-    alert('로그인이 필요합니다.')
-    return
-  }
-
+  loadPlan(planCode)
+}
+/** planCode로 불러오는 공통 함수 **/
+async function loadPlan(planCode: string) {
   isLoading.value = true
   try {
+    const token = localStorage.getItem('accessToken')
     const { data } = await axios.get<{
       dailyPlans: Array<{
         dayNo: number,
@@ -934,30 +940,29 @@ async function handlePaste() {
           endTime: string
         }[]
       }>
-    }>(
-      `http://localhost:8080/api/plans-with-locations/${planCode}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
+    }>(`http://localhost:8080/api/plans-with-locations/${planCode}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
 
-    // 서버가 넘겨준 dailyPlans → itinerary 형식으로 변환
+    // 서버 → itinerary 포맷 변환
     itinerary.value = data.dailyPlans
-      .sort((a,b) => a.dayNo - b.dayNo)
-      .map(day => 
+      .sort((a, b) => a.dayNo - b.dayNo)
+      .map(day =>
         day.activities.map(act => ({
-          name: act.name,
-          category: act.category,
-          startTime: act.startTime.slice(0,5), // "HH:mm"
+          name:      act.name,
+          category:  act.category,
+          startTime: act.startTime.slice(0,5),
           endTime:   act.endTime.slice(0,5)
         }))
       )
-    console.log('변환된 itinerary:', itinerary.value);
+
     selectedDay.value = 0
     dayItems.value   = itinerary.value[0] || []
     updateMarkers()
     closePasteModal()
   } catch (e) {
     console.error('Plan Code 로드 실패', e)
-    alert('유효한 Plan Code 가 아닙니다.')
+    alert('유효한 Plan Code가 아닙니다.')
   } finally {
     isLoading.value = false
   }
