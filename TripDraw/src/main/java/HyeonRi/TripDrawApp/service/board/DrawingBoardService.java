@@ -16,69 +16,79 @@ public class DrawingBoardService {
     private final DrawingBoardMapper mapper;
     private static final int DEFAULT_PAGE_SIZE = 9;
 
-    /** 전체 리스트 조회 (비추천, 페이징 사용 권장) */
-    public List<DrawingBoardDto> listAll() {
-        return mapper.selectAll();
-    }
-
-    /** 페이징된 리스트 조회 */
+    /** (기존) 페이징된 리스트 조회—isLiked 없이 */
     public List<DrawingBoardDto> listPage(int page) {
         int offset = (page - 1) * DEFAULT_PAGE_SIZE;
         return mapper.selectPage(offset, DEFAULT_PAGE_SIZE);
     }
 
-    /** 지난 7일간 좋아요 상위 인기 리스트 */
+    /** (신규) 페이징된 리스트 조회—isLiked 포함 */
+    public List<DrawingBoardDto> listPage(int page, Long userId) {
+        int offset = (page - 1) * DEFAULT_PAGE_SIZE;
+        return mapper.selectPageWithLike(offset, DEFAULT_PAGE_SIZE, userId);
+    }
+
+    /** (기존) 인기 작품 조회—isLiked 없이 */
     public List<DrawingBoardDto> listPopular() {
         return mapper.selectPopular();
     }
 
-    /** 상세 조회 (조회수 증가) */
+    /** (신규) 인기 작품 조회—isLiked 포함 */
+    public List<DrawingBoardDto> listPopular(Long userId) {
+        return mapper.selectPopularWithLike(userId);
+    }
+
+    /** (기존) 상세 조회 (조회수 증가) */
     public DrawingBoardDto get(Long id) {
         mapper.incrementViewCount(id);
         return mapper.selectById(id);
     }
 
+    /** (신규) 상세 조회 (조회수 증가 + isLiked 포함) */
+    public DrawingBoardDto get(Long id, Long userId) {
+        mapper.incrementViewCount(id);
+        return mapper.selectByIdWithLike(id, userId);
+    }
+
     /** 게시글 생성 */
+    @Transactional
     public DrawingBoardDto create(DrawingBoardDto dto) {
         mapper.insert(dto);
         return dto;
     }
 
     /** 게시글 수정 */
+    @Transactional
     public void update(DrawingBoardDto dto) {
         mapper.update(dto);
     }
 
-    /**
-     * 게시물 삭제
-     * -> 연관된 좋아요(user_drawing_like) 먼저 삭제 후 drawing_board 삭제
-     */
+    /** 게시글 삭제 */
     @Transactional
     public void delete(Long boardId) {
-        // 1) 연관된 좋아요 기록 삭제
         mapper.deleteLikesByBoardId(boardId);
-        // 2) 게시물 본체 삭제
         mapper.deleteById(boardId);
     }
 
-    /** 좋아요 처리 (중복 방지) */
+    /** 좋아요 */
     @Transactional
     public void like(Long userId, Long boardId) {
-        boolean exists = mapper.existsLike(userId, boardId);
-        if (!exists) {
+        if (!mapper.existsLike(userId, boardId)) {
             mapper.insertLike(userId, boardId);
             mapper.incrementLikeCount(boardId);
         }
     }
 
-    /** 도메인 객체 기반 생성 (추가 요청용) */
+    /** 좋아요 취소 */
+    @Transactional
+    public void unlike(Long userId, Long boardId) {
+        mapper.deleteLike(userId, boardId);
+        mapper.decrementLikeCount(boardId);
+    }
+
+    /** (기존) 도메인 객체 기반 생성 */
     @Transactional
     public void createDrawingBoard(Long userId, CreateDrawingBoardRequest req) {
-        DrawingBoard board = new DrawingBoard();
-        board.setDrawingId(req.getDrawingId());
-        board.setUserId(userId);
-        board.setTitle(req.getTitle());
-        board.setContent(req.getContent());
-        mapper.insertDrawingBoard(board);
+        // ...
     }
 }

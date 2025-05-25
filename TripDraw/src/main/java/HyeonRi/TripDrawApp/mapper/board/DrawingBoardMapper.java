@@ -150,6 +150,27 @@ public interface DrawingBoardMapper {
             @Param("boardId") Long boardId
     );
 
+    /** 좋아요 취소 기록 삭제 */
+    @Delete("""
+        DELETE FROM user_drawing_like
+         WHERE user_id = #{userId}
+           AND drawing_board_id = #{boardId}
+    """)
+    void deleteLike(
+            @Param("userId") Long userId,
+            @Param("boardId") Long boardId
+    );
+
+    /** 좋아요 수 차감 */
+    @Update("""
+        UPDATE drawing_board
+           SET like_count = like_count - 1
+         WHERE drawing_board_id = #{boardId}
+    """)
+    void decrementLikeCount(
+            @Param("boardId") Long boardId
+    );
+
     @Insert("""
         INSERT INTO drawing_board
             (drawing_id, user_id, title, content)
@@ -158,4 +179,99 @@ public interface DrawingBoardMapper {
     """)
     @Options(useGeneratedKeys = true, keyProperty = "drawingBoardId")
     void insertDrawingBoard(DrawingBoard board);
+
+
+    /** 인기 작품 조회 + isLiked */
+    @Select("""
+        SELECT
+          db.drawing_board_id      AS drawingBoardId,
+          db.drawing_id            AS drawingId,
+          db.user_id               AS userId,
+          u.nickname               AS nickname,
+          db.title,
+          db.content,
+          db.view_count            AS viewCount,
+          db.like_count            AS likeCount,
+          db.created_at            AS createdAt,
+          db.updated_at            AS updatedAt,
+          d.original_image_url     AS imageUrl,
+          EXISTS (
+            SELECT 1
+              FROM user_drawing_like udl
+             WHERE udl.user_id = #{userId}
+               AND udl.drawing_board_id = db.drawing_board_id
+          )                       AS isLiked
+        FROM drawing_board db
+        JOIN drawing d ON db.drawing_id = d.drawing_id
+        JOIN `user` u ON db.user_id = u.user_id
+        WHERE db.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ORDER BY db.like_count DESC
+        LIMIT 9
+    """)
+    List<DrawingBoardDto> selectPopularWithLike(
+            @Param("userId") Long userId
+    );
+
+    /** 페이징 + isLiked */
+    @Select("""
+        SELECT
+          db.drawing_board_id      AS drawingBoardId,
+          db.drawing_id            AS drawingId,
+          db.user_id               AS userId,
+          u.nickname               AS nickname,
+          db.title,
+          db.content,
+          db.view_count            AS viewCount,
+          db.like_count            AS likeCount,
+          db.created_at            AS createdAt,
+          db.updated_at            AS updatedAt,
+          d.original_image_url     AS imageUrl,
+          EXISTS (
+            SELECT 1
+              FROM user_drawing_like udl
+             WHERE udl.user_id = #{userId}
+               AND udl.drawing_board_id = db.drawing_board_id
+          )                       AS isLiked
+        FROM drawing_board db
+        JOIN drawing d ON db.drawing_id = d.drawing_id
+        JOIN `user` u ON db.user_id = u.user_id
+        ORDER BY db.created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    """)
+    List<DrawingBoardDto> selectPageWithLike(
+            @Param("offset") int offset,
+            @Param("size")   int size,
+            @Param("userId") Long userId
+    );
+
+    /** 단건 조회 + isLiked */
+    @Select("""
+        SELECT
+          db.drawing_board_id      AS drawingBoardId,
+          db.drawing_id            AS drawingId,
+          db.user_id               AS userId,
+          u.nickname               AS nickname,
+          db.title,
+          db.content,
+          db.view_count            AS viewCount,
+          db.like_count            AS likeCount,
+          db.created_at            AS createdAt,
+          db.updated_at            AS updatedAt,
+          d.original_image_url     AS imageUrl,
+          EXISTS (
+            SELECT 1
+              FROM user_drawing_like udl
+             WHERE udl.user_id = #{userId}
+               AND udl.drawing_board_id = db.drawing_board_id
+          )                       AS isLiked
+        FROM drawing_board db
+        JOIN drawing d ON db.drawing_id = d.drawing_id
+        JOIN `user` u ON db.user_id = u.user_id
+        WHERE db.drawing_board_id = #{boardId}
+    """)
+    DrawingBoardDto selectByIdWithLike(
+            @Param("boardId") Long boardId,
+            @Param("userId")  Long userId
+    );
+
 }

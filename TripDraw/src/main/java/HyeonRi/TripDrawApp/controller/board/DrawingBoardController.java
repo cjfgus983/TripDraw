@@ -10,7 +10,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/drawingboard")
@@ -20,24 +19,31 @@ public class DrawingBoardController {
 
     /** 1. 이번 주 인기 작품 */
     @GetMapping("/popular")
-    public List<DrawingBoardDto> popular() {
-        return service.listPopular();
+    public List<DrawingBoardDto> popular(
+            @AuthenticationPrincipal CustomUserDetails principal
+    ) {
+        Long userId = principal.getUser().getUserId();
+        return service.listPopular(userId);
     }
 
     /** 2. 페이지 단위 전체 작품 조회 (기본 page=1) */
     @GetMapping
     public List<DrawingBoardDto> list(
-            @RequestParam(defaultValue = "1") int page
+            @RequestParam(defaultValue = "1") int page,
+            @AuthenticationPrincipal CustomUserDetails principal
     ) {
-        return service.listPage(page);
+        Long userId = principal.getUser().getUserId();
+        return service.listPage(page, userId);
     }
 
     /** 3. 상세 조회 (조회수 증가 포함) */
     @GetMapping("/{id}")
     public DrawingBoardDto get(
-            @PathVariable Long id
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails principal
     ) {
-        return service.get(id);
+        Long userId = principal.getUser().getUserId();
+        return service.get(id, userId);
     }
 
     /** 4. 게시글 생성 */
@@ -74,14 +80,23 @@ public class DrawingBoardController {
         return ResponseEntity.noContent().build();
     }
 
-    /** 7. 좋아요 (중복 방지 로직 포함) */
+    /** 7. 좋아요 */
     @PostMapping("/{id}/like")
     public ResponseEntity<Void> like(
             @PathVariable("id") Long boardId,
             @AuthenticationPrincipal CustomUserDetails principal
     ) {
-        Long userId = principal.getUser().getUserId();
-        service.like(userId, boardId);
+        service.like(principal.getUser().getUserId(), boardId);
         return ResponseEntity.ok().build();
+    }
+
+    /** 8. 좋아요 취소 */
+    @DeleteMapping("/{id}/like")
+    public ResponseEntity<Void> unlike(
+            @PathVariable("id") Long boardId,
+            @AuthenticationPrincipal CustomUserDetails principal
+    ) {
+        service.unlike(principal.getUser().getUserId(), boardId);
+        return ResponseEntity.noContent().build();
     }
 }
