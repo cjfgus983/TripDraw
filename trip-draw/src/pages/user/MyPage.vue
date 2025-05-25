@@ -66,7 +66,8 @@
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold text-gray-800">내 여행계획</h2>
             <button
-              class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition cursor-pointer !rounded-button whitespace-nowrap"
+              class="bg-[#9FB3DF] text-white px-4 py-2 rounded-md hover:bg-[#7E97D6] transition cursor-pointer !rounded-button whitespace-nowrap"
+              @click="newPlan()"
             >
               새 여행 계획 추가
             </button>
@@ -74,45 +75,54 @@
 
           <div class="space-y-4">
             <div
-              v-for="plan in filteredPlans"
-              :key="plan.id"
-              class="bg-white rounded-lg shadow-md p-4 flex items-center gap-4 transition-all duration-300 hover:shadow-lg w-4/5 mx-auto"
+              v-for="(plan, idx) in filteredPlans"
+              :key="plan.planCode"
+              class="bg-white rounded-lg shadow-md p-4 flex items-center gap-4 transition-all duration-300 hover:shadow-lg w-7/8 mx-auto"
             >
               <!-- Plan Content -->
               <div class="flex-grow flex justify-between items-center">
-                <div>
-                  <div class="flex items-center gap-3 mb-2">
-                    <h3 class="text-lg font-semibold">{{ plan.title }}</h3>
-                    <span
-                      class="bg-[#9FB3DF] text-white px-2 py-1 rounded-md text-xs"
-                      >{{ plan.region }}</span
-                    >
-                  </div>
-                </div>
+                
                 <!-- Route Display -->
                 <div class="flex flex-wrap items-center gap-3 ml-4">
-                  <template
-                    v-for="(location, locIndex) in plan.route"
-                    :key="locIndex"
-                  >
+                <template
+                  v-for="(location, locIndex) in plan.route.slice(0, 5)"
+                  :key="locIndex"
+                >
                     <span
                       class="bg-[#FFF1D5] px-3 py-2 rounded text-base font-medium whitespace-nowrap"
                       >{{ location }}</span
                     >
                     <i
-                      v-if="locIndex < plan.route.length - 1"
+                      v-if="locIndex < plan.route.length - 1 && locIndex < 4"
                       class="fas fa-arrow-right text-[#9EC6F3] text-lg flex-shrink-0"
                     ></i>
-                  </template>
-                </div>
-              </div>
-            </div>
+                    </template>
+                      <!-- 남은 경로가 있다면 “…” 표시 -->
+                      <span
+                        v-if="plan.route.length > 5"
+                        class="text-gray-500 px-2"
+                      >…</span>
+                      </div>
+                    </div>
+                    <!-- 버튼 그룹 -->
+                    <div class="flex space-x-2 mt-2">
+                      <button
+                        @click="viewPlan(plan.planCode)"
+                        class="flex-none whitespace-nowrap bg-[#9FB3DF] text-white px-4 py-2 rounded hover:bg-[#7E97D6] transition"
+                      >계획보기</button>
+                      <button
+                        @click="deletePlan(plan.planCode, idx)"
+                        class="flex-1 bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 transition"
+                      >삭제</button>
+                    </div>
+                  </div>
 
             <div v-if="filteredPlans.length === 0" class="text-center py-12">
               <i class="fas fa-plane text-gray-300 text-5xl mb-4"></i>
               <p class="text-gray-500">아직 등록된 여행 계획이 없습니다.</p>
               <button
                 class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition cursor-pointer !rounded-button whitespace-nowrap"
+                @click="newPlan()"
               >
                 첫 여행 계획 만들기
               </button>
@@ -266,7 +276,7 @@
   </template>
   
   <script lang="ts" setup>
-  import { ref, computed, onMounted } from "vue";
+  import { ref, computed, onMounted, watch } from "vue";
   import { useRouter } from 'vue-router'
   
 
@@ -278,9 +288,20 @@
 
   const router = useRouter();
 
-  // 탭 상태 관리
-  // 필터된 여행 계획 (필요 시 favorite 필터링 로직 추가 가능)
-const filteredPlans = computed(() => travelPlans.value);
+  const travelPlans = ref<Array<{
+  planCode: string
+  createdAt: string
+  region: string
+  routeConcat: string
+}>>([])
+
+const parsedPlans = computed(() =>
+  travelPlans.value.map(p => ({
+    ...p,
+    route: p.routeConcat ? p.routeConcat.split(',') : []
+  }))
+)
+const filteredPlans = parsedPlans
   const tabs = [
     { id: "myDrawings", name: "내 그림" },
     { id: "myTravelPlans", name: "내 여행계획" },
@@ -296,6 +317,27 @@ const filteredPlans = computed(() => travelPlans.value);
     date: string;
 }
 
+const userId = ref<number | null>(null);
+
+// 탭이 'myTravelPlans' 로 바뀔 때마다 호출
+watch(activeTab, async tab => {
+  if (tab !== 'myTravelPlans') return;
+  try {
+    // 실제로는 헤더에 토큰 넣거나 쿠키 인증 사용
+    const { data } = await axios.get<{
+      planCode: string
+      createdAt: string
+      region: string
+      routeConcat: string
+    }[]>(
+      'http://localhost:8080/api/mypage/trip-plans',
+      { params: { userId: userId.value } }
+    );
+    travelPlans.value = data;
+  } catch (err) {
+    console.error('내 여행계획 불러오기 실패', err);
+  }
+})
 
 const myDrawings = ref<DrawingItem[]>([]);
 const selectedDrawing = ref<DrawingItem | null>(null);
@@ -312,6 +354,19 @@ function closeImageModal() {
 
 
 onMounted(async () => {
+  const token = localStorage.getItem('accessToken')
+  if (!token) return
+  try {
+    const { data } = await axios.get(
+      'http://localhost:8080/api/users/me',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    userId.value = data.userId
+  } catch {
+    // 토큰 만료 등 에러 처리
+    //localStorage.removeItem('accessToken')
+    //nickname.value = null
+  }
   if (activeTab.value !== 'myDrawings') return;
   try {
     const { data } = await axios.get<{
@@ -335,33 +390,6 @@ onMounted(async () => {
   }
 });
 
-  // 여행 계획 데이터
-  const travelPlans = ref([
-  {
-    id: 1,
-    title: "제주도 4박 5일 여행",
-    region: "제주도",
-    author: "김여행",
-    route: ["성산일출봉", "우도", "한라산", "카페 투어", "협재 해수욕장"],
-    favorite: false,
-  },
-  {
-    id: 2,
-    title: "부산 주말 여행",
-    region: "부산",
-    author: "홍길동",
-    route: ["해운대", "광안리", "감천문화마을", "자갈치시장"],
-    favorite: false,
-  },
-  {
-    id: 3,
-    title: "강원도 스키 여행",
-    region: "평창",
-    author: "이동수",
-    route: ["용평 리조트", "알펜시아", "평창 송어 축제"],
-    favorite: false,
-  },
-  ]);
   // 회원정보 수정 관련
   const password = ref("");
   
@@ -459,6 +487,30 @@ onMounted(async () => {
     myDrawings.value.splice(index, 1);
   } catch (err) {
     console.error('삭제 실패', err);
+  }
+}
+  // planCode → TripPlanPage 로 이동
+function viewPlan(planCode: string) {
+  router.push({ name: 'TripPlanPage', params: { planCode } })
+}
+
+// 새 계획 추가
+function newPlan() {
+  router.push({ name: 'TripPlanPage' })
+}
+
+// 삭제 API 호출
+async function deletePlan(planCode: string, idx: number) {
+  if (!confirm('정말 이 계획을 삭제하시겠습니까?')) return
+  try {
+    await axios.delete(
+      `http://localhost:8080/api/mypage/trip-plans/${planCode}`,
+      { params: { userId: userId.value } }
+    )
+    travelPlans.value.splice(idx, 1)
+  } catch (err) {
+    console.error('삭제 실패', err)
+    alert('삭제에 실패했습니다.')
   }
 }
   </script>
