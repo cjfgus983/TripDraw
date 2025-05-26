@@ -159,6 +159,18 @@
               placeholder="내용을 입력해주세요"
             ></div>
           </div>
+           <!-- 고정 여부 체크박스 -->
+         <div class="mb-6 flex items-center">
+           <input
+             id="isPinned"
+             type="checkbox"
+             v-model="isPinned"
+             class="h-4 w-4 text-[#9FB3DF] border-gray-300 rounded focus:ring-[#9FB3DF]"
+           />
+           <label for="isPinned" class="ml-2 text-gray-700 font-medium">
+             중요 공지로 고정
+           </label>
+         </div>
   
           <!-- 버튼 영역 -->
           <div class="flex justify-end">
