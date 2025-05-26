@@ -441,7 +441,7 @@ const sendVerificationEmail = async () => {
   try {
     // 1-2) 중복 확인
     const { data: { available } } = await axios.get(
-      "http://localhost:8080/api/users/check-email",
+      "/test/api/users/check-email",
       { params: { email: email.value } }
     );
     if (!available) {
@@ -451,7 +451,7 @@ const sendVerificationEmail = async () => {
 
     // 1-3) 인증번호 요청 (백엔드에 send-email 엔드포인트를 만들어 두세요)
     await axios.post(
-      "http://localhost:8080/api/users/email/send",
+      "/test/api/users/email/send",
       { email: email.value }
     );
 
@@ -488,7 +488,7 @@ const verifyCode = async () => {
 
   try {
     const { data: { verified } } = await axios.post(
-      "http://localhost:8080/api/users/email/verify",
+      "/test/api/users/email/verify",
       {
         email: email.value,
         code:  verificationCode.value
@@ -674,7 +674,7 @@ const verifyCode = async () => {
 
   try {
     await axios.post(
-      "http://localhost:8080/api/users/signup",
+      "/test/api/users/signup",
       {
         email:            email.value,
         password:         password.value,
@@ -704,7 +704,7 @@ const checkEmailAvailability = async () => {
   checkingEmail.value = true;
   try {
     const { data: { available } } = await axios.get(
-      "http://localhost:8080/api/users/check-email",
+      "/test/api/users/check-email",
       { params: { email: email.value } }
     );
     emailAvailable.value = available;

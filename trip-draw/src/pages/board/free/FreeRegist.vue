@@ -98,7 +98,7 @@ onMounted(async () => {
   if (!token) return
   try {
     const { data } = await axios.get(
-      'http://localhost:8080/api/users/me',
+      '/test/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value = data.userId
@@ -150,7 +150,7 @@ async function submitPost() {
   try {
     submitting.value = true;
     await axios.post(
-      'http://localhost:8080/api/free/createFree',
+      '/test/api/free/createFree',
       formData,
       {
         headers: {

@@ -151,7 +151,7 @@ const token = localStorage.getItem('accessToken')
 // API 호출: 전체 공지
 async function fetchNotices() {
   try {
-    const { data } = await axios.get<NoticeDto[]>('http://localhost:8080/api/notice')
+    const { data } = await axios.get<NoticeDto[]>('/test/api/notice')
     notices.value = data
   } catch (err) {
     console.error('공지 로드 실패', err)
@@ -203,7 +203,7 @@ onMounted(async () => {
       nickname: string,
       role: string
     }>(
-      'http://localhost:8080/api/users/me',
+      '/test/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value   = me.data.userId

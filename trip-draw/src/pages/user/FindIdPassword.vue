@@ -157,7 +157,7 @@ import { ref } from "vue";
 import axios from "axios";
 
 // API 기본 주소 설정
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || "/test";
 
 // 활성 탭 상태
 const activeTab = ref<"findId"|"findPassword">("findId");

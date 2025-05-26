@@ -57,7 +57,7 @@ onMounted(async () => {
   if (!token) return
   try {
     const { data } = await axios.get(
-      'http://localhost:8080/api/users/me',
+      '/test/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     // 스토어에 프로필 저장set

@@ -297,14 +297,14 @@ async function loadAll() {
 
   // 내 정보
   const me = await axios.get<{ userId: number }>(
-    "http://localhost:8080/api/users/me",
+    "/test/api/users/me",
     { headers: { Authorization: `Bearer ${token}` } }
   );
   currentUserId.value = me.data.userId;
 
   // 게시글 상세
   const bd = await axios.get<PlanDetail>(
-    `http://localhost:8080/api/trip/boards/${planBoardId}`,
+    `/test/api/trip/boards/${planBoardId}`,
     {
       headers: { Authorization: `Bearer ${token}` },
       params:  { userId: currentUserId.value }
@@ -314,14 +314,14 @@ async function loadAll() {
 
   // 댓글 목록
   const cm = await axios.get<CommentDto[]>(
-    `http://localhost:8080/api/trip/boards/${planBoardId}/comments`,
+    `/test/api/trip/boards/${planBoardId}/comments`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   comments.value = cm.data;
   
   // 일차별 계획
   const resp = await axios.get<PlanDetailWithDays>(
-    `http://localhost:8080/api/trip/boards/${planBoardId}/detail-with-locations`,
+    `/test/api/trip/boards/${planBoardId}/detail-with-locations`,
     {
       headers: { Authorization: `Bearer ${token}` },
       params:  { userId: currentUserId.value }
@@ -345,7 +345,7 @@ function goToPlanPage() {
 
 // 즐겨찾기 토글
 async function toggleFavorite() {
-  const url = `http://localhost:8080/api/trip/boards/${planBoardId}/favorite`;
+  const url = `/test/api/trip/boards/${planBoardId}/favorite`;
   const cfg = {
     headers: { Authorization: `Bearer ${token}` },
     params:  { userId: currentUserId.value }
@@ -362,7 +362,7 @@ async function toggleFavorite() {
 async function addComment() {
   if (!newComment.value.trim()) return;
   await axios.post(
-    `http://localhost:8080/api/trip/boards/${planBoardId}/comments`,
+    `/test/api/trip/boards/${planBoardId}/comments`,
     { userId: currentUserId.value, content: newComment.value },
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -381,7 +381,7 @@ function cancelEdit() {
 async function saveEdit() {
   if (editingId.value === null || !editCommentText.value.trim()) return;
   await axios.put(
-    `http://localhost:8080/api/trip/boards/${planBoardId}/comments/${editingId.value}`,
+    `/test/api/trip/boards/${planBoardId}/comments/${editingId.value}`,
     { userId: currentUserId.value, content: editCommentText.value },
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -392,7 +392,7 @@ async function saveEdit() {
 async function deleteComment(commentId: number) {
   if (!confirm("정말 삭제하시겠습니까?")) return;
   await axios.delete(
-    `http://localhost:8080/api/trip/boards/${planBoardId}/comments/${commentId}`,
+    `/test/api/trip/boards/${planBoardId}/comments/${commentId}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   await loadAll();

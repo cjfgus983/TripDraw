@@ -294,13 +294,13 @@ onMounted(async () => {
     }
 
     const { data: me } = await axios.get<{ userId: number }>(
-      'http://localhost:8080/api/users/me',
+      '/test/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value = me.userId
 
     const { data } = await axios.get<APIPlan[]>(
-      "http://localhost:8080/api/trip/boards",
+      "/test/api/trip/boards",
       { headers: { Authorization: `Bearer ${token}` }, params: { userId: userId.value } }
     );
     travelPlans.value = data.map(p => ({
@@ -379,7 +379,7 @@ async function toggleFavorite(id: number) {
     if (!travelPlans.value[idx].favorite) {
       // 즐겨찾기 추가
       await axios.post(
-        `http://localhost:8080/api/trip/boards/${id}/favorite`,
+        `/test/api/trip/boards/${id}/favorite`,
         null,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -390,7 +390,7 @@ async function toggleFavorite(id: number) {
     } else {
       // 즐겨찾기 해제
       await axios.delete(
-        `http://localhost:8080/api/trip/boards/${id}/favorite`,
+        `/test/api/trip/boards/${id}/favorite`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { userId: userId.value }

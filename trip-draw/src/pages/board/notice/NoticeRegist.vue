@@ -245,7 +245,7 @@ const token = localStorage.getItem("accessToken");
 
   if (!token) return;
   axios.get<{ userId: number }>(
-    "http://localhost:8080/api/users/me",
+    "/test/api/users/me",
     { headers: { Authorization: `Bearer ${token}` } }
   )
   .then(r => { userId.value = r.data.userId })
@@ -340,7 +340,7 @@ if (!userId.value) {
 
 try {
   await axios.post(
-    "http://localhost:8080/api/notice",
+    "/test/api/notice",
     {
       userId: userId.value,
       title: title.value,
