@@ -15,8 +15,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**") // Vue가 호출하는 경로
-                .allowedOrigins("https://quiet-chaja-5cea12.netlify.app")
-                .allowedOrigins("http://localhost:5173") // Vue dev 서버
+                .allowedOrigins(
+                        "https://quiet-chaja-5cea12.netlify.app",
+                        "http://localhost:5173"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);

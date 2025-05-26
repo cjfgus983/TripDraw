@@ -9,6 +9,18 @@
   force = true
 
 [[redirects]]
+  from = "/oauth2/authorization/*"
+  to = "http://tripdraw.ap-northeast-2.elasticbeanstalk.com/oauth2/authorization/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/login/oauth2/code/*"
+  to = "http://tripdraw.ap-northeast-2.elasticbeanstalk.com/login/oauth2/code/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
