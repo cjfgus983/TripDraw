@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>오류 페이지</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Noto Sans KR 폰트 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { font-family: "Noto Sans KR", sans-serif; }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 py-12">
+  <!-- 에러 컨테이너 -->
+  <div class="max-w-lg w-full bg-white rounded-xl shadow-lg overflow-hidden">
+    <!-- 에러 이미지 -->
+    <div class="relative h-64 overflow-hidden">
+      <img id="error-img"
+           src=""
+           alt="에러 일러스트레이션"
+           class="w-full h-full object-cover object-top"/>
+    </div>
+
+    <!-- 에러 내용 -->
+    <div class="p-8 text-center">
+      <h1 id="error-code" class="text-8xl font-bold text-red-500 mb-4">ERROR</h1>
+      <h2 id="error-title" class="text-2xl font-bold text-gray-800 mb-4">서버 오류가 발생했습니다</h2>
+      <p id="error-desc" class="text-gray-600 mb-8">
+        죄송합니다. 현재 서버에 문제가 발생하여 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요.
+      </p>
+
+      <!-- 버튼 그룹 -->
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <button id="btn-home"
+                class="!rounded-button whitespace-nowrap cursor-pointer px-6 py-3 bg-blue-600 text-white font-medium text-base hover:bg-blue-700 transition-colors duration-300 rounded-lg shadow-md">
+          <i class="fas fa-home mr-2"></i> 홈으로 돌아가기
+        </button>
+        <button id="btn-back"
+                class="!rounded-button whitespace-nowrap cursor-pointer px-6 py-3 bg-gray-200 text-gray-700 font-medium text-base hover:bg-gray-300 transition-colors duration-300 rounded-lg shadow-md">
+          <i class="fas fa-arrow-left mr-2"></i> 이전 페이지로
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 추가 도움말 -->
+  <div class="mt-8 text-center">
+    <p class="text-gray-500 mb-2">문제가 계속되면 다음 방법을 시도해보세요:</p>
+    <ul class="text-gray-500 list-disc list-inside text-left inline-block">
+      <li>브라우저를 새로고침 해보세요</li>
+      <li>잠시 후 다시 시도해보세요</li>
+      <li>인터넷 연결을 확인해보세요</li>
+    </ul>
+
+    <!-- 기술 지원 -->
+    <div class="mt-6">
+      <p class="text-gray-600">기술 지원이 필요하신가요?</p>
+      <a href="mailto:support@example.com" class="text-blue-600 hover:underline cursor-pointer">
+        <i class="fas fa-envelope mr-1"></i> support@example.com
+      </a>
+    </div>
+
+    <!-- 현재 날짜 -->
+    <p id="current-date" class="mt-8 text-sm text-gray-400"></p>
+  </div>
+
+  <!-- FontAwesome (아이콘용) -->
+  <script src="https://kit.fontawesome.com/your_kit_id.js" crossorigin="anonymous"></script>
+  <script>
+    // 에러 일러스트 URL
+    const errorImageUrl = 
+      "/error.jpg";
+
+    // DOM에 값 적용
+    document.getElementById('error-img').src = errorImageUrl;
+
+    // 오늘 날짜 출력 (한국어)
+    const now = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    document.getElementById('current-date').innerText = now.toLocaleDateString('ko-KR', options);
+
+    // 버튼 동작
+    document.getElementById('btn-home').addEventListener('click', () => {
+      window.location.href = '/';
+    });
+    document.getElementById('btn-back').addEventListener('click', () => {
+      window.history.back();
+    });
+  </script>
+</body>
+</html>
