@@ -255,7 +255,7 @@ function onImageError(e: Event) {
 onMounted(async () => {
   try {
     const token = localStorage.getItem('accessToken');
-    const { data } = await axios.get('/test/api/free', {
+    const { data } = await axios.get('/api/free', {
       headers: { Authorization: `Bearer ${token}` }
     });
     posts.value = data;

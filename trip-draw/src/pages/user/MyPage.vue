@@ -330,7 +330,7 @@ watch(activeTab, async tab => {
       region: string
       routeConcat: string
     }[]>(
-      '/test/api/mypage/trip-plans',
+      '/api/mypage/trip-plans',
       { params: { userId: userId.value } }
     );
     travelPlans.value = data;
@@ -358,7 +358,7 @@ onMounted(async () => {
   if (!token) return
   try {
     const { data } = await axios.get(
-      '/test/api/users/me',
+      '/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value = data.userId
@@ -504,7 +504,7 @@ async function deletePlan(planCode: string, idx: number) {
   if (!confirm('정말 이 계획을 삭제하시겠습니까?')) return
   try {
     await axios.delete(
-      `/test/api/mypage/trip-plans/${planCode}`,
+      `/api/mypage/trip-plans/${planCode}`,
       { params: { userId: userId.value } }
     )
     travelPlans.value.splice(idx, 1)

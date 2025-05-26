@@ -660,7 +660,7 @@ function openInfo(marker: google.maps.Marker, item: ItineraryItem) {
   })
 }
 function fetchNearbyByCenter(lat: number, lng: number) {
-  axios.get('/test/api/nearby', {
+  axios.get('/api/nearby', {
     params: { lat, lng }
   }).then(resp => {
     nearbyPlaces.value = resp.data
@@ -719,7 +719,7 @@ async function applyChanges() {
     isLoading.value = true;
       try {
         const resp = await axios.post(
-          '/test/api/itinerary/update-times',
+          '/api/itinerary/update-times',
           { itinerary: itinerary.value },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -834,7 +834,7 @@ onMounted(async () => {
         endTime: ''
       })
     })
-  const resp = await axios.get('/test/api/nearby', {
+  const resp = await axios.get('/api/nearby', {
     params: { lat: currentCenter.lat, lng: currentCenter.lng }
   })
   nearbyPlaces.value = resp.data
@@ -843,7 +843,7 @@ onMounted(async () => {
   if (!token) return
     try {
     const { data } = await axios.get(
-      '/test/api/users/me',
+      '/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value = data.userId
@@ -867,7 +867,7 @@ async function fetchItinerary() {
     const basePlace = selectedSearchPlace.value || store.center.name
 
     const resp = await axios.post<ItineraryItem[][]>(
-      '/test/api/itinerary',
+      '/api/itinerary',
       { places: [ store.center.name ], days: dayOption.value},
       { headers: { Authorization: `Bearer ${token}` } }
     )
@@ -920,7 +920,7 @@ const locations = itinerary.value.flatMap((day, idx) =>
 try {
   // 2) API 호출
   const resp = await axios.post(
-    '/test/api/plans-with-locations',
+    '/api/plans-with-locations',
     {
       userId: userId.value,  // 또는 로컬스토리지에서 꺼내든지
       region: planRegion,
@@ -973,7 +973,7 @@ async function submitForm() {
   try {
     // --- 1단계: 계획 + 장소들 생성 ---
     const planResp = await axios.post<string>(
-      '/test/api/plans-with-locations',
+      '/api/plans-with-locations',
       {
         userId: userId.value,
         region: planRegion,
@@ -985,7 +985,7 @@ async function submitForm() {
 
     // --- 2단계: 게시글 등록 ---
     await axios.post(
-      '/test/api/trip/boards',
+      '/api/trip/boards',
       {
         planCode,
         userId:        userId.value,
@@ -1043,7 +1043,7 @@ async function loadPlan(planCode: string) {
           endTime: string
         }[]
       }>
-    }>(`/test/api/plans-with-locations/${planCode}`, {
+    }>(`/api/plans-with-locations/${planCode}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
 

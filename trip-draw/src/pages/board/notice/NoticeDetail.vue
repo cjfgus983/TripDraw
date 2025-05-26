@@ -154,7 +154,7 @@ onMounted(async () => {
       nickname: string,
       role: string
     }>(
-      '/test/api/users/me',
+      '/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value   = me.data.userId
@@ -163,14 +163,14 @@ onMounted(async () => {
 
     // 2) 조회수 1 증가 (PATCH 엔드포인트 추가 필요)
     // await axios.patch(
-    //   `/test/api/notice/${noticeId}/views`,
+    //   `/api/notice/${noticeId}/views`,
     //   null,
     //   { headers: { Authorization: `Bearer ${token}` } }
     // )
 
     // 3) 공지 상세 가져오기
     const { data } = await axios.get<NoticeDto>(
-      `/test/api/notice/${noticeId}`,
+      `/api/notice/${noticeId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     notice.value = data
@@ -209,7 +209,7 @@ async function saveEdit() {
   if (!notice.value) return
   try {
     await axios.put(
-      `/test/api/notice/${noticeId}`,
+      `/api/notice/${noticeId}`,
       {
         title:       editTitle.value,
         content:     editContent.value,
@@ -218,7 +218,7 @@ async function saveEdit() {
     )
     // 업데이트 후 다시 상세 조회
     const { data } = await axios.get<NoticeDto>(
-      `/test/api/notice/${noticeId}`,
+      `/api/notice/${noticeId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     notice.value    = data

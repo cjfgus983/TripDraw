@@ -216,7 +216,7 @@ onMounted(async () => {
 
   // 상세 게시글
   const { data: dto } = await axios.get(
-    `/test/api/free/${freeId}`,
+    `/api/free/${freeId}`,
     { headers }
   )
   post.value = dto
@@ -225,7 +225,7 @@ onMounted(async () => {
 
   // 댓글 목록
   const { data: cmts } = await axios.get(
-    `/test/api/free/${freeId}/comment`,
+    `/api/free/${freeId}/comment`,
     { headers }
   )
   comments.value = cmts
@@ -234,7 +234,7 @@ onMounted(async () => {
   if (!token) return
   try {
     const { data } = await axios.get(
-      '/test/api/users/me',
+      '/api/users/me',
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value = data.userId
@@ -258,14 +258,14 @@ async function addComment() {
 
   // freeId 는 path, userId 는 query parameter 로 전달
   await axios.post(
-    `/test/api/free/${freeId}/comment?userId=${userId.value}`,
+    `/api/free/${freeId}/comment?userId=${userId.value}`,
     { content: newComment.value },   // CommentRequest DTO 에 맞춘 body
     { headers }
   );
 
   // 등록 후 다시 불러오기
   const { data: cmts } = await axios.get(
-    `/test/api/free/${freeId}/comment`,
+    `/api/free/${freeId}/comment`,
     { headers }
   );
   comments.value = cmts;
@@ -291,13 +291,13 @@ async function saveEdit(commentId: number) {
   const token = localStorage.getItem('accessToken')
   const headers = token ? { Authorization: `Bearer ${token}` } : {}
   await axios.put(
-    `/test/api/free/${freeId}/comment/${commentId}`,
+    `/api/free/${freeId}/comment/${commentId}`,
     { content: editingContent.value },
     { headers }
   )
   // 다시 로드
   const { data: cmts } = await axios.get(
-    `/test/api/free/${freeId}/comment`, { headers }
+    `/api/free/${freeId}/comment`, { headers }
   )
   comments.value = cmts
   cancelEdit()
@@ -309,7 +309,7 @@ async function deleteComment(commentId: number) {
   const token = localStorage.getItem('accessToken')
   const headers = token ? { Authorization: `Bearer ${token}` } : {}
   await axios.delete(
-    `/test/api/free/${freeId}/comment/${commentId}`, { headers }
+    `/api/free/${freeId}/comment/${commentId}`, { headers }
   )
   // 로컬에서 바로 제거
   comments.value = comments.value.filter(c => c.commentId !== commentId)
@@ -328,7 +328,7 @@ async function sendReaction(type: 'LIKE' | 'DISLIKE') {
   const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
   const url =
-    `/test/api/free/${freeId}/reaction` +
+    `/api/free/${freeId}/reaction` +
     `?type=${type}` +
     `&userId=${userId.value}`
 
