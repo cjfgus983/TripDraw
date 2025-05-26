@@ -12,6 +12,9 @@ import axios from 'axios'
 import { createPinia } from 'pinia'
 
 
+console.log('API base:', import.meta.env.VITE_API_BASE_URL)  // ← 빌드 시 정상 값 찍히는지 확인
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL
+
 const app = createApp(App);
 
 const token = window.localStorage.getItem('accessToken')
