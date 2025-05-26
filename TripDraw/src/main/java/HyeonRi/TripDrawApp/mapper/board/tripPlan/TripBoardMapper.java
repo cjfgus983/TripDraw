@@ -25,25 +25,30 @@ public interface TripBoardMapper {
 			    DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt,
 			    -- 작성자 닉네임
 			    u.nickname                AS nickname,
-			    -- 1일차 장소 최대 5개
-			    SUBSTRING_INDEX(
-			      GROUP_CONCAT(l.address_name ORDER BY l.start_time SEPARATOR ','),
-			      ',',
-			      5
-			    )                         AS routeConcat,
-			    p.region				  AS region
-			  FROM trip_board b
-			  -- 작성자 정보 조인
-			  LEFT JOIN trip_plans p
-			  	ON b.plan_code = p.plan_code
-			  LEFT JOIN `user` u
-			    ON b.user_id = u.user_id
-			  -- 1일차 장소 정보 조인
-			  LEFT JOIN trip_location l
-			    ON b.plan_code = l.plan_code
-			   AND l.day_no  = 1
-			  GROUP BY b.plan_board_id
-			  ORDER BY b.created_at DESC
+			    -- 1일차 장소 이름의 콤마 앞 부분만 5개 뽑아서 콤마로 이어 붙임
+			  (
+			    SELECT
+			      GROUP_CONCAT(
+			        SUBSTRING_INDEX(address_name, ',', 1)
+			        ORDER BY start_time
+			        SEPARATOR ','
+			      )
+			    FROM (
+			      SELECT address_name, start_time
+			      FROM trip_location
+			      WHERE plan_code = b.plan_code
+			        AND day_no    = 1
+			      ORDER BY start_time
+			      LIMIT 5
+			    ) AS x
+			  ) AS routeConcat
+			
+			FROM trip_board b
+			LEFT JOIN trip_plans p
+			  ON b.plan_code = p.plan_code
+			LEFT JOIN `user` u
+			  ON b.user_id   = u.user_id
+			ORDER BY b.created_at DESC
 			""")
 	List<TripBoardWithRouteDto> selectBoardsWithRoute();
 
@@ -56,36 +61,42 @@ public interface TripBoardMapper {
     void insertBoard(TripBoardDto dto);
 
     @Select("""
-			  SELECT
-		    b.plan_board_id           AS planBoardId,
-		    b.board_title             AS boardTitle,
-		    b.board_content           AS boardContent,
-		    -- 콤마로 결합된 카테고리 문자열
-		    b.board_category          AS boardCategoryConcat,
-		    b.plan_code               AS planCode,
-		    DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt,
-		    -- 작성자 닉네임
-		    u.nickname                AS nickname,
-		    -- 1일차 장소 최대 5개
-		    SUBSTRING_INDEX(
-		      GROUP_CONCAT(l.address_name ORDER BY l.start_time SEPARATOR ','),
-		      ',',
-		      5
-		    )                         AS routeConcat,
-		    p.region				  AS region
-		  FROM trip_board b
-		  -- 작성자 정보 조인
-		  LEFT JOIN trip_plans p
-		  	ON b.plan_code = p.plan_code
-		  LEFT JOIN `user` u
-		    ON b.user_id = u.user_id
-		  -- 1일차 장소 정보 조인
-		  LEFT JOIN trip_location l
-		    ON b.plan_code = l.plan_code
-		   AND l.day_no  = 1
-		  WHERE b.plan_board_id = #{planBoardId}
-		  GROUP BY b.plan_board_id
-		  ORDER BY b.created_at DESC
+			 SELECT
+			    b.plan_board_id           AS planBoardId,
+			    b.board_title             AS boardTitle,
+			    b.board_content           AS boardContent,
+			    b.board_category          AS boardCategoryConcat,
+			    b.plan_code               AS planCode,
+			    DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt,
+			    u.nickname                AS nickname,
+			
+			    -- 1일차 장소 앞부분(콤마 전) 5개만 뽑아서 콤마로 이어 붙임
+			    (
+			      SELECT
+			        GROUP_CONCAT(
+			          SUBSTRING_INDEX(tmp.address_name, ',', 1)
+			          ORDER BY tmp.start_time
+			          SEPARATOR ','
+			        )
+			      FROM (
+			        SELECT address_name, start_time
+			        FROM trip_location
+			        WHERE plan_code = b.plan_code
+			          AND day_no    = 1
+			        ORDER BY start_time
+			        LIMIT 5
+			      ) AS tmp
+			    ) AS routeConcat,
+			
+			    p.region AS region
+			
+			  FROM trip_board b
+			  LEFT JOIN trip_plans p
+			    ON b.plan_code = p.plan_code
+			  LEFT JOIN `user` u
+			    ON b.user_id   = u.user_id
+			
+			  WHERE b.plan_board_id = #{planBoardId}
 		""")
     TripBoardWithRouteDto selectBoardById(Long planBoardId);
 
