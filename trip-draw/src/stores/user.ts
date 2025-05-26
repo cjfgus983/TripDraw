@@ -14,7 +14,7 @@ export const useUserStore = defineStore('user', {
     email: null as string | null,
     nickname: null as string | null,
 
-    token: localStorage.getItem('token') as string | null,  // ← 추가
+    token: localStorage.getItem('accessToken') as string | null,  // ← 추가
     passwordConfirmed: false as boolean,
   }),
   getters: {
@@ -36,12 +36,12 @@ export const useUserStore = defineStore('user', {
 
     setToken(token: string) {
       this.token = token
-      localStorage.setItem('token', token)
+      localStorage.setItem('accessToken', token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
     },
     clearToken() {
       this.token = null
-      localStorage.removeItem('token')
+      localStorage.removeItem('accessToken')
       delete axios.defaults.headers.common['Authorization']
     },
 

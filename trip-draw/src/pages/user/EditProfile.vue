@@ -120,10 +120,13 @@
   import { ref, reactive, computed, onMounted } from 'vue'
   import axios from 'axios'
   import { useRouter } from 'vue-router'
+  import { useUserStore } from '@/stores/user'
   
   const router = useRouter()
+  const userStore = useUserStore()
   
   interface Profile {
+    id: string
     email: string
     name: string
     phoneNumber: string
@@ -133,6 +136,7 @@
   }
   
   const profile = reactive<Profile>({
+    id: '', 
     email: '',
     name: '',
     phoneNumber: '',
@@ -168,6 +172,7 @@
     try {
       const { data } = await axios.get<Profile>('/api/users/me')
       Object.assign(profile, data)
+      userStore.setProfile({ id: data.id, email: data.email, nickname: data.nickname })
     } catch {
       alert('프로필을 불러오는 중 오류가 발생했습니다.')
       router.push('/')
@@ -205,8 +210,14 @@
   
     try {
       await axios.put('/api/users/me', payload)
-      alert('회원정보가 성공적으로 업데이트되었습니다.')
-      router.push('/mypage')  // 성공하면 마이페이지 이동
+        // 1) Pinia 스토어도 갱신
+     userStore.setProfile({
+       id:    userStore.id!,      // 기존에 저장된 ID
+       email: profile.email,
+       nickname: profile.nickname
+     })
+     alert('회원정보가 성공적으로 업데이트되었습니다.')
+     router.push('/mypage')
     } catch (e: any) {
       const msg = e.response?.data?.message || '업데이트 중 오류가 발생했습니다.'
       alert(msg)
