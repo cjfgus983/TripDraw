@@ -273,6 +273,7 @@ const currentCenter = {
   lng: store.center.longitude
 }
 const route          = useRoute()
+const selectedSearchPlace = ref<string | null>(null)
 
 /** 일정 아이템 인터페이스 */
 interface ItineraryItem {
@@ -771,6 +772,7 @@ onMounted(async () => {
     searchBox.addListener('places_changed', () => {
       const places = searchBox.getPlaces()
       if (!places || places.length === 0) return
+      selectedSearchPlace.value = places[0].name || null
 
       // 이전 마커 제거
       clearMarkers()
@@ -837,6 +839,7 @@ onMounted(async () => {
   })
   nearbyPlaces.value = resp.data
 
+  console.log(token)
   if (!token) return
     try {
     const { data } = await axios.get(
@@ -844,6 +847,7 @@ onMounted(async () => {
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value = data.userId
+    console.log(userId.value)
   } catch {
     // 토큰 만료 등 에러 처리
     //localStorage.removeItem('accessToken')
@@ -860,9 +864,11 @@ async function fetchItinerary() {
   isLoading.value = true
 
   try {
+    const basePlace = selectedSearchPlace.value || store.center.name
+
     const resp = await axios.post<ItineraryItem[][]>(
       'http://localhost:8080/api/itinerary',
-      { places: [ store.center.name ], days: dayOption.value},
+      { places: [ basePlace ], days: dayOption.value},
       { headers: { Authorization: `Bearer ${token}` } }
     )
     // 1) 일정 데이터 세팅
@@ -880,7 +886,7 @@ async function fetchItinerary() {
     requestAnimationFrame(() => {
       setTimeout(() => {
         isLoading.value = false
-      }, 800)  
+      }, 1000)  
     })
   }
 }
