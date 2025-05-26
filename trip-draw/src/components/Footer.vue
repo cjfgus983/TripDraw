@@ -4,23 +4,15 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
           <!-- 회사 정보 -->
           <div>
-            <h3 class="text-lg font-bold mb-4">회사 소개</h3>
-            <p class="text-gray-400 mb-4">최고의 여행 경험을 제공하기 위해 노력하는 여행 계획 플랫폼입니다.</p>
-            <div class="flex space-x-4">
-              <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
-              <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
-              <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
-            </div>
+            <h3 class="text-lg font-bold mb-4">팀 소개</h3>
+            <p class="text-gray-400">김철현</p>
+            <p class="text-gray-400 mb-4">최유리</p>
+
           </div>
           <!-- 빠른 링크, 고객 지원, 연락처 생략 (원하면 추가해 드림) -->
         </div>
         <div class="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p class="text-gray-400 text-sm">© 2025 여행 계획 플랫폼. 모든 권리 보유.</p>
-          <div class="flex space-x-4 mt-4 md:mt-0">
-            <i class="fab fa-cc-visa text-2xl text-gray-400"></i>
-            <i class="fab fa-cc-mastercard text-2xl text-gray-400"></i>
-            <i class="fab fa-paypal text-2xl text-gray-400"></i>
-          </div>
+          <p class="text-gray-400 text-sm">© HyeonRi</p>
         </div>
       </div>
     </footer>

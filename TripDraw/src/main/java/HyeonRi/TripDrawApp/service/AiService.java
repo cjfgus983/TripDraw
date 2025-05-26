@@ -316,11 +316,14 @@ public class AiService {
  // 결과 포맷
  // 내부 static 클래스
     public static class PlanResult {
-        // 기존 일정 (unchanged)
         public List<List<ItineraryItemDto>> itinerary;
+        public List<ItineraryItemDto> nearbyTours;
         public List<ItineraryItemDto> nearbyCafes;
         public List<ItineraryItemDto> nearbyRestaurants;
-        public List<ItineraryItemDto> nearbyTours;
+        public List<ItineraryItemDto> nearbyLodgings;
+        public List<ItineraryItemDto> nearbyMuseums;
+        public List<ItineraryItemDto> nearbyTheaters;
+        public List<ItineraryItemDto> nearbyShopping;
     }
     
     public List<List<ItineraryItemDto>> recalculateItineraryTimes(
@@ -461,7 +464,7 @@ public class AiService {
         String user = String.format(
         	    "출발지: %s\n" +
         	    "%d일 동안, 각 일차별로 순서대로 HH:mm-HH:mm 타임라인으로 출력해주세요. " +
-        	    "각 장소 간 이동시간은 절대 60분을 넘지 않도록 하고, 모두 같은 국가 내에서만 이동할 수 있게 해주세요. " +
+        	    "각 장소 간 이동시간은 자동차를 기준으로 절대 60분을 넘지 않도록 하고, 모두 같은 국가 내에서만 이동할 수 있게 해주세요." +
         	    // ← 아래 한 줄만 추가된 부분입니다!
         	    "특히 CAFE, LUNCH, TOUR(관광지) 카테고리는 반드시 출발지와 동일한 국가 내에서 선택해주세요. " +
         	    "8단계 카테고리 순서: TOUR, BREAKFAST, TOUR, LUNCH, CAFE, TOUR, DINNER, EVENING_TOUR 또는 EVENING_CAFE. " +
@@ -539,15 +542,17 @@ public class AiService {
      * 초기 반경(initialRadius)을 넣고, 결과가 부족하면 maxRadius까지 단계별로 반경을 늘려가며 검색합니다.
      */
     public NearbyPlacesResult fetchFlexibleNearbyPlaces(double lat, double lng, int minCount) throws IOException {
-        // 초기 반경(m), 최대 반경(m), 단계별 확대율
-        int initialRadius = 3000,
-            maxRadius     = 20000;
-        double factor  = 1.5;
+        int initialRadius = 3000, maxRadius = 20000;
+        double factor = 1.5;
 
         NearbyPlacesResult result = new NearbyPlacesResult();
-        result.cafes       = fetchWithDynamicRadius(lat, lng, "cafe", minCount, initialRadius, maxRadius, factor);
-        result.restaurants = fetchWithDynamicRadius(lat, lng, "restaurant", minCount, initialRadius, maxRadius, factor);
         result.tours       = fetchWithDynamicRadius(lat, lng, "tourist_attraction", minCount, initialRadius, maxRadius, factor);
+        result.cafes       = fetchWithDynamicRadius(lat, lng, "cafe",           minCount, initialRadius, maxRadius, factor);
+        result.restaurants = fetchWithDynamicRadius(lat, lng, "restaurant",     minCount, initialRadius, maxRadius, factor);
+        result.lodgings    = fetchWithDynamicRadius(lat, lng, "lodging",        minCount, initialRadius, maxRadius, factor);
+        result.museums     = fetchWithDynamicRadius(lat, lng, "museum",         minCount, initialRadius, maxRadius, factor);
+        result.theaters    = fetchWithDynamicRadius(lat, lng, "movie_theater",  minCount, initialRadius, maxRadius, factor);
+        result.shopping    = fetchWithDynamicRadius(lat, lng, "shopping_mall",  minCount, initialRadius, maxRadius, factor);
         return result;
     }
 
@@ -601,17 +606,24 @@ public class AiService {
             JsonNode photos = node.path("photos");
             if (photos.isArray() && photos.size() > 0) {
                 photoRef = photos.get(0).path("photo_reference").asText(null);
+                //System.out.println("hi");
             }
+            //System.out.println(photoRef);
             out.add(new PlaceInfoDto(name, address, photoRef));
         }
+
         return out;
     }
 
     /** API 호출 결과를 담아 반환할 간단한 래퍼 클래스 */
     public static class NearbyPlacesResult {
+    	public List<PlaceInfoDto> tours;
         public List<PlaceInfoDto> cafes;
         public List<PlaceInfoDto> restaurants;
-        public List<PlaceInfoDto> tours;
+        public List<PlaceInfoDto> lodgings;    // 숙박
+        public List<PlaceInfoDto> museums;     // 문화시설
+        public List<PlaceInfoDto> theaters;    // 공연시설
+        public List<PlaceInfoDto> shopping;    // 쇼핑
     }
 
     /**

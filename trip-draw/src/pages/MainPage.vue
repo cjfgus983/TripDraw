@@ -31,110 +31,120 @@
 
     <!-- 인기 여행지 섹션 -->
     <section class="py-16 bg-white">
-      <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">인기 여행지</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- 여행지 카드 1 -->
+        <div class="container mx-auto px-4">
+          <h2 class="text-3xl font-bold text-center mb-12">인기 여행지</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <!-- 카드 1: 오사카 -->
           <div class="destination-card">
             <div class="h-64 rounded-lg overflow-hidden mb-4">
               <img
-                src="https://readdy.ai/api/search-image?query=beautiful%20jeju%20island%20korea%20with%20volcanic%20landscape%20and%20blue%20ocean%2C%20professional%20travel%20photography%20with%20vibrant%20colors%20and%20perfect%20lighting%2C%20clear%20blue%20sky%20with%20soft%20clouds&width=400&height=256&seq=dest1&orientation=landscape"
-                alt="제주도"
+                src="https://readdy.ai/api/search-image?query=beautiful%20osaka%20japan%20with%20traditional%20architecture%20and%20modern%20cityscape%2C%20cherry%20blossoms%20and%20vibrant%20street%20scenes%2C%20professional%20travel%20photography%20with%20perfect%20lighting%20and%20composition&width=400&height=256&seq=dest1&orientation=landscape"
+                alt="일본 오사카"
                 class="w-full h-full object-cover object-top"
               />
             </div>
-            <h3 class="text-xl font-bold mb-2">제주도</h3>
-            <p class="text-gray-600 mb-4">
-              푸른 바다와 아름다운 자연이 어우러진 한국의 대표 휴양지
-            </p>
+            <h3 class="text-xl font-bold mb-2">{{ osaka.name }}</h3>
+            <p class="text-gray-600 mb-4">{{ osaka.description }}</p>
             <button
-              class="text-[#4A90E2] font-medium flex items-center whitespace-nowrap cursor-pointer"
+              @click="selectAndGo(osaka)"
+              class="text-[#4A90E2] font-medium flex items-center !rounded-button cursor-pointer"
             >
-              자세히 보기<i class="fas fa-arrow-right ml-2"></i>
+              자세히 보기 <i class="fas fa-arrow-right ml-2"></i>
             </button>
           </div>
-          <!-- 여행지 카드 2 -->
-          <div class="destination-card">
-            <div class="h-64 rounded-lg overflow-hidden mb-4">
-              <img
-                src="https://readdy.ai/api/search-image?query=beautiful%20gyeongju%20korea%20with%20traditional%20korean%20architecture%20and%20cherry%20blossoms%2C%20historic%20temples%20and%20palaces%2C%20professional%20travel%20photography%20with%20perfect%20lighting%20and%20composition&width=400&height=256&seq=dest2&orientation=landscape"
-                alt="경주"
-                class="w-full h-full object-cover object-top"
-              />
-            </div>
-            <h3 class="text-xl font-bold mb-2">경주</h3>
-            <p class="text-gray-600 mb-4">
-              천년 고도의 역사와 문화가 살아 숨쉬는 도시
-            </p>
-            <button
-              class="text-[#4A90E2] font-medium flex items-center whitespace-nowrap cursor-pointer"
-            >
-              자세히 보기<i class="fas fa-arrow-right ml-2"></i>
-            </button>
-          </div>
-          <!-- 여행지 카드 3 -->
-          <div class="destination-card">
-            <div class="h-64 rounded-lg overflow-hidden mb-4">
-              <img
-                src="https://readdy.ai/api/search-image?query=beautiful%20busan%20korea%20with%20haeundae%20beach%20and%20city%20skyline%20at%20sunset%2C%20coastal%20cityscape%20with%20modern%20architecture%20and%20ocean%20view%2C%20professional%20travel%20photography%20with%20warm%20lighting&width=400&height=256&seq=dest3&orientation=landscape"
-                alt="부산"
-                class="w-full h-full object-cover object-top"
-              />
-            </div>
-            <h3 class="text-xl font-bold mb-2">부산</h3>
-            <p class="text-gray-600 mb-4">
-              해변과 산, 도시가 어우러진 매력적인 항구도시
-            </p>
-            <button
-              class="text-[#4A90E2] font-medium flex items-center whitespace-nowrap cursor-pointer"
-            >
-              자세히 보기<i class="fas fa-arrow-right ml-2"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- 서비스 특징 섹션 -->
-    <section class="py-16 bg-gradient-to-b from-[#BDDDE4] to-[#FFF1D5]">
-      <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">
-          왜 저희 서비스를 이용해야 할까요?
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- 특징 1 -->
-          <div class="feature-card bg-white p-8 rounded-lg shadow-md text-center">
-            <div class="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-[#9EC6F3] rounded-full text-white">
-              <i class="fas fa-map-marked-alt text-2xl"></i>
+          <!-- 카드 2: 부산 -->
+          <div class="destination-card">
+            <div class="h-64 rounded-lg overflow-hidden mb-4">
+              <img
+                src="https://readdy.ai/api/search-image?query=beautiful%20busan%20korea%20with%20haeundae%20beach%20and%20city%20skyline%20at%20sunset%2C%20coastal%20cityscape%20with%20modern%20architecture%20and%20ocean%20view%2C%20professional%20travel%20photography%20with%20warm%20lighting&width=400&height=256&seq=dest2&orientation=landscape"
+                alt="한국 부산"
+                class="w-full h-full object-cover object-top"
+              />
             </div>
-            <h3 class="text-xl font-bold mb-3">맞춤형 여행 계획</h3>
-            <p class="text-gray-600">
-              당신의 취향과 예산에 맞는 완벽한 여행 일정을 쉽게 계획할 수 있습니다.
-            </p>
+            <h3 class="text-xl font-bold mb-2">{{ busan.name }}</h3>
+            <p class="text-gray-600 mb-4">{{ busan.description }}</p>
+            <button
+              @click="selectAndGo(busan)"
+              class="text-[#4A90E2] font-medium flex items-center !rounded-button cursor-pointer"
+            >
+              자세히 보기 <i class="fas fa-arrow-right ml-2"></i>
+            </button>
           </div>
-          <!-- 특징 2 -->
-          <div class="feature-card bg-white p-8 rounded-lg shadow-md text-center">
-            <div class="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-[#9FB3DF] rounded-full text-white">
-              <i class="fas fa-users text-2xl"></i>
+
+          <!-- 카드 3: 파리 -->
+          <div class="destination-card">
+            <div class="h-64 rounded-lg overflow-hidden mb-4">
+              <img
+                src="https://readdy.ai/api/search-image?query=beautiful%20paris%20france%20with%20eiffel%20tower%20and%20seine%20river%2C%20historic%20architecture%20and%20romantic%20atmosphere%2C%20professional%20travel%20photography%20with%20perfect%20lighting%20and%20composition&width=400&height=256&seq=dest3&orientation=landscape"
+                alt="프랑스 파리"
+                class="w-full h-full object-cover object-top"
+              />
             </div>
-            <h3 class="text-xl font-bold mb-3">실시간 커뮤니티</h3>
-            <p class="text-gray-600">
-              다른 여행자들과 경험을 공유하고 실시간으로 소통할 수 있습니다.
-            </p>
+            <h3 class="text-xl font-bold mb-2">{{ paris.name }}</h3>
+            <p class="text-gray-600 mb-4">{{ paris.description }}</p>
+            <button
+              @click="selectAndGo(paris)"
+              class="text-[#4A90E2] font-medium flex items-center !rounded-button cursor-pointer"
+            >
+              자세히 보기 <i class="fas fa-arrow-right ml-2"></i>
+            </button>
           </div>
-          <!-- 특징 3 -->
-          <div class="feature-card bg-white p-8 rounded-lg shadow-md text-center">
-            <div class="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-[#4A90E2] rounded-full text-white">
-              <i class="fas fa-percentage text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-3">특별 할인 혜택</h3>
-            <p class="text-gray-600">
-              회원만을 위한 특별 할인과 프로모션을 통해 더 경제적인 여행을 즐기세요.
-            </p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+      <!-- 서비스 특징 섹션 -->
+      <section class="py-16 bg-gradient-to-b from-[#BDDDE4] to-[#FFF1D5]">
+        <div class="container mx-auto px-4">
+          <h2 class="text-3xl font-bold text-center mb-12">
+            왜 저희 서비스를 이용해야 할까요?
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- 특징 1 -->
+            <div
+              class="feature-card bg-white p-8 rounded-lg shadow-md text-center"
+            >
+              <div
+                class="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-[#9EC6F3] rounded-full text-white"
+              >
+                <i class="fas fa-map-marked-alt text-2xl"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3">맞춤형 여행 계획</h3>
+              <p class="text-gray-600">
+                당신의 취향에 맞는 완벽한 여행 일정을 쉽게 계획하고 공유할 수 있습니다.
+              </p>
+            </div>
+            <!-- 특징 2 -->
+            <div
+              class="feature-card bg-white p-8 rounded-lg shadow-md text-center"
+            >
+              <div
+                class="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-[#9FB3DF] rounded-full text-white"
+              >
+                <i class="fas fa-users text-2xl"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3">실시간 커뮤니티</h3>
+              <p class="text-gray-600">
+                다른 여행자들과 경험을 공유하고 실시간으로 소통할 수 있습니다.
+              </p>
+            </div>
+            <!-- 특징 3 -->
+            <div
+              class="feature-card bg-white p-8 rounded-lg shadow-md text-center"
+            >
+              <div
+                class="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-[#4A90E2] rounded-full text-white"
+              >
+                <i class="fas fa-robot text-2xl"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3">AI 여행지 추천</h3>
+              <p class="text-gray-600">
+                회원님만의 그림으로 AI에게 여행지 추천을 받을 수 있어요.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
   </main>
 </template>
 
@@ -153,45 +163,57 @@ import { Pagination, Autoplay } from 'swiper/modules'
 // 사용할 모듈 배열
 const swiperModules = [Pagination, Autoplay]
 
-// 더미 리뷰 데이터
-const testimonials = ref([
-  {
-    name: '김민준',
-    location: '서울',
-    comment:
-      '이 서비스를 통해 제주도 여행을 계획했는데, 정말 완벽했습니다. 모든 일정이 체계적으로 잘 짜여져 있어서 스트레스 없이 여행을 즐길 수 있었어요.',
-    avatar:
-      'https://readdy.ai/api/search-image?seq=avatar1&width=100&height=100',
-  },
-  {
-    name: '이지은',
-    location: '부산',
-    comment:
-      '친구들과 부산 여행을 갔는데, 이 앱 덕분에 시간과 비용을 많이 절약했어요. 특히 숨겨진 맛집 추천이 정말 좋았습니다!',
-    avatar:
-      'https://readdy.ai/api/search-image?seq=avatar2&width=100&height=100',
-  },
-  {
-    name: '박준호',
-    location: '대구',
-    comment:
-      '여행 계획을 세우는 것이 항상 어려웠는데, 이 서비스를 사용하고 나서는 정말 쉬워졌어요. 다음 여행도 여기서 계획할 예정입니다.',
-    avatar:
-      'https://readdy.ai/api/search-image?seq=avatar3&width=100&height=100',
-  },
-  {
-    name: '최서연',
-    location: '인천',
-    comment:
-      '커뮤니티를 통해 다른 여행자들의 경험을 참고할 수 있어서 좋았어요. 실제 경험담이 정말 유용했습니다.',
-    avatar:
-      'https://readdy.ai/api/search-image?seq=avatar4&width=100&height=100',
-  },
-])
-
 function goToDrawPage() {
   router.push('/drawpage')
 }
+
+import { useAiStore } from '@/stores/ai'
+
+// PlaceInfo 타입
+interface PlaceInfo {
+  name: string
+  description: string
+  imageUrl: string
+  latitude: number
+  longitude: number
+}
+
+// 1) 각 카드에 대응하는 객체를 상수로 선언
+const osaka: PlaceInfo = {
+  name: '일본 오사카',
+  description: '전통과 현대가 공존하는 일본의 매력적인 도시',
+  imageUrl:
+    'https://readdy.ai/api/search-image?query=osaka&width=400&height=256&seq=dest1',
+  latitude: 34.6937,
+  longitude: 135.5023,
+}
+
+const busan: PlaceInfo = {
+  name: '한국 부산',
+  description: '해변과 산, 도시가 어우러진 매력적인 항구도시',
+  imageUrl:
+    'https://readdy.ai/api/search-image?query=busan&width=400&height=256&seq=dest2',
+  latitude: 35.1796,
+  longitude: 129.0756,
+}
+
+const paris: PlaceInfo = {
+  name: '프랑스 파리',
+  description: '예술과 로맨스의 도시, 세계적인 관광 명소',
+  imageUrl:
+    'https://readdy.ai/api/search-image?query=paris&width=400&height=256&seq=dest3',
+  latitude: 48.8566,
+  longitude: 2.3522,
+}
+
+const aiStore = useAiStore()
+
+// 2) 클릭 시 호출되는 함수
+function selectAndGo(place: PlaceInfo) {
+  aiStore.setSelectedPlaceName(place)       // Pinia에 저장
+  router.push({ name: 'TripPlanPage' })          // 이동할 라우트 이름으로 변경
+}
+
 </script>
 
 <style scoped>

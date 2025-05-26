@@ -1,6 +1,16 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- 상단: 등록하기 버튼 -->
+      <div class="flex justify-end mb-6">
+        <button
+          @click="goCreate"
+          class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition !rounded-button whitespace-nowrap"
+        >
+          등록하기
+        </button>
+      </div>
+
       <!-- 이미지 모달 -->
       <div
         v-if="showImageModal"
@@ -67,6 +77,7 @@
           </button>
         </div>
       </div>
+
       <!-- 인기 그림 섹션 -->
       <section class="mb-16">
         <h2 class="text-3xl font-bold mb-8 text-center py-2 bg-[#9FB3DF] text-white rounded-lg shadow-md">
@@ -96,6 +107,7 @@
           </div>
         </div>
       </section>
+
       <!-- 일반 그림 게시판 -->
       <section>
         <h2 class="text-3xl font-bold mb-8 text-center py-2 bg-[#9EC6F3] text-white rounded-lg shadow-md">
@@ -149,12 +161,14 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDrawingBoardStore } from '@/stores/drawingboard'
 import type { BoardItem } from '@/stores/drawingboard'
 import { useUserStore } from '@/stores/user'
 
-const boardStore = useDrawingBoardStore()
-const userStore  = useUserStore()
+const router        = useRouter()
+const boardStore    = useDrawingBoardStore()
+const userStore     = useUserStore()
 const currentUserId = computed<number | null>(() => userStore.id ? Number(userStore.id) : null)
 
 // 모달 상태
@@ -165,6 +179,10 @@ const selectedArtwork = ref<BoardItem | null>(null)
 onMounted(() => {
   boardStore.fetchAll(1)
 })
+
+function goCreate() {
+  router.push('/drawingregist')
+}
 
 function openImageModal(url: string, item: BoardItem) {
   selectedImage.value   = url

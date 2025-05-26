@@ -47,7 +47,7 @@ public class SecurityConfig {
 
     // 3) SecurityFilterChain 설정
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // JWT 필터
         JwtAuthenticationFilter jwtFilter =
                 new JwtAuthenticationFilter(jwtUtil, userService);

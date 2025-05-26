@@ -257,7 +257,7 @@ selectedTags.includes(tag.id)
     </div>
   </div>
   <div class="hidden">
-    bg-teal-200 bg-indigo-200 bg-rose-200 bg-gray-300
+    bg-teal-200 bg-indigo-200 bg-rose-200 bg-gray-300 bg-indigo-300 bg-purple-200 bg-green-200 bg-blue-200
   </div>
 </template>
 
@@ -273,6 +273,7 @@ const currentCenter = {
   lng: store.center.longitude
 }
 const route          = useRoute()
+const selectedSearchPlace = ref<string | null>(null)
 
 /** 일정 아이템 인터페이스 */
 interface ItineraryItem {
@@ -280,6 +281,7 @@ interface ItineraryItem {
   category: string    // 예: 'TOUR', 'LUNCH', 'CAFE'
   startTime: string
   endTime: string
+  photoUrl?: string
 }
 
 /** 게시판 등록용 상태 */
@@ -314,25 +316,11 @@ const itemTypeMap: Record<string, string> = {
   CAFE:         'cafe',
   DINNER:       'restaurant',
   EVENING_TOUR: 'tourist_attraction',
-  EVENING_CAFE: 'cafe'
-}
-
-function getCategoryColor(category: string): string {
-  
-  switch (category.toUpperCase()) {
-    case 'TOUR':
-    case 'EVENING_TOUR':
-      return 'indigo-200'  // Soft Indigo
-    case 'LUNCH':
-    case 'DINNER':
-    case 'BREAKFAST':
-      return 'rose-200'    // Soft Rose
-    case 'CAFE':
-    case 'EVENING_CAFE':
-      return 'teal-200'    // Soft Teal
-    default:
-      return 'gray-300'
-  }
+  EVENING_CAFE: 'cafe',
+  LODGING:      'lodging',
+  MUSEUM:       'museum',
+  THEATER:      'movie_theater',
+  SHOPPING_MALL:'shopping_mall',
 }
 
 function normalizeCategory(raw: string | undefined): string {
@@ -340,22 +328,19 @@ function normalizeCategory(raw: string | undefined): string {
     return '';      // 혹은 '기타' 등 기본 카테고리
   }
   switch (raw.toLowerCase()) {
-    case 'tours':       return 'TOUR'
-    case 'restaurants': return 'LUNCH'
-    case 'cafes':       return 'CAFE'
-    default:            return raw.toUpperCase()
-  }
-}
-
-function getCategoryIcon(category: string): string {
-  switch (category.toUpperCase()) {
-    case 'TOUR': return '/icons/landmark.svg'
-    case 'LUNCH':
-    case 'DINNER':
-    case 'BREAKFAST': return '/icons/utensils.svg'
-    case 'CAFE':
-    case 'EVENING_CAFE': return '/icons/coffee.svg'
-    default: return ''
+    case 'tours':            return 'TOUR'
+    case 'restaurants':      return 'LUNCH'
+    case 'cafes':            return 'CAFE'
+    case 'lodging':
+    case 'lodgings':         return 'LODGING'
+    case 'museum':
+    case 'museums':          return 'MUSEUM'
+    case 'theater':
+    case 'theaters':
+    case 'movie_theater':    return 'MOVIE_THEATER'
+    case 'shopping':
+    case 'shopping_mall':    return 'SHOPPING_MALL'
+    default:                 return raw.toUpperCase()
   }
 }
 
@@ -372,25 +357,109 @@ function getCategoryName(category: string): string {
     case 'CAFE':
     case 'EVENING_CAFE':
       return '카페'
+    case 'LODGING':
+    case 'LODGINGS':
+      return '숙박'
+    case 'MUSEUM':
+    case 'MUSEUMS':
+      return '문화시설'
+    case 'THEATER':
+    case 'THEATERS':
+    case 'MOVIE_THEATER':
+      return '공연시설'
+    case 'SHOPPING_MALL':
+    case 'SHOPPING':
+    case 'SHOPPINGS':
+      return '쇼핑'
     default:
       return '기타'
   }
 }
 
-function getCategoryColorById(id: string): string {
-  switch (id) {
-    case 'tours': return 'indigo-200'  // 관광지
-    case 'restaurants': return 'rose-200'  // 음식점
-    case 'cafes': return 'teal-200'    // 카페
-    default: return 'gray-300'
+function getCategoryColor(category: string): string {
+  switch (category.toUpperCase()) {
+    case 'TOUR':
+    case 'EVENING_TOUR':
+      return 'indigo-200'   // Soft Indigo
+    case 'LUNCH':
+    case 'DINNER':
+    case 'BREAKFAST':
+      return 'rose-200'     // Soft Rose
+    case 'CAFE':
+    case 'EVENING_CAFE':
+      return 'teal-200'     // Soft Teal
+    case 'LODGING':
+    case 'LODGINGS':
+      return 'blue-200'     // Soft Blue
+    case 'MUSEUM':
+    case 'MUSEUMS':
+      return 'indigo-300'   // Slightly deeper Indigo
+    case 'THEATER':
+    case 'THEATERS':
+    case 'MOVIE_THEATER':
+      return 'purple-200'   // Soft Purple
+    case 'SHOPPING_MALL':
+    case 'SHOPPING':
+    case 'SHOPPINGS':
+      return 'green-200'    // Soft Green
+    default:
+      return 'gray-300'
   }
 }
 
 
+function getCategoryColorById(id: string): string {
+  //console.log(id)
+  switch (id) {
+    case 'tours':       return 'indigo-200'
+    case 'restaurants': return 'rose-200'
+    case 'cafes':       return 'teal-200'
+    case 'lodgings':    return 'blue-200'
+    case 'museums':     return 'indigo-300'
+    case 'theaters':    return 'purple-200'
+    case 'shopping':    return 'green-200'
+    default:            return 'gray-300'
+  }
+}
+
+function getCategoryIcon(key: string): string {
+  switch (key.toLowerCase()) {
+    case 'tours':
+    case 'tour':
+      return '/icons/landmark.svg'
+    case 'restaurants':
+    case 'lunch':
+    case 'dinner':
+    case 'breakfast':
+      return '/icons/utensils.svg'
+    case 'cafes':
+    case 'cafe':
+      return '/icons/coffee.svg'
+    case 'lodgings':
+    case 'lodging':
+      return '/icons/bed.svg'
+    case 'museums':
+    case 'museum':
+      return '/icons/museum.svg'
+    case 'theaters':
+    case 'movie_theater':
+      return '/icons/theater.svg'
+    case 'shopping':
+    case 'shopping_mall':
+      return '/icons/shopping.svg'
+    default:
+      return ''
+  }
+}
+
 const categories = [
-  { id: 'tours',       type: 'tourist_attraction', label: '관광지', icon: '/icons/landmark.svg' },
-  { id: 'restaurants', type: 'restaurant',         label: '음식점', icon: '/icons/utensils.svg' },
-  { id: 'cafes',       type: 'cafe',               label: '카페',    icon: '/icons/coffee.svg' }
+  { id: 'tours',       type: 'tourist_attraction', label: '관광지',    icon: '/icons/landmark.svg'   },
+  { id: 'restaurants', type: 'restaurant',         label: '음식점',    icon: '/icons/utensils.svg'    },
+  { id: 'cafes',       type: 'cafe',               label: '카페',      icon: '/icons/coffee.svg'      },
+  { id: 'lodgings',    type: 'lodging',           label: '숙박',      icon: '/icons/bed.svg'         },
+  { id: 'museums',     type: 'museum',            label: '문화시설',  icon: '/icons/museum.svg'      },
+  { id: 'theaters',    type: 'movie_theater',     label: '공연시설',  icon: '/icons/theater.svg'     },
+  { id: 'shopping',    type: 'shopping_mall',     label: '쇼핑',      icon: '/icons/shopping.svg'    }
 ]
 
 const selectedCategory = ref<string | null>(null)
@@ -420,22 +489,45 @@ function refreshMarkers() {
       if (status === google.maps.GeocoderStatus.OK && results?.[0]) {
         const iconUrl = getCategoryIcon(normalizedCategory)
 
-        const marker = new google.maps.Marker({
+        const opts: google.maps.MarkerOptions = {
           map,
           position: results[0].geometry.location,
-          title: place.name,
-          icon: {
+          title: place.name
+        };
+
+        // 커스텀 아이콘이 빈 문자열이 아닐 때만 붙인다
+        if (iconUrl) {
+          opts.icon = {
             url: iconUrl,
             scaledSize: new google.maps.Size(32, 32)
           }
-        })
+        }
+        // photoRef 를 클로저에 캡처해 두고
+      const photoUrl = place.photoRef
+        ? buildPhotoUrl(place.photoRef)
+        : undefined;
+
+
+        const marker = new google.maps.Marker(opts)
+
+        // const marker = new google.maps.Marker({
+        //   map,
+        //   position: results[0].geometry.location,
+        //   title: place.name,
+        //   icon: {
+        //     url: iconUrl,
+        //     scaledSize: new google.maps.Size(32, 32)
+        //   }
+        // })
 
         marker.addListener('click', () => {
+          console.log(photoUrl)
           openInfo(marker, {
             name: place.name,
             category: normalizedCategory, // 여기도 정확히!
             startTime: '',
-            endTime: ''
+            endTime: '',
+            photoUrl
           })
         })
 
@@ -496,8 +588,8 @@ function handleDragEnd() {
   dragOverIndex.value = null
 }
 
-const nearbyPlaces = ref<{ [key: string]: any[]; cafes: any[]; restaurants: any[]; tours: any[] }>({
-  cafes: [], restaurants: [], tours: []
+const nearbyPlaces = ref<Record<string, any[]>>({
+  tours: [],restaurants: [], cafes: [], lodgings: [], museums: [], theaters: [], shopping: []
 })
 const mapContainer = ref<HTMLDivElement | null>(null)
 const searchInput = ref<HTMLInputElement|null>(null)
@@ -524,26 +616,32 @@ function onListItemClick(idx: number) {
 }
 
 function openInfo(marker: google.maps.Marker, item: ItineraryItem) {
-  const content = `
-    <div style="min-width:180px; padding:8px">
+  let html = `
+    <div style="min-width:200px; padding:8px">
       <h3 style="margin:0 0 4px">${item.name}</h3>
-      <p style="margin:0 0 8px; font-size:0.875em;">
+      <p style="margin:0 0 8px; font-size:0.875em">
         ${item.category} | ${item.startTime}–${item.endTime}
-      </p>
-      <button id="add-route-btn" style="
-        display:block;
-        width:100%;
-        padding:6px 0;
-        background:#9FB3DF;
-        color:#fff;
-        border:none;
-        border-radius:4px;
-        cursor:pointer;
-      ">
-        경로에 추가하기
-      </button>
-    </div>`
-  infoWindow.setContent(content)
+      </p>`;
+
+  if (item.photoUrl) {
+    html += `<img src="${item.photoUrl}"
+                  style="width:100%; height:auto; margin-bottom:8px;"
+                  alt="${item.name} 사진" />`;
+  }
+
+  html += `<button id="add-route-btn" style="
+              display:block;
+              width:100%;
+              padding:6px 0;
+              background:#9FB3DF;
+              color:#fff;
+              border:none;
+              border-radius:4px;
+              cursor:pointer;
+            ">경로에 추가하기</button>
+    </div>`;
+
+  infoWindow.setContent(html);
   infoWindow.open({ anchor: marker, map })
 
   // infoWindow의 DOM이 렌더링 된 뒤 이벤트 바인딩
@@ -674,6 +772,7 @@ onMounted(async () => {
     searchBox.addListener('places_changed', () => {
       const places = searchBox.getPlaces()
       if (!places || places.length === 0) return
+      selectedSearchPlace.value = places[0].name || null
 
       // 이전 마커 제거
       clearMarkers()
@@ -740,6 +839,7 @@ onMounted(async () => {
   })
   nearbyPlaces.value = resp.data
 
+  console.log(token)
   if (!token) return
     try {
     const { data } = await axios.get(
@@ -747,6 +847,7 @@ onMounted(async () => {
       { headers: { Authorization: `Bearer ${token}` } }
     )
     userId.value = data.userId
+    console.log(userId.value)
   } catch {
     // 토큰 만료 등 에러 처리
     //localStorage.removeItem('accessToken')
@@ -763,6 +864,8 @@ async function fetchItinerary() {
   isLoading.value = true
 
   try {
+    const basePlace = selectedSearchPlace.value || store.center.name
+
     const resp = await axios.post<ItineraryItem[][]>(
       '/test/api/itinerary',
       { places: [ store.center.name ], days: dayOption.value},
@@ -783,7 +886,7 @@ async function fetchItinerary() {
     requestAnimationFrame(() => {
       setTimeout(() => {
         isLoading.value = false
-      }, 800)  
+      }, 1000)  
     })
   }
 }
@@ -966,6 +1069,13 @@ async function loadPlan(planCode: string) {
   } finally {
     isLoading.value = false
   }
+}
+function buildPhotoUrl(photoRef: string) {
+  const maxWidth = 300;
+  return `https://maps.googleapis.com/maps/api/place/photo`
+       + `?maxwidth=${maxWidth}`
+       + `&photoreference=${photoRef}`
+       + `&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
 }
 </script>
 

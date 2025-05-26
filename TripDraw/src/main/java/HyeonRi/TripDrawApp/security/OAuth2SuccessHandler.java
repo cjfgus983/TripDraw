@@ -4,6 +4,7 @@ import HyeonRi.TripDrawApp.domain.LoginType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -15,6 +16,10 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final JwtUtil jwtUtil;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest req,
@@ -31,6 +36,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         // SPA 에 토큰 + 타입을 전달하고 싶으면 쿼리스트링에 추가로 붙여도 되고,
         // 클레임에 넣어 두면 프론트에서 parsing 할 수 있습니다.
-        res.sendRedirect("http://localhost:5173/oauth-callback?token=" + token);
+        res.sendRedirect(frontendUrl + "/oauth-callback?token=" + token);
     }
 }

@@ -38,7 +38,7 @@
       })
   
       // 4) 홈 페이지로 이동
-      router.replace({ name: 'Home' })
+      router.replace({ name: 'Main' })
     } catch {
       // 실패 시 로그인 페이지로 복귀
       router.replace({ name: 'Login' })
