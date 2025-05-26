@@ -464,7 +464,7 @@ public class AiService {
         String user = String.format(
         	    "출발지: %s\n" +
         	    "%d일 동안, 각 일차별로 순서대로 HH:mm-HH:mm 타임라인으로 출력해주세요. " +
-        	    "각 장소 간 이동시간은 절대 60분을 넘지 않도록 하고, 모두 같은 국가 내에서만 이동할 수 있게 해주세요. " +
+        	    "각 장소 간 이동시간은 자동차를 기준으로 절대 60분을 넘지 않도록 하고, 모두 같은 국가 내에서만 이동할 수 있게 해주세요." +
         	    // ← 아래 한 줄만 추가된 부분입니다!
         	    "특히 CAFE, LUNCH, TOUR(관광지) 카테고리는 반드시 출발지와 동일한 국가 내에서 선택해주세요. " +
         	    "8단계 카테고리 순서: TOUR, BREAKFAST, TOUR, LUNCH, CAFE, TOUR, DINNER, EVENING_TOUR 또는 EVENING_CAFE. " +
@@ -606,9 +606,9 @@ public class AiService {
             JsonNode photos = node.path("photos");
             if (photos.isArray() && photos.size() > 0) {
                 photoRef = photos.get(0).path("photo_reference").asText(null);
-                System.out.println("hi");
+                //System.out.println("hi");
             }
-            System.out.println(photoRef);
+            //System.out.println(photoRef);
             out.add(new PlaceInfoDto(name, address, photoRef));
         }
 
