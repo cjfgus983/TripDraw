@@ -14,7 +14,7 @@
           <router-link to="/tripplanpage" class="nav-link">계획짜기</router-link>
           <router-link to="/tripplanboard"      class="nav-link">여행게시판</router-link>
           <router-link to="/noticeboard"  class="nav-link">공지</router-link>
-          <router-link to="/contactboard" class="nav-link">문의</router-link>
+          <!-- <router-link to="/contactboard" class="nav-link">문의</router-link> -->
         </div>
         <div class="flex space-x-4">
           <template v-if="!isLoggedIn">
