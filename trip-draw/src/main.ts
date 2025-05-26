@@ -12,7 +12,7 @@ import axios from 'axios'
 import { createPinia } from 'pinia'
 
 
-axios.defaults.baseURL = '/api'
+axios.defaults.baseURL = '/test'
 
 const app = createApp(App);
 

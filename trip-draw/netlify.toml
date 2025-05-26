@@ -3,7 +3,7 @@
   publish = "dist"
 
 [[redirects]]
-  from = "/api/*"
+  from = "/test/*"
   to = "http://tripdraw.ap-northeast-2.elasticbeanstalk.com/:splat"
   status = 200
   force = true
