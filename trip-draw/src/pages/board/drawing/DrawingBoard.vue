@@ -5,7 +5,7 @@
       <div class="flex justify-end mb-6">
         <button
           @click="goCreate"
-          class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition !rounded-button whitespace-nowrap"
+          class="bg-[#9FB3DF] text-white px-4 py-2 rounded-md transition !rounded-button hover:bg-opacity-90 whitespace-nowrap"
         >
           등록하기
         </button>
