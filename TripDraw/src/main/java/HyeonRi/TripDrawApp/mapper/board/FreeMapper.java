@@ -13,8 +13,8 @@ public interface FreeMapper {
 
     // 게시글 CRUD
     @Insert("""
-        INSERT INTO free (user_id, title, content, view_count, like_count, created_at, updated_at)
-        VALUES (#{userId}, #{title}, #{content}, 0, 0, NOW(), NOW())
+        INSERT INTO free (user_id, title, content, view_count, like_count, created_at, updated_at, summary)
+        VALUES (#{userId}, #{title}, #{content}, 0, 0, NOW(), NOW(), #{summary})
     """)
     @Options(useGeneratedKeys = true, keyProperty = "freeId")
     void insertFree(FreeDto dto);
@@ -55,8 +55,8 @@ public interface FreeMapper {
 
     // 댓글 CRUD
     @Insert("""
-        INSERT INTO free_comments (free_id, user_id, content, created_at, is_deleted)
-        VALUES (#{freeId}, #{userId}, #{content}, NOW(), false)
+        INSERT INTO free_comments (free_id, user_id, content, created_at, is_deleted,summary)
+        VALUES (#{freeId}, #{userId}, #{content}, NOW(), false, #{summary})
     """)
     @Options(useGeneratedKeys = true, keyProperty = "commentId")
     void insertComment(FreeCommentDto dto);
