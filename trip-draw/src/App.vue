@@ -79,7 +79,7 @@ const nickname   = computed(() => userStore.nickname)
 const handleLogout = () => {
   localStorage.removeItem('accessToken')
   userStore.clearProfile()
-  router.push({ name: 'Main' })
+  window.location.href = "/main"
 }
 </script>
 
