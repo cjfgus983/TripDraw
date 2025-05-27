@@ -69,7 +69,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/**").permitAll()
                         // Swagger UI, static 리소스
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
+                        .requestMatchers("/uploads/**").permitAll()
                         // 그 외는 모두 인증 필요
                         .anyRequest().authenticated()
                 )
