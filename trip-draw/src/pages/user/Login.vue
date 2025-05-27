@@ -161,7 +161,7 @@ const handleLogin = async () => {
     });
 
     // 5) 메인 페이지로 이동
-    window.location.href = "/main";
+    window.location.href = "/";
   } catch (err: any) {
     const msg = err.response?.data?.message || "로그인에 실패했습니다.";
     alert(msg);
