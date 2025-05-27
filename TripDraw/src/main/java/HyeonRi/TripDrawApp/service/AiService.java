@@ -338,6 +338,8 @@ public class AiService {
     	                copy.setCategory(item.getCategory());
     	                copy.setStartTime("");
     	                copy.setEndTime("");
+    	                copy.setLat(item.getLat());
+    	                copy.setLng(item.getLng());
     	                return copy;
     	            })
     	            .collect(Collectors.toList())
@@ -462,22 +464,25 @@ public class AiService {
         String system = "당신은 최고의 한국어 여행 일정 전문가입니다. " +
                         "식당과 카페는 Google Maps에 실제 등록된, 리뷰 수 많고 평점 높은 단일(unique) 매장만 골라주세요.";
         String user = String.format(
-        	    "출발지: %s\n" +
-        	    "%d일 동안, 각 일차별로 순서대로 HH:mm-HH:mm 타임라인으로 출력해주세요. " +
-        	    "각 장소 간 이동시간은 자동차를 기준으로 절대 60분을 넘지 않도록 하고, 모두 같은 국가 내에서만 이동할 수 있게 해주세요." +
-        	    // ← 아래 한 줄만 추가된 부분입니다!
-        	    "특히 CAFE, LUNCH, TOUR(관광지) 카테고리는 반드시 출발지와 동일한 국가 내에서 선택해주세요. " +
-        	    "8단계 카테고리 순서: TOUR, BREAKFAST, TOUR, LUNCH, CAFE, TOUR, DINNER, EVENING_TOUR 또는 EVENING_CAFE. " +
-        	    "장소 이름은 Google Maps에서 단일 지점으로 검색되는 정확한 명칭과 주소를 포함하고, " +
-        	    "예시처럼 순수 JSON 배열만 반환해주세요.\n" +
-        	    "예시 출력:\n" +
-        	    "[\n" +
-        	    "  [ {\"name\":\"경복궁, 서울\",\"category\":\"TOUR\",\"startTime\":\"09:00\",\"endTime\":\"11:00\"}, … ],\n" +
-        	    "  [ /* Day2 items */ ], …\n" +
-        	    "]",
-        	    objectMapper.writeValueAsString(places), days
-        	);
-
+        		  "출발지: %s\n" +
+        		  "%d일 동안, 각 일차별로 순서대로 HH:mm-HH:mm 타임라인으로 출력해주세요. " +
+        		  "각 장소 간 이동시간은 자동차를 기준으로 절대 60분을 넘지 않도록 하고, 모두 같은 국가 내에서만 이동할 수 있게 해주세요. " +
+        		  "특히 CAFE, LUNCH, TOUR(관광지) 카테고리는 반드시 출발지와 동일한 국가 내에서 선택해주세요. " +
+        		  "8단계 카테고리 순서: TOUR, BREAKFAST, TOUR, LUNCH, CAFE, TOUR, DINNER, EVENING_TOUR 또는 EVENING_CAFE. " +
+        		  "장소 이름은 Google Maps에서 단일 지점으로 검색되는 정확한 명칭과 주소를 포함하고, " +
+        		  "위도(lat)와 경도(lng)까지 소수점 6자리 정확도로 함께 포함해주세요. " +
+        		  "반드시 리스트 마커 없이 순수 JSON 배열만 반환해주세요.\n" +
+        		  "예시 출력:\n" +
+        		  "[\n" +
+        		  "  [\n" +
+        		  "    {\"name\":\"경복궁, 서울\",\"category\":\"TOUR\",\"startTime\":\"09:00\",\"endTime\":\"11:00\",\"lat\":37.579617,\"lng\":126.977041},\n" +
+        		  "    …\n" +
+        		  "  ],\n" +
+        		  "  [ /* Day2 items */ ], …\n" +
+        		  "]",
+        		  objectMapper.writeValueAsString(places),
+        		  days
+        		);
         ArrayNode messages = objectMapper.createArrayNode()
             .add(objectMapper.createObjectNode().put("role","system").put("content",system))
             .add(objectMapper.createObjectNode().put("role","user").put("content",user));
@@ -507,7 +512,8 @@ public class AiService {
         }
         String jsonArray = stripped.substring(start, end + 1)
             .replaceAll("(?m)^\\s*//.*$", "")      // 주석 제거
-            .replaceAll(",\\s*(?=\\]|\\})", ""); // 끝 쉼표 제거
+            .replaceAll(",\\s*(?=\\]|\\})", "")
+            .replaceAll("(?m)^\\s*[-]\\s*", ""); // 끝 쉼표 제거
 
         // 5) 파싱: 배열 또는 객체 모두 처리
         JsonNode arrayNode = objectMapper.readTree(jsonArray);

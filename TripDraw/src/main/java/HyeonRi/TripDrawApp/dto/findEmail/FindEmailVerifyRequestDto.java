@@ -7,4 +7,5 @@ public class FindEmailVerifyRequestDto {
     private String name;
     private String email;
     private String code;
+    private String phoneNumber;
 }

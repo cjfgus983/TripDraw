@@ -12,5 +12,7 @@ public class ItineraryItemDto {
     private String category;   // "tour" | "breakfast" | "lunch" | "cafe" | "dinner"
     private String startTime;  // "HH:mm"
     private String endTime;    // "HH:mm"
-
+    
+    private double lat;
+    private double lng;
 }

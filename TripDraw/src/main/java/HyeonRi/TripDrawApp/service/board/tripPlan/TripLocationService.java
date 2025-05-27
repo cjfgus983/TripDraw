@@ -83,6 +83,8 @@ public class TripLocationService {
                         // LocalTime → "HH:mm" 문자열로 변환
                         it.setStartTime(loc.getStartTime().format(TIME_FMT));
                         it.setEndTime(  loc.getEndTime()  .format(TIME_FMT));
+                        it.setLat(loc.getLat());
+                        it.setLng(loc.getLng());
                         return it;
                     })
                     .collect(Collectors.toList());

@@ -16,4 +16,6 @@ public class TripLocationDto {
     private String  addressCategory;
     private LocalTime startTime;
     private LocalTime endTime;
+    private double lat;
+    private double lng;
 }

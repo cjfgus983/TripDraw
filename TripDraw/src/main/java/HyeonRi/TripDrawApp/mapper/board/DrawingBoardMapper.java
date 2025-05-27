@@ -206,7 +206,7 @@ public interface DrawingBoardMapper {
         JOIN `user` u ON db.user_id = u.user_id
         WHERE db.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ORDER BY db.like_count DESC
-        LIMIT 9
+        LIMIT 10
     """)
     List<DrawingBoardDto> selectPopularWithLike(
             @Param("userId") Long userId

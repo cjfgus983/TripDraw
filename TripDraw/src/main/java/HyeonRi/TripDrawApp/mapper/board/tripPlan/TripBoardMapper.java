@@ -41,7 +41,8 @@ public interface TripBoardMapper {
 			      ORDER BY start_time
 			      LIMIT 5
 			    ) AS x
-			  ) AS routeConcat
+			  ) AS routeConcat,
+			 p.region AS region
 			
 			FROM trip_board b
 			LEFT JOIN trip_plans p

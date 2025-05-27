@@ -9,9 +9,9 @@ public interface TripLocationMapper {
 
     @Insert("""
         INSERT INTO trip_location
-          (plan_code, day_no, address_name, address_category, start_time, end_time)
+          (plan_code, day_no, address_name, address_category, start_time, end_time, lat, lng)
         VALUES
-          (#{planCode}, #{dayNo}, #{addressName}, #{addressCategory}, #{startTime}, #{endTime})
+          (#{planCode}, #{dayNo}, #{addressName}, #{addressCategory}, #{startTime}, #{endTime}, #{lat}, #{lng})
     """)
     void insert(TripLocationDto dto);
 
@@ -24,7 +24,7 @@ public interface TripLocationMapper {
     
     @Insert({
         "<script>",
-        "INSERT INTO trip_location(plan_code, day_no, address_name, address_category, start_time, end_time) VALUES",
+        "INSERT INTO trip_location(plan_code, day_no, address_name, address_category, start_time, end_time,lat,lng) VALUES",
         "<foreach collection='list' item='loc' separator=','>",
           "(",
             "#{planCode}, ",
@@ -32,7 +32,9 @@ public interface TripLocationMapper {
             "#{loc.addressName}, ",
             "#{loc.addressCategory}, ",
             "#{loc.startTime}, ",
-            "#{loc.endTime}",
+            "#{loc.endTime}, ",
+            "#{loc.lat}, ",
+            "#{loc.lng} ",
           ")",
         "</foreach>",
         "</script>"
@@ -67,7 +69,8 @@ public interface TripLocationMapper {
     	        address_name     AS addressName,
     	        address_category AS addressCategory,
     	        DATE_FORMAT(start_time, '%H:%i:%s') AS startTime,
-    	        DATE_FORMAT(end_time,   '%H:%i:%s') AS endTime
+    	        DATE_FORMAT(end_time,   '%H:%i:%s') AS endTime,
+    	       	lat AS lat, lng AS lng
     	      FROM trip_location
     	      WHERE plan_code = #{planCode}
     	      ORDER BY day_no, start_time
