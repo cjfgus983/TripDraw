@@ -71,9 +71,10 @@ spaceBetween: 30
 class="mySwiper"
 >
 <swiper-slide
-v-for="post in popularPosts"
-:key="post.freeId"
-class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all cursor-pointer"
+  v-for="post in popularPosts"
+  :key="post.freeId"
+  class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all cursor-pointer"
+  @click="$router.push({ name: 'FreeDetail', params: { freeId: post.freeId } })"
 >
 <div class="h-48 overflow-hidden">
 <img
@@ -284,7 +285,7 @@ const categories = [
 const popularPosts = computed(() => {
   return [...posts.value]                   // 원본 건드리지 않도록 복사
     .sort((a, b) => b.likeCount - a.likeCount) // likeCount 내림차순
-    .slice(0, 10);                          // 상위 10개만
+    .slice(0, 8);                          // 상위 10개만
 });
 
 const filteredPosts = computed(() => {

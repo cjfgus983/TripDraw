@@ -47,18 +47,20 @@
       <!-- 추천/비추천 버튼 -->
       <div class="flex justify-center space-x-4 mb-8">
         <button
-          class="!rounded-button whitespace-nowrap flex items-center px-6 py-3 rounded-full text-white transition-all duration-300 cursor-pointer"
-          :class="isLiked ? 'bg-[#BDDDE4]' : 'bg-[#9FB3DF]'"
           @click="toggleLike"
-        >
+          class="!rounded-button whitespace-nowrap flex items-center px-6 py-3 rounded-full text-white transition-all duration-300 cursor-pointer"
+          :class="isLiked
+            ? 'bg-[#6C8EBF]'   /* 눌러진(active) 상태일 때 더 진한 파란색 */
+            : 'bg-[#9FB3DF]'   /* 눌리지 않은(inactive) 상태일 때 연한 파란색 */">
           <i class="fas fa-thumbs-up mr-2"></i>
           추천 {{ likeCount }}
         </button>
         <button
-          class="!rounded-button whitespace-nowrap flex items-center px-6 py-3 rounded-full text-white transition-all duration-300 cursor-pointer"
-          :class="isDisliked ? 'bg-[#BDDDE4]' : 'bg-[#9EC6F3]'"
           @click="toggleDislike"
-        >
+          class="!rounded-button whitespace-nowrap flex items-center px-6 py-3 rounded-full text-white transition-all duration-300 cursor-pointer"
+          :class="isDisliked
+            ? 'bg-[#5A8CCB]'   /* 눌린 상태에 더 진한 색 */
+            : 'bg-[#9EC6F3]'   /* 눌리지 않은 상태에 연한 색 */">
           <i class="fas fa-thumbs-down mr-2"></i>
           비추천 {{ dislikeCount }}
         </button>
@@ -163,7 +165,7 @@
     >
       <div class="relative max-w-4xl max-h-screen p-4">
         <img
-          :src="post.imageUrls[0]"
+          :src="post.value.imageUrls[0]"
           alt="전체화면 이미지"
           class="max-w-full max-h-[90vh] object-contain"
         />
@@ -220,6 +222,7 @@ onMounted(async () => {
     { headers }
   )
   post.value = dto
+  console.log(post.value.imageUrls[0])
   likeCount.value = dto.likeCount
   dislikeCount.value = dto.dislikeCount ?? 0
 
