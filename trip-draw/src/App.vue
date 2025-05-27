@@ -19,8 +19,8 @@
         </div>
         <div class="flex space-x-4">
           <template v-if="!isLoggedIn">
-            <router-link to="/login" class="nav-link">로그인</router-link>
-            <router-link to="/signup" class="nav-link">회원가입</router-link>
+            <button @click="goToLogin" class="nav-link">로그인</button>
+            <button @click="goToSignup" class="nav-link">회원가입</button>
           </template>
           <template v-else>
             <router-link to="/mypage" class="nav-link">{{ nickname }}님</router-link>
@@ -70,6 +70,13 @@ onMounted(async () => {
     userStore.clearProfile()
   }
 })
+const goToLogin = () => {
+  window.location.href = "/login"
+}
+
+const goToSignup = () => {
+  window.location.href = "/signup"
+}
 
 // 로그인 상태 및 닉네임
 const isLoggedIn = computed(() => userStore.isLoggedIn)
