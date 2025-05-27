@@ -325,18 +325,31 @@ function confirmCrop() {
 
 // 제출
 function handleSubmit() {
-  // Base64 형태로 저장
-  const dataUrl = canvas.value!.toDataURL('image/png')
-  aiStore.setOriginalDataUrl(dataUrl)
+  if (!canvas.value) return;
 
-  // Blob 형태로 저장 후 이동
-  canvas.value!.toBlob(blob => {
+  // 리사이즈 캔버스 생성 (512x512)
+  const tempCanvas = document.createElement('canvas');
+  const size = 512;
+  tempCanvas.width = size;
+  tempCanvas.height = size;
+  const tempCtx = tempCanvas.getContext('2d');
+
+  // 원본 캔버스를 tempCanvas에 drawImage로 축소 그리기
+  tempCtx?.drawImage(canvas.value, 0, 0, size, size);
+
+  // 1) Base64 (DataURL) 저장
+  const resizedDataUrl = tempCanvas.toDataURL('image/png');
+  aiStore.setOriginalDataUrl(resizedDataUrl);
+
+  // 2) Blob 형태로 저장 후 이동
+  tempCanvas.toBlob(blob => {
     if (blob) {
-      aiStore.setOriginalBlob(blob)
-      router.push('/loading')
+      aiStore.setOriginalBlob(blob);
+      router.push('/loading');
     }
-  }, 'image/png')
+  }, 'image/png');
 }
+
 </script>
 
 <style scoped>
