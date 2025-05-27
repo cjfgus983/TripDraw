@@ -37,6 +37,9 @@ public class FreeService {
 
         // nickname 받아오기
         dto.setNickName(userMapper.findNicknameByUserId(dto.getUserId()));
+        
+        String summary3 = aiService.summarizeInSentences(dto.getContent(), 3);
+        dto.setSummary(summary3);
 
         // 1) 글 먼저 저장
         freeMapper.insertFree(dto);
@@ -82,7 +85,7 @@ public class FreeService {
     
     
     // 게시글
-    public Long createFree(FreeDto dto) {
+    public Long createFree(FreeDto dto) throws IOException {
         freeMapper.insertFree(dto);
         return dto.getFreeId();
     }
@@ -98,8 +101,8 @@ public class FreeService {
     	List<String> urls = freeMapper.getImageUrlsByFreeId(dto.getFreeId());
         dto.setImageUrls(urls);
         // 3문장 요약
-        String summary3 = aiService.summarizeInSentences(dto.getContent(), 3);
-        dto.setSummary(summary3);
+//        String summary3 = aiService.summarizeInSentences(dto.getContent(), 3);
+//        dto.setSummary(summary3);
         return dto;
     }
 
