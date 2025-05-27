@@ -219,3 +219,139 @@ CREATE TABLE user_favorite_boards (
   FOREIGN KEY (user_id)       REFERENCES user(user_id),
   FOREIGN KEY (plan_board_id) REFERENCES trip_board(plan_board_id)
 );
+
+-- 1) drawing.user_id → user.user_id
+ALTER TABLE drawing
+  DROP FOREIGN KEY drawing_ibfk_1,
+  ADD CONSTRAINT fk_drawing_user
+    FOREIGN KEY (user_id)
+    REFERENCES `user`(user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 2) drawing_board.drawing_id → drawing(drawing_id)
+--    drawing_board.user_id    → user(user_id)
+ALTER TABLE drawing_board
+  DROP FOREIGN KEY drawing_board_ibfk_1,
+  DROP FOREIGN KEY drawing_board_ibfk_2,
+  ADD CONSTRAINT fk_drawing_board_drawing
+    FOREIGN KEY (drawing_id)
+    REFERENCES drawing(drawing_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  ADD CONSTRAINT fk_drawing_board_user
+    FOREIGN KEY (user_id)
+    REFERENCES `user`(user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 3) user_drawing_like.user_id              → user(user_id)
+--    user_drawing_like.drawing_board_id     → drawing_board(drawing_board_id)
+ALTER TABLE user_drawing_like
+  DROP FOREIGN KEY user_drawing_like_ibfk_1, 
+  DROP FOREIGN KEY user_drawing_like_ibfk_2, 
+  ADD CONSTRAINT fk_udl_user
+    FOREIGN KEY (user_id)
+    REFERENCES `user`(user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  ADD CONSTRAINT fk_udl_board
+    FOREIGN KEY (drawing_board_id)
+    REFERENCES drawing_board(drawing_board_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 4) free_comments.free_id → free(free_id)
+ALTER TABLE free_comments
+  DROP FOREIGN KEY free_comments_ibfk_1, 
+  ADD CONSTRAINT fk_free_comments_free
+    FOREIGN KEY (free_id)
+    REFERENCES free(free_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 5) trip_plans.user_id → user(user_id)
+ALTER TABLE trip_plans
+  DROP FOREIGN KEY trip_plans_ibfk_1,  
+  ADD CONSTRAINT fk_trip_plans_user
+    FOREIGN KEY (user_id)
+    REFERENCES `user`(user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 6) trip_location.plan_code → trip_plans(plan_code)
+ALTER TABLE trip_location
+  DROP FOREIGN KEY trip_location_ibfk_1,  
+  ADD CONSTRAINT fk_trip_location_plan
+    FOREIGN KEY (plan_code)
+    REFERENCES trip_plans(plan_code)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 7) trip_board.plan_code → trip_plans(plan_code)
+--    trip_board.user_id   → user(user_id)
+ALTER TABLE trip_board
+  DROP FOREIGN KEY trip_board_ibfk_1,  
+  DROP FOREIGN KEY trip_board_ibfk_2, 
+  ADD CONSTRAINT fk_trip_board_plan
+    FOREIGN KEY (plan_code)
+    REFERENCES trip_plans(plan_code)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  ADD CONSTRAINT fk_trip_board_user
+    FOREIGN KEY (user_id)
+    REFERENCES `user`(user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 8) trip_comment.plan_board_id → trip_board(plan_board_id)
+ALTER TABLE trip_comment
+  DROP FOREIGN KEY trip_comment_ibfk_1, 
+  ADD CONSTRAINT fk_trip_comment_board
+    FOREIGN KEY (plan_board_id)
+    REFERENCES trip_board(plan_board_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 9) contact_comment.contact_id → contact(contact_id)
+ALTER TABLE contact_comment
+  DROP FOREIGN KEY contact_comment_ibfk_1,  -- ← 실제 이름으로 교체
+  ADD CONSTRAINT fk_contact_comment_contact
+    FOREIGN KEY (contact_id)
+    REFERENCES contact(contact_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 10) contact_image.contact_id → contact(contact_id)
+ALTER TABLE contact_image
+  DROP FOREIGN KEY contact_image_ibfk_1, 
+  ADD CONSTRAINT fk_contact_image_contact
+    FOREIGN KEY (contact_id)
+    REFERENCES contact(contact_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 11) free_image.free_id → free(free_id)
+ALTER TABLE free_image
+  DROP FOREIGN KEY free_image_ibfk_1, 
+  ADD CONSTRAINT fk_free_image_free
+    FOREIGN KEY (free_id)
+    REFERENCES free(free_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+-- 12) user_favorite_boards.user_id       → user(user_id)
+--     user_favorite_boards.plan_board_id → trip_board(plan_board_id)
+ALTER TABLE user_favorite_boards
+  DROP FOREIGN KEY user_favorite_boards_ibfk_1,  
+  DROP FOREIGN KEY user_favorite_boards_ibfk_2,  
+  ADD CONSTRAINT fk_ufb_user
+    FOREIGN KEY (user_id)
+    REFERENCES `user`(user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  ADD CONSTRAINT fk_ufb_board
+    FOREIGN KEY (plan_board_id)
+    REFERENCES trip_board(plan_board_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;

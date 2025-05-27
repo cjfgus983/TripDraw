@@ -120,15 +120,18 @@ public class UserController {
         // 1) 코드 검증
         boolean codeOk = emailService.verifyCode(dto.getEmail(), dto.getCode());
         // 2) 이름·이메일 일치 재확인
-        boolean match = userService.isNameEmailMatch(dto.getName(), dto.getEmail());
+        //boolean match = userService.isNameEmailMatch(dto.getName(), dto.getEmail());
 
-        if (!codeOk || !match) {
+        if (!codeOk) {
             return ResponseEntity
                     .badRequest()
                     .body(new FindEmailResponseDto("", false));
         }
+        
+        Optional<String> email = userService.findEmailByNameAndPhoneNumber(dto.getName(), dto.getPhoneNumber());
+        
         // 3) 성공 시 이메일(아이디) 반환
-        return ResponseEntity.ok(new FindEmailResponseDto(dto.getEmail(), true));
+        return ResponseEntity.ok(new FindEmailResponseDto(email.orElse(""), true));
     }
 
 

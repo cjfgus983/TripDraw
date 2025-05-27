@@ -228,10 +228,11 @@ try {
   const { data } = await axios.post("/api/users/find-email/verify", {
     name: findIdForm.value.name,
     email: findIdForm.value.email,
+    phoneNumber: findIdForm.value.phoneNumber,
     code: findIdForm.value.verificationCode,
   });
   if (data.found) {
-    alert(`아이디 찾기 성공! 회원님의 아이디(이메일)는 ${data.email} 입니다.`);
+    //alert(`아이디 찾기 성공! 회원님의 아이디(이메일)는 ${data.email} 입니다.`);
     resultTitle.value = "아이디 찾기 성공";
     resultMessage.value = `회원님의 아이디(이메일)는 ${data.email} 입니다.`;
   } else {

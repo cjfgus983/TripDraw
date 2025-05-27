@@ -10,10 +10,10 @@
     >
       <div class="container mx-auto px-4 h-full flex items-center justify-between">
         <div class="flex space-x-6">
-          <router-link to="/freeboard"    class="nav-link">게시판</router-link>
           <router-link to="/tripplanpage" class="nav-link">계획짜기</router-link>
           <router-link to="/drawingboard"      class="nav-link">그림게시판</router-link>
           <router-link to="/tripplanboard"      class="nav-link">여행게시판</router-link>
+          <router-link to="/freeboard"    class="nav-link">소통</router-link>
           <router-link to="/noticeboard"  class="nav-link">공지</router-link>
           <!-- <router-link to="/contactboard" class="nav-link">문의</router-link> -->
         </div>
@@ -86,7 +86,15 @@ const nickname   = computed(() => userStore.nickname)
 const handleLogout = () => {
   localStorage.removeItem('accessToken')
   userStore.clearProfile()
-  window.location.href = "/main"
+  window.location.href = "/"
+}
+
+const goToLogin = () => {
+  window.location.href = "/login"
+}
+
+const goToSignup = () => {
+  window.location.href = "/signup"
 }
 </script>
 

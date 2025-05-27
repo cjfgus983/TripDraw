@@ -282,6 +282,9 @@ interface ItineraryItem {
   startTime: string
   endTime: string
   photoUrl?: string
+
+  lat: number
+  lng: number
 }
 
 /** 게시판 등록용 상태 */
@@ -527,7 +530,9 @@ function refreshMarkers() {
             category: normalizedCategory, // 여기도 정확히!
             startTime: '',
             endTime: '',
-            photoUrl
+            photoUrl,
+            lat: results[0].geometry.location.lat(),
+            lng: results[0].geometry.location.lng()
           })
         })
 
@@ -649,13 +654,28 @@ function openInfo(marker: google.maps.Marker, item: ItineraryItem) {
     const btn = document.getElementById('add-route-btn')
     btn?.addEventListener('click', () => {
       // dayItems에 추가
-      dayItems.value.push({
-        name: item.name,
-        category: item.category,
-        startTime: item.startTime,
-        endTime: item.endTime
-      })
-      infoWindow.close()
+      const newItem: ItineraryItem = {
+      name:      item.name,
+      category:  item.category,
+      startTime: item.startTime,
+      endTime:   item.endTime,
+      photoUrl:  item.photoUrl,
+      lat:       item.lat,   // ★
+      lng:       item.lng    // ★
+    }
+
+    console.log('경로에 추가:', newItem)
+    // 2) dayItems 에 추가
+    dayItems.value.push(newItem)
+
+    // 3) itinerary[selectedDay] 도 동기화
+    const idx = selectedDay.value
+    itinerary.value.splice(idx, 1, [...dayItems.value])
+
+    // 4) 변경 플래그
+    isModified.value = true
+
+    infoWindow.close()
     })
   })
 }
@@ -672,34 +692,60 @@ function fetchNearbyByCenter(lat: number, lng: number) {
 async function updateMarkers() {
   if (!map || !placesService) return
   clearMarkers()
-  if (polyline) polyline.setMap(null)
-
-  for (const item of dayItems.value) {
-    const results = await new Promise<google.maps.places.PlaceResult[]>((resolve) => {
-      placesService.textSearch({ query: item.name }, (res, status) => {
-        resolve(status === google.maps.places.PlacesServiceStatus.OK && res ? res : [])
-      })
-    })
-    const place = results[0]
-    if (place?.geometry?.location) {
-      const marker = new google.maps.Marker({
-        map,
-        position: place.geometry.location,
-        title: item.name,
-        label: { text: item.startTime, color: 'white', fontWeight: 'bold' }
-      })
-      marker.addListener('click', () => openInfo(marker, item))
-      markers.push(marker)
-    }
+  if (polyline) {
+    polyline.setMap(null)
+    polyline = null
   }
 
-  const path = markers.map(m => ({ lat: m.getPosition()!.lat(), lng: m.getPosition()!.lng() }))
-  polyline = new google.maps.Polyline({ path, geodesic: true, strokeColor: '#3366FF', strokeOpacity: 0.8, strokeWeight: 4 })
-  polyline.setMap(map)
+  // 2) dayItems 에 있는 lat/lng 로 바로 마커 생성
+  const path: google.maps.LatLngLiteral[] = []
 
-  const bounds = new google.maps.LatLngBounds()
-  path.forEach(p => bounds.extend(p))
-  map.fitBounds(bounds)
+  dayItems.value.forEach(item => {
+    const position = { lat: item.lat, lng: item.lng }
+    const marker = new google.maps.Marker({
+      map,
+      position,
+      title: item.name,
+      label: { text: item.startTime, color: 'white', fontWeight: 'bold' }
+    })
+
+    marker.addListener('click', () => openInfo(marker, item))
+    markers.push(marker)
+    path.push(position)
+  })
+
+  // 3) polyline 그리기
+  if (path.length > 1) {
+    polyline = new google.maps.Polyline({
+      map,
+      path,
+      geodesic: true,
+      strokeColor: '#3366FF',
+      strokeOpacity: 0.8,
+      strokeWeight: 4
+    })
+  }
+
+  // 4) 전체 경로가 보이도록 화면 조정
+  if (path.length) {
+    const bounds = new google.maps.LatLngBounds()
+    path.forEach(p => bounds.extend(p))
+    map.fitBounds(bounds)
+  }
+}
+
+async function fetchUser() {
+  const token = localStorage.getItem('accessToken')
+  if (!token) return
+    try {
+    const { data } = await axios.get(
+      'http://localhost:8080/api/users/me',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    userId.value = data.userId
+    } catch {
+    }
+
 }
 
 watch(selectedDay, updateMarkers)
@@ -708,6 +754,14 @@ watch(() => dayItems.value, () => {
   isModified.value = true
 }, { deep: true })
 
+watch(
+  () => route.fullPath,
+  () => {
+    // 같은 페이지라도 URL 이 바뀌면 userId 재조회
+    fetchUser()
+  }
+)
+
 async function applyChanges() {
   if (isModified.value) {
     const token = localStorage.getItem('accessToken')
@@ -715,6 +769,8 @@ async function applyChanges() {
       alert('로그인이 필요합니다.')
       return
     }
+
+    console.log(itinerary.value)
 
     isLoading.value = true;
       try {
@@ -745,6 +801,8 @@ onMounted(async () => {
   const loader = getGoogleMapsLoader()
   const google = await loader.load()
   const token = localStorage.getItem('accessToken')
+
+  await fetchUser()
 
   // 1) 지도를 Pinia 의 center 로 초기화
   map = new google.maps.Map(mapContainer.value!, {
@@ -785,7 +843,9 @@ onMounted(async () => {
           name: p.name || '이름 없음',
           category: 'TOUR',  // 또는 기본값
           startTime: '',
-          endTime: ''
+          endTime: '',
+          lat: p.geometry.location.lat(), // ★
+          lng: p.geometry.location.lng() // ★
         }
 
         const marker = new google.maps.Marker({
@@ -831,7 +891,10 @@ onMounted(async () => {
         name: store.center.name,
         category: 'TOUR',
         startTime: '',
-        endTime: ''
+        endTime: '',
+        photoUrl: store.center.photoUrl || undefined,
+        lat: store.center.latitude,  // ★
+        lng: store.center.longitude // ★
       })
     })
   const resp = await axios.get('/api/nearby', {
@@ -903,6 +966,9 @@ if (!token) {
   return
 }
 
+// ① 현재 dayItems 를 itinerary 에 반영
+    const idx = selectedDay.value
+    itinerary.value.splice(idx, 1, [...dayItems.value])
 const firstName = itinerary.value[0]?.[0]?.name || "";
   const [ , planRegion = "" ] = firstName.split(",", 2).map(s => s.trim());
 
@@ -913,9 +979,13 @@ const locations = itinerary.value.flatMap((day, idx) =>
     addressName: item.name,
     addressCategory: item.category,
     startTime: item.startTime + ':00',
-    endTime:   item.endTime   + ':00'
+    endTime:   item.endTime   + ':00',
+    lat: item.lat,   // ★
+    lng: item.lng    // ★
   }))
 )
+
+console.log('추가할 locations:', locations)
 
 try {
   // 2) API 호출
@@ -952,6 +1022,10 @@ async function submitForm() {
     return
   }
 
+  // ① 현재 dayItems 를 itinerary 에 반영
+    const idx = selectedDay.value
+    itinerary.value.splice(idx, 1, [...dayItems.value])
+
   const firstName = itinerary.value[0]?.[0]?.name || "";
   const [ , planRegion = "" ] = firstName.split(",", 2).map(s => s.trim());
 
@@ -962,7 +1036,9 @@ async function submitForm() {
       addressName:     item.name,
       addressCategory: item.category,
       startTime:       item.startTime + ':00',
-      endTime:         item.endTime   + ':00'
+      endTime:         item.endTime   + ':00',
+      lat: item.lat,   // ★
+      lng: item.lng    // ★
     }))
   )
 
@@ -1040,7 +1116,9 @@ async function loadPlan(planCode: string) {
           name: string,
           category: string,
           startTime: string,
-          endTime: string
+          endTime: string,
+          lat: number,
+          lng: number,
         }[]
       }>
     }>(`/api/plans-with-locations/${planCode}`, {
@@ -1055,10 +1133,13 @@ async function loadPlan(planCode: string) {
           name:      act.name,
           category:  act.category,
           startTime: act.startTime.slice(0,5),
-          endTime:   act.endTime.slice(0,5)
+          endTime:   act.endTime.slice(0,5),
+          lat: act.lat, // ★
+          lng: act.lng // ★
         }))
       )
 
+    console.log('불러온 일정:', itinerary.value)
     selectedDay.value = 0
     dayItems.value   = itinerary.value[0] || []
     updateMarkers()

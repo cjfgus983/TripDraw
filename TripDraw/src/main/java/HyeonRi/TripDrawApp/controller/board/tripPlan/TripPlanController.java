@@ -73,7 +73,7 @@ public class TripPlanController {
     public ResponseEntity<String> createPlanAndLocations(
             @RequestBody TripPlanWithLocationsRequest req
     ) {
-    	//System.out.println(req);
+    	System.out.println(req.getLocations().get(0).getLat());
         String planCode = service.createPlanWithLocations(req);
         return ResponseEntity.ok(planCode);
     }
