@@ -43,6 +43,10 @@ CREATE TABLE free (
   updated_at  DATETIME NOT NULL,
   PRIMARY KEY (free_id)
 );
+-- 1) 요약내용(summary) 컬럼 추가
+ALTER TABLE free
+  ADD COLUMN summary TEXT COMMENT '요약내용'
+    AFTER content;
 
 ALTER TABLE free
 ADD COLUMN dislike_count INT NOT NULL DEFAULT 0 AFTER like_count;
