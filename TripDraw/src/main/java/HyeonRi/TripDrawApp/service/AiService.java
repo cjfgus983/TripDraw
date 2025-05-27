@@ -763,6 +763,40 @@ public class AiService {
     /**
     * vkakf
     * */
+
+    private String fetchPhotoReference(String place) throws IOException {
+        String tsUrl = UriComponentsBuilder
+                .fromHttpUrl("https://maps.googleapis.com/maps/api/place/textsearch/json")
+                .queryParam("query", place)
+                .queryParam("key", googleApiKey)
+                .toUriString();
+
+        JsonNode tsRoot = restTemplate.getForObject(tsUrl, JsonNode.class);
+        JsonNode results = tsRoot.path("results");
+        if (results.isArray() && results.size() > 0) {
+            JsonNode photos = results.get(0).path("photos");
+            if (photos.isArray() && photos.size() > 0) {
+                return photos.get(0).path("photo_reference").asText();
+            }
+        }
+
+        return null; // 없으면 null
+    }
+
+    private String buildPhotoUrl(String photoReference) {
+        if (photoReference == null || photoReference.isEmpty()) {
+            return "https://placehold.co/300x300?text=No+Image"; // fallback
+        }
+
+        return UriComponentsBuilder
+                .fromHttpUrl("https://maps.googleapis.com/maps/api/place/photo")
+                .queryParam("maxwidth", 400)
+                .queryParam("photoreference", photoReference)
+                .queryParam("key", googleApiKey)
+                .toUriString();
+    }
+
+
     public List<PlaceWithLatLng> recommendPlacesByGpt(String imageUrl) throws IOException {
         System.out.println(">>> start recommend, imageUrl=" + imageUrl);
 
@@ -775,36 +809,21 @@ public class AiService {
         for (PlaceWithLatLng place : places) {
             String name = place.getName().trim();
             String shortDesc = fetchDescription(name);
-            System.out.println("▶ place desc = " + shortDesc);
 
-            // 1) S3 에 해당 이미지 있으면 URL 바로 사용
-            String encoded = URLEncoder
-                    .encode(name, StandardCharsets.UTF_8.toString());
-            String key = "places/" + encoded + ".png";
+            // 1) Google Text Search API → photo_reference 얻기
+            String photoRef = fetchPhotoReference(name);
 
+            // 2) Google Places Photo API URL로 변환
+            String photoUrl = buildPhotoUrl(photoRef);
 
-            String imgUrl;
-            if (s3Service.exists(key)) {
-                // S3Service가 제공하는 URL만 가져오기
-                imgUrl = s3Service.getUrl(key);
-            } else {
-                // DALL·E로 이미지 생성
-                String dalleUrl = generateImageFromPrompt(name);
-                System.out.println("여기까지 옴");
-                MultipartFile fake = downloadAsMultipart(dalleUrl);
-                // S3에 업로드 후 URL 반환
-                imgUrl = s3Service.upload(fake, key);
-            }
+            out.add(new PlaceWithLatLng(name, shortDesc, photoUrl, place.getLatitude(), place.getLongitude()));
 
-            double latitude = place.getLatitude();
-            double longitude = place.getLongitude();
-
-            out.add(new PlaceWithLatLng(name, shortDesc, imgUrl, latitude, longitude));
         }
 
         System.out.println(">>> done: " + out);
         return out;
     }
+
 
 
     private HttpHeaders buildJsonHeaders(String bearerToken) {
