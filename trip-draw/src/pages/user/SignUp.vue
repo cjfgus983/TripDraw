@@ -688,7 +688,7 @@ const verifyCode = async () => {
     );
     alert("회원가입에 성공했습니다.");
     // 가입 성공하면 로그인 페이지로 이동
-    router.push({ name: "Login" });
+    window.location.href = "/login";
   } catch (e: any) {
     // 백엔드에서 던진 메시지가 있으면 보여주고, 없으면 일반 에러
     error.value =

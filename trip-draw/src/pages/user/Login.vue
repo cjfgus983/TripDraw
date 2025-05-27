@@ -161,7 +161,7 @@ const handleLogin = async () => {
     });
 
     // 5) 메인 페이지로 이동
-    router.push({ name: "Main" });
+    window.location.href = "/";
   } catch (err: any) {
     const msg = err.response?.data?.message || "로그인에 실패했습니다.";
     alert(msg);
@@ -171,8 +171,8 @@ const handleLogin = async () => {
 const handleKakaoLogin = () => {
   window.location.href = "/oauth2/authorization/kakao";
 };
-const goToSignup = () => router.push("/signup");
-const goToFindIdPassword = () => router.push("/findidpassword");
+const goToSignup = () => window.location.href = "/signup";
+const goToFindIdPassword = () => window.location.href = "/findidpassword";
 </script>
 
   

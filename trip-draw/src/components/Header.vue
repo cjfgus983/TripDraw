@@ -7,9 +7,12 @@
       <div class="container mx-auto px-4 flex items-center justify-center">
         <div class="logo-container text-center">
           <!-- router-link 로 감싸서 클릭 시 "/" 로 이동 -->
-          <router-link to="/">
-            <img :src="logo" alt="로고" class="h-[150px] cursor-pointer" />
-          </router-link>
+          <img
+            :src="logo"
+            alt="로고"
+            class="h-[150px] cursor-pointer"
+            @click="redirectToMain"
+          />
         </div>
       </div>
     </header>
@@ -31,6 +34,10 @@ const handleScroll = () => {
   isHeaderVisible.value =
     currentScrollPosition < lastScrollPosition || currentScrollPosition < 60;
   lastScrollPosition = currentScrollPosition;
+};
+
+const redirectToMain = () => {
+  window.location.href = "/"; // 전체 새로고침하면서 / 로 이동
 };
 </script>
 
