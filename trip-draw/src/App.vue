@@ -89,13 +89,6 @@ const handleLogout = () => {
   window.location.href = "/"
 }
 
-const goToLogin = () => {
-  window.location.href = "/login"
-}
-
-const goToSignup = () => {
-  window.location.href = "/signup"
-}
 </script>
 
 <style>
